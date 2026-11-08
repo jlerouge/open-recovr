@@ -4,6 +4,10 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    ignore:
+      # The msrv job pins the toolchain to the minimum supported Rust (1.95):
+      # it must only change when rust-version in Cargo.toml does.
+      - dependency-name: dtolnay/rust-toolchain
   - package-ecosystem: cargo
     directory: /
     schedule:
