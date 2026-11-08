@@ -1,0 +1,18 @@
+# Build output
+/target
+
+# PhotoRec for Windows is downloaded by scripts/fetch-photorec.ps1, not stored in Git
+/vendor/testdisk-7.2/
+
+# Scratch screenshots, disk images and leftovers from local runs
+/shots/
+*.img
+*.old-*.exe
+*.pdb
+
+# Editors and systems
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db

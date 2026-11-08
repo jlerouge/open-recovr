@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- M.2 NVMe stick -->
+  <defs>
+    <linearGradient id="b" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14B88A"/>
+      <stop offset="1" stop-color="#05795A"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3A4252"/>
+      <stop offset="1" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-35 32 32)">
+    <path d="M8 23 H60 a2.5 2.5 0 0 1 2.5 2.5 V38.5 a2.5 2.5 0 0 1 -2.5 2.5 H8 Z" fill="url(#b)"/>
+    <path d="M1.5 23 H8 V41 H1.5 V34 H4 V31 H1.5 Z" fill="#E8B84A"/>
+    <g stroke="#B88A22" stroke-width="0.8">
+      <path d="M3 25 H7"/><path d="M3 27 H7"/><path d="M3 29 H7"/>
+      <path d="M3 36 H7"/><path d="M3 38 H7"/><path d="M3 40 H7"/>
+    </g>
+    <rect x="12" y="25.5" width="12" height="13" rx="1.2" fill="url(#chip)"/>
+    <rect x="27" y="25.5" width="13" height="13" rx="1.2" fill="url(#chip)"/>
+    <rect x="43" y="25.5" width="11" height="13" rx="1.2" fill="url(#chip)"/>
+    <rect x="13.5" y="27" width="5" height="2" rx="0.6" fill="#FFFFFF" opacity="0.35"/>
+    <circle cx="62.5" cy="32" r="3" fill="none" stroke="#E8B84A" stroke-width="1.6"/>
+  </g>
+</svg>

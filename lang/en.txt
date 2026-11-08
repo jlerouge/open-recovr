@@ -1,0 +1,441 @@
+# English. Each French line from the code is followed by "= its translation".
+# {} are filled in order, {0} {1}… by position. \n is a line break.
+
+(dossier effacé)
+= (deleted folder)
+(fichier vide)
+= (empty file)
+,
+= .
+Afficher la fenêtre
+= Show the window
+Analyse :
+= Scan:
+Analyse approfondie
+= Deep scan
+Analyse approfondie du disque…
+= Deep scan of the drive…
+Analyse complète du disque…
+= Full scan of the drive…
+Analyse de l'espace libre du disque…
+= Scanning the drive's free space…
+Analyse par PhotoRec, logiciel libre
+= Scan by PhotoRec, free software
+Analyse rapide
+= Quick scan
+Analyse rapide : lecture de la liste des fichiers…
+= Quick scan: reading the file list…
+Analyse rapide : quelques minutes, noms d'origine.
+= Quick scan: a few minutes, original names.
+Analyse rapide : {} fichier(s) gardé(s), {} fichier(s) système ignoré(s), {} hors des critères
+= Quick scan: {} file(s) kept, {} system file(s) ignored, {} outside the criteria
+Analyse rapide impossible : {}
+= Quick scan not possible: {}
+Annuler
+= Cancel
+Aperçu
+= Preview
+Archives
+= Archives
+Arrêter
+= Stop
+Arrêter et quitter
+= Stop and quit
+Arrêter la recherche
+= Stop the search
+Aucun disque trouvé.
+= No drive found.
+Aucun fichier coché
+= No file ticked
+Aucun fichier ne correspond à ces filtres.
+= No file matches these filters.
+Aucun fichier retrouvé sur ce disque
+= No file found on this drive
+Aucun format coché dans une catégorie : tous ses formats sont cherchés.
+= No format ticked in a category: all its formats are searched.
+Autres
+= Other
+Bonnes
+= Good
+CD / DVD
+= CD / DVD
+Calcul du temps restant…
+= Working out the time left…
+Carte CompactFlash
+= CompactFlash card
+Carte SD
+= SD card
+Carte microSD
+= microSD card
+Ce disque ne se laisse pas lire. Vérifiez qu'il est bien branché (ou le disque bien inséré).
+= This drive can't be read. Check that it is plugged in (or that the disc is inserted).
+Ce son ne peut pas être lu ici : essayez « Ouvrir ».
+= This sound can't be played here: try "Open".
+Chances
+= Chances
+Chargement de l'aperçu…
+= Loading the preview…
+Chercher aussi sur tout le disque…
+= Also search the whole drive…
+Choisir un autre endroit
+= Choose another place
+Choisissez d'abord Photos, Documents… pour préciser le format.
+= First choose Photos, Documents… to pick a format.
+Choisissez le disque, la carte mémoire ou la clé USB.
+= Choose the drive, the memory card or the USB stick.
+Choisissez un disque, cliquez sur « Rechercher », puis cochez ce que vous voulez retrouver.
+= Choose a drive, click "Search", then tick what you want back.
+Cliquez pour trier
+= Click to sort
+Cliquez sur l'icône pour revenir. Clic droit : arrêter et quitter.
+= Click the icon to come back. Right-click: stop and quit.
+Cliquez sur un fichier pour le voir ici.
+= Click a file to see it here.
+Clé USB
+= USB stick
+Coche tous les fichiers affichés dans la liste.
+= Ticks every file shown in the list.
+Cocher pour la récupération
+= Tick to recover
+Cocher tout ce qui est affiché
+= Tick everything shown
+Cochez ce que vous voulez récupérer
+= Tick what you want to recover
+Coché pour la récupération
+= Ticked for recovery
+Code source
+= Source code
+Complète
+= Full
+Conseil : enregistrez-les sur un autre disque (une clé USB par exemple).
+= Tip: save them on another drive (a USB stick for example).
+Continuer en arrière-plan
+= Continue in the background
+Continuer quand même
+= Continue anyway
+Copier tout
+= Copy all
+Corbeille
+= Recycle Bin
+Corbeille : {} élément(s) retenu(s)
+= Recycle Bin: {} item(s) kept
+Corbeille vidée · {}
+= Emptied Recycle Bin · {}
+Corbeille · {}
+= Recycle Bin · {}
+Date
+= Date
+Disque dur
+= Hard disk
+Disque externe USB
+= External USB drive
+Disque local ({})
+= Local disk ({})
+Disque {} ({}, {})
+= Drive {} ({}, {})
+Documents
+= Documents
+Décoche tous les fichiers, même ceux masqués par les filtres.
+= Unticks every file, even those hidden by the filters.
+Effacer
+= Clear
+Environ {} h {} restantes
+= About {} h {} left
+Environ {} min restantes
+= About {} min left
+Espace libre du disque
+= Free space of the drive
+Essayez un autre disque, ou une clé USB si les fichiers y étaient.
+= Try another drive, or a USB stick if the files were there.
+Excellentes
+= Excellent
+Faibles
+= Low
+Fichiers récupérés {}
+= Recovered files {}
+Format :
+= Format:
+Formats :
+= Formats:
+Impossible de lire ce disque en profondeur. Relancez l'application en {}.
+= This drive can't be read in depth. Start the application again as {}.
+JPEG, PNG, HEIC, photos d'appareil (RAW), Photoshop…
+= JPEG, PNG, HEIC, camera photos (RAW), Photoshop…
+Je cherche :
+= I'm looking for:
+Journal de la recherche
+= Search log
+Jusqu'où chercher ?
+= How far to search?
+La recherche rapide n'a regardé que la corbeille. Passez en recherche approfondie pour lire tout le disque.
+= The quick search only looked in the Recycle Bin. Switch to deep search to read the whole drive.
+La recherche s'est arrêtée : plus assez de place sur le disque de travail.
+= The search stopped: not enough room left on the working drive.
+Langue de l'interface
+= Interface language
+Le système
+= The system
+Les fichiers apparaîtront ici dès qu'ils sont trouvés.
+= Files will show up here as soon as they are found.
+Mode expert
+= Expert mode
+Moins d'une minute restante
+= Less than a minute left
+Musique
+= Music
+Même disque que les fichiers perdus
+= Same drive as the lost files
+Ne montre que les fichiers dont le nom ou le dossier contient ces lettres.
+= Only shows files whose name or folder holds these letters.
+Ne plus me le proposer au démarrage
+= Don't offer this at start again
+Ne regarde que dans la corbeille. Quelques secondes, aucune autorisation demandée. Si la corbeille a été vidée, les fichiers ne seront pas retrouvés.
+= Only looks in the Recycle Bin. A few seconds, no permission asked. If the Recycle Bin was emptied, the files won't be found.
+Nom
+= Name
+On ne peut pas enregistrer sur ce disque : choisissez un autre dossier.
+= Files can't be saved on this drive: choose another folder.
+Open Recovr continue en arrière-plan
+= Open Recovr keeps going in the background
+Open Recovr — récupération de fichiers
+= Open Recovr — file recovery
+Ouvre le fichier dans le programme habituel, sans le récupérer.
+= Opens the file in its usual program, without recovering it.
+Ouvrir
+= Open
+Ouvrir le dossier
+= Open the folder
+Où enregistrer les fichiers récupérés ?
+= Where to save the recovered files?
+Où étaient vos fichiers ?
+= Where were your files?
+Pas d'aperçu pour ce fichier
+= No preview for this file
+Pas de recherche possible
+= Can't be searched
+Pas trouvé ? Lancer l'analyse complète
+= Not found? Run the full scan
+Passer en recherche approfondie
+= Switch to deep search
+PhotoRec indisponible : recherche intégrée à la place
+= PhotoRec unavailable: built-in search instead
+PhotoRec n'a pas pu démarrer
+= PhotoRec could not start
+Photos
+= Photos
+Plus de {}
+= Over {}
+Préciser
+= Refine
+Préparation de l'analyse approfondie…
+= Preparing the deep scan…
+Préparation…
+= Preparing…
+Range la fenêtre près de l'horloge : la recherche continue et l'icône indique où elle en est. Fermer la fenêtre pendant la recherche fait la même chose.
+= Tucks the window by the clock: the search goes on and the icon shows how far it is. Closing the window during the search does the same.
+Rapide
+= Quick
+Recherche approfondie (conseillée)
+= Deep search (recommended)
+Recherche approfondie : tout le disque est lu.
+= Deep search: the whole drive is read.
+Recherche approfondie activée
+= Deep search on
+Recherche arrêtée : {} fichier(s), {}
+= Search stopped: {} file(s), {}
+Recherche dans la corbeille…
+= Searching the Recycle Bin…
+Recherche en cours…
+= Searching…
+Recherche rapide (maintenant)
+= Quick search (now)
+Recherche rapide : seule la corbeille est fouillée.
+= Quick search: only the Recycle Bin is searched.
+Recherche terminée : {}
+= Search finished: {}
+Recherche terminée : {} fichier(s), {}
+= Search finished: {} file(s), {}
+Recherche {} % · {} · {}
+= Searching {} % · {} · {}
+Rechercher les fichiers perdus
+= Search for lost files
+Rechercher un nom…
+= Search a name…
+Relancer la recherche
+= Search again
+Rester en rapide
+= Stay quick
+Retrouvez vos fichiers effacés, simplement.
+= Get your deleted files back, simply.
+Retrouvé dans l'espace libre · {}
+= Found in free space · {}
+Retrouvé par l'analyse approfondie
+= Found by the deep scan
+Rien n'est modifié sur le disque.
+= Nothing is changed on the drive.
+Récupération : {} / {} fichiers
+= Recovering: {} / {} files
+Récupération terminée
+= Recovery finished
+Récupération… {} / {}
+= Recovering… {} / {}
+Récupérer ce fichier
+= Recover this file
+Récupérer la sélection
+= Recover the selection
+Réduit la fenêtre : la recherche continue.
+= Minimizes the window: the search goes on.
+SSD
+= SSD
+SSD NVMe
+= NVMe SSD
+SSD SATA
+= SATA SSD
+Supprimé le
+= Deleted on
+Système de fichiers : {}
+= File system: {}
+Taille
+= Size
+Taille :
+= Size:
+Textes et notes
+= Texts and notes
+Tous
+= All
+Tous les types de fichiers que l'analyse sait reconnaître.
+= Every kind of file the scan can recognise.
+Tout
+= All
+Tout cocher
+= Tick all
+Tout décocher
+= Untick all
+Toutes
+= Any
+Toutes tailles
+= Any size
+Trouvé dans
+= Found in
+Type
+= Type
+Téléphone
+= Phone
+Un téléphone ne se fouille pas ainsi
+= A phone can't be searched this way
+Branché en USB, il ne montre que ses fichiers présents, et sa mémoire est chiffrée : les fichiers effacés ne peuvent pas être lus depuis l'ordinateur.
+= Plugged in by USB, it only shows the files it still has, and its memory is encrypted: deleted files can't be read from the computer.
+Regardez plutôt dans la corbeille de l'appli Galerie ou Photos (30 jours), dans Google Photos ou iCloud. Si le téléphone a une carte microSD, mettez-la dans un lecteur de cartes.
+= Look instead in the bin of the Gallery or Photos app (30 days), in Google Photos or iCloud. If the phone has a microSD card, put it in a card reader.
+Vidéos
+= Videos
+Vos fichiers ne sont peut-être pas perdus
+= Your files may not be lost
+Word, Excel, PowerPoint, PDF, OpenOffice, textes, notes, code source…
+= Word, Excel, PowerPoint, PDF, OpenOffice, texts, notes, source code…
+administrateur
+= administrator
+archive
+= archive
+ce n'est pas un disque NTFS
+= it is not an NTFS drive
+document
+= document
+dossier
+= folder
+début du disque illisible
+= start of the drive unreadable
+déjà trouvé par l'analyse rapide : {}
+= already found by the quick scan: {}
+fichier
+= file
+fichier coché
+= file ticked
+fichier déjà sur le disque
+= file already on the drive
+fichier récupéré
+= file recovered
+fichier trouvé
+= file found
+fichiers cochés
+= files ticked
+fichiers récupérés
+= files recovered
+fichiers trouvés
+= files found
+gardé
+= kept
+gardé {} ({})
+= kept {} ({})
+inconnue
+= unknown
+lecture du disque refusée ({})
+= reading the drive was refused ({})
+lecture interrompue
+= reading interrupted
+ligne
+= line
+lignes
+= lines
+o Ko Mo Go To
+= B KB MB GB TB
+photo
+= photo
+sans extension
+= no extension
+son
+= sound
+superutilisateur (root)
+= superuser (root)
+table des fichiers illisible
+= file table unreadable
+trouvé {} ({}) à l'octet {}
+= found {} ({}) at byte {}
+video
+= video
+zone illisible à l'octet {} ({}) : ignorée
+= unreadable area at byte {} ({}): skipped
+{0}/{1}/{2}
+= {2}-{1}-{0}
+{} dossiers, {} fichiers effacés dans la table
+= {} folders, {} deleted files in the table
+{} libres
+= {} free
+{} libres sur {}
+= {} free of {}
+{} n'a pas donné l'autorisation : la recherche reste rapide.
+= {} did not give permission: the search stays quick.
+{} · {} impossible(s) à lire
+= {} · {} unreadable
+{} — c'est fait !
+= {} — done!
+{}. Cliquez pour voir les fichiers.
+= {}. Click to see the files.
+Affiche le journal de la recherche (avec les lignes de PhotoRec) et les premiers octets des fichiers qui n'ont pas d'aperçu.
+= Shows the search log (with PhotoRec's lines) and the first bytes of files that have no preview.
+Analyse rapide : table NTFS de {} ({} entrées, blocs de {} o)
+= Quick scan: NTFS table of {} ({} entries, {} B blocks)
+Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter les petits fichiers sans intérêt.
+= Choose a precise format (JPG, Word…) or a minimum size, to leave out small files of no interest.
+Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
+= Saving here may overwrite other files that could still be recovered. Better choose a USB stick or another drive.
+Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Does the quick scan, then reads the whole drive with PhotoRec: also finds older files, often without their name. May take more than an hour.
+La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
+= The deep search uses PhotoRec 7.2 © Christophe Grenier, distributed under the GNU GPL licence (www.cgsecurity.org). It recognises hundreds of file types.
+Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
+= The log fills up during the search: every step, and in deep search PhotoRec's lines.
+Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
+= Reads the drive's file table: a few minutes, and files keep their name and folder. Finds what was deleted recently, even after emptying the Recycle Bin.
+Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
+= Reads the whole drive with PhotoRec to also find older files.
+Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
+= Reads the whole drive to also find files deleted long ago or after emptying the Recycle Bin. Longer: from a few minutes to over an hour depending on the drive. {} will ask you to allow the application ({}).
+Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
+= For now only the Recycle Bin is searched. The deep search reads the whole drive and also finds files deleted long ago.
+Écouter
+= Listen
+écarté
+= skipped
+écarté {} ({}) : hors des critères
+= skipped {} ({}): outside the criteria
