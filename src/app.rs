@@ -430,6 +430,8 @@ pub struct App {
 }
 
 impl App {
+    // Player is a unit struct on Linux and macOS, a real one on Windows.
+    #[allow(clippy::default_constructed_unit_structs)]
     pub fn new(screenshot: Option<PathBuf>) -> Self {
         let disks = sys::list_disks();
         // Start on the drive holding the person's own folder, where most lost files live.

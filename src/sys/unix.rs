@@ -179,6 +179,8 @@ pub fn ui_language() -> Option<String> {
     None
 }
 
+// statvfs field widths differ between Linux (u64) and macOS (u32): the casts are needed there.
+#[allow(clippy::unnecessary_cast)]
 pub fn list_disks() -> Vec<Disk> {
     let mut out: Vec<Disk> = Vec::new();
     for (device, mount, fs) in mounts() {
@@ -263,6 +265,7 @@ pub fn volume_bitmap(_file: &File) -> Option<Vec<u8>> {
     None
 }
 
+#[allow(clippy::unnecessary_cast)] // see list_disks
 pub fn free_space(path: &Path) -> Option<u64> {
     let mut p = path;
     // the scratch folder may not exist yet: ask about its parent
