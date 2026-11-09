@@ -28,6 +28,8 @@ pub enum Kind {
     UsbDrive,
     /// a phone (or camera) plugged in by USB: listed, but its memory can't be read raw
     Phone,
+    /// a disk image file (.img, .dd…) made with ddrescue, dd or a cloning tool
+    Image,
 }
 
 impl Kind {
@@ -44,6 +46,7 @@ impl Kind {
             Kind::UsbStick => t!("Clé USB"),
             Kind::UsbDrive => t!("Disque externe USB"),
             Kind::Phone => t!("Téléphone"),
+            Kind::Image => t!("Image disque"),
         }
     }
 
@@ -60,6 +63,7 @@ impl Kind {
             Kind::UsbStick => "usb",
             Kind::UsbDrive => "external",
             Kind::Phone => "phone",
+            Kind::Image => "image",
         }
     }
 
@@ -149,7 +153,7 @@ pub struct Disk {
 
 impl Disk {
     pub fn title(&self) -> String {
-        if self.kind == Kind::Phone {
+        if matches!(self.kind, Kind::Phone | Kind::Image) {
             return self.label.clone();
         }
         let label = self.label.trim();
@@ -169,7 +173,7 @@ impl Disk {
 
     /// Whether files can be written there (not on a phone, a CD or a DVD).
     pub fn writable(&self) -> bool {
-        !matches!(self.kind, Kind::Phone | Kind::Optical)
+        !matches!(self.kind, Kind::Phone | Kind::Optical | Kind::Image)
     }
 }
 
@@ -205,6 +209,48 @@ pub fn disk_of<'a>(path: &Path, disks: &'a [Disk]) -> Option<&'a Disk> {
             !r.is_empty() && p.starts_with(&r) && (r.ends_with(['/', '\\']) || p.len() == r.len() || p[r.len()..].starts_with(['/', '\\']))
         })
         .max_by_key(|d| d.root.as_os_str().len())
+}
+
+/// A disk image file (made with ddrescue, dd, a cloning tool…) listed like a drive: no
+/// administrator rights needed to read it, and the damaged drive is left alone.
+pub fn open_image(path: &Path) -> Option<Disk> {
+    use std::io::Read;
+    let meta = std::fs::metadata(path).ok().filter(|m| m.is_file() && m.len() >= 512)?;
+    let mut boot = [0u8; 512];
+    std::fs::File::open(path).ok()?.read_exact(&mut boot).ok()?;
+    let (fs, cluster) = image_fs(&boot);
+    let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    Some(Disk {
+        id: path.to_string_lossy().into_owned(),
+        root: PathBuf::new(),
+        device: path.to_string_lossy().into_owned(),
+        label: name,
+        fs: fs.into(),
+        total: meta.len(),
+        free: 0,
+        removable: false,
+        cluster,
+        kind: Kind::Image,
+        model: String::new(),
+    })
+}
+
+/// The file system of an image holding a single volume, from its first sector (nothing
+/// for the image of a whole disk, read from end to end).
+fn image_fs(b: &[u8; 512]) -> (&'static str, u64) {
+    let cluster = u16::from_le_bytes([b[11], b[12]]) as u64 * b[13] as u64;
+    let cluster = if cluster.is_power_of_two() && (512..=2 << 20).contains(&cluster) { cluster } else { 512 };
+    if &b[3..11] == b"NTFS    " {
+        ("NTFS", cluster)
+    } else if &b[3..11] == b"EXFAT   " {
+        ("exFAT", 512)
+    } else if &b[82..90] == b"FAT32   " {
+        ("FAT32", cluster)
+    } else if &b[54..59] == b"FAT16" || &b[54..59] == b"FAT12" {
+        ("FAT", cluster)
+    } else {
+        ("", 512)
+    }
 }
 
 pub fn home_dir() -> Option<PathBuf> {

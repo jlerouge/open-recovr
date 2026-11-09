@@ -71,8 +71,6 @@ Ce disque ne se laisse pas lire. Vérifiez qu'il est bien branché (ou le disque
 = This drive can't be read. Check that it is plugged in (or that the disc is inserted).
 Ce son ne peut pas être lu ici : essayez « Ouvrir ».
 = This sound can't be played here: try "Open".
-Chances
-= Chances
 Chargement de l'aperçu…
 = Loading the preview…
 Chercher aussi sur tout le disque…
@@ -439,3 +437,62 @@ Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit to
 = skipped
 écarté {} ({}) : hors des critères
 = skipped {} ({}): outside the criteria
+
+1 doublon masqué · Afficher
+= 1 duplicate hidden · Show
+{} doublons masqués · Afficher
+= {} duplicates hidden · Show
+Masquer les doublons
+= Hide duplicates
+Les mêmes fichiers retrouvés plusieurs fois : une seule copie est montrée.
+= The same file found several times: only one copy is shown.
+Choisir une image disque
+= Choose a disk image
+Ouvrir une image disque…
+= Open a disk image…
+Un fichier .img ou .dd copié depuis un disque abîmé (avec ddrescue, par exemple). Le disque d'origine n'est plus sollicité.
+= An .img or .dd file copied from a failing drive (with ddrescue, for example). The original drive is left alone.
+Image disque
+= Disk image
+Tous les fichiers
+= All files
+Lue sans toucher au disque d'origine
+= Read without touching the original drive
+Doublon de
+= Duplicate of
+Infos
+= Details
+État
+= Condition
+Intact
+= Intact
+Endommagé
+= Damaged
+Vide
+= Empty
+intact, vérifié de bout en bout
+= intact, checked from start to end
+endommagé : {}
+= damaged: {}
+vide, que des zéros
+= empty, nothing but zeros
+vérification…
+= checking…
+la fin de l'image manque
+= the end of the picture is missing
+l'image ne se décode pas
+= the picture cannot be decoded
+l'image est mélangée avec une autre
+= the picture is mixed with another one
+le sommaire de l'archive manque
+= the archive's table of contents is missing
+une partie du contenu est abîmée
+= part of the content is damaged
+la fin du document manque
+= the end of the document is missing
+le fichier est coupé avant la fin
+= the file is cut short
+l'index de la vidéo manque
+= the video's index is missing
+les images de la vidéo manquent
+= the video's frames are missing

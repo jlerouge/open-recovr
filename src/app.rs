@@ -4,12 +4,14 @@ use crate::art::{self, Art};
 use crate::engine::{self, Category, Chance, CopyShared, FORMATS, Found, Origin, ScanJob, ScanPlan, ScanShared, Wanted};
 use crate::i18n;
 use crate::icons::{self, Icon};
+use crate::inspect::{Inspector, Verdict};
 use crate::preview::{self, Preview};
 use crate::sys::{self, Disk};
 use eframe::egui::{
     self, Align, Align2, Color32, CornerRadius, FontFamily, FontId, Frame, Layout, Margin, Rect, Sense, Shadow, Stroke, StrokeKind,
     TextureHandle, Vec2, pos2, vec2,
 };
+use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
@@ -25,6 +27,8 @@ pub const BORDER: Color32 = Color32::from_rgb(229, 231, 235);
 pub const GREEN: Color32 = Color32::from_rgb(22, 163, 74);
 pub const GREEN_SOFT: Color32 = Color32::from_rgb(220, 252, 231);
 pub const AMBER: Color32 = Color32::from_rgb(180, 83, 9);
+pub const RED: Color32 = Color32::from_rgb(185, 28, 28);
+pub const RED_SOFT: Color32 = Color32::from_rgb(254, 226, 226);
 
 pub fn bold(size: f32) -> FontId {
     FontId::new(size, FontFamily::Name("bold".into()))
@@ -139,6 +143,15 @@ struct ViewKey {
     min: u64,
     sort: Option<(SortKey, bool)>,
     query: String,
+    dupes: bool,
+}
+
+/// What the inspector learned about a found file.
+struct Check {
+    verdict: Verdict,
+    detail: Option<String>,
+    /// The index of the first file found with the same content.
+    copy_of: Option<usize>,
 }
 
 /// What the preview panel holds for the focused file.
@@ -427,6 +440,15 @@ pub struct App {
     shot_requested: bool,
     shot_done: Arc<AtomicBool>,
     art: Art,
+    /// Looks inside each found file in the background.
+    inspector: Option<Inspector>,
+    /// How many of the found files were handed to the inspector.
+    sent: usize,
+    index_of: HashMap<usize, usize>,
+    checks: HashMap<usize, Check>,
+    digests: HashMap<u64, usize>,
+    dupes: usize,
+    show_dupes: bool,
 }
 
 impl App {
@@ -486,6 +508,13 @@ impl App {
             shot_requested: false,
             shot_done: Arc::new(AtomicBool::new(false)),
             art: Art::default(),
+            inspector: None,
+            sent: 0,
+            index_of: HashMap::new(),
+            checks: HashMap::new(),
+            digests: HashMap::new(),
+            dupes: 0,
+            show_dupes: false,
         }
     }
 
@@ -499,7 +528,26 @@ impl App {
 
     /// The selected drive can be searched through its file table (NTFS, with the rights to read it).
     fn quick_possible(&self) -> bool {
-        self.admin && self.disks.get(self.selected).is_some_and(crate::ntfs::is_ntfs)
+        self.full_access() && self.disks.get(self.selected).is_some_and(crate::ntfs::is_ntfs)
+    }
+
+    /// The whole drive can be read: with administrator rights, or always for an image file.
+    fn full_access(&self) -> bool {
+        self.admin || self.disks.get(self.selected).is_some_and(|d| d.kind == sys::Kind::Image)
+    }
+
+    /// Lists a disk image file as a drive and selects it.
+    pub fn open_image(&mut self, path: &std::path::Path) -> bool {
+        let Some(disk) = sys::open_image(path) else { return false };
+        self.selected = match self.disks.iter().position(|d| d.id == disk.id) {
+            Some(i) => i,
+            None => {
+                self.disks.push(disk);
+                self.disks.len() - 1
+            }
+        };
+        self.ask_deep = false;
+        true
     }
 
     pub fn show_journal(&mut self) {
@@ -543,6 +591,18 @@ impl App {
                 let name = t!("Fichiers récupérés {}", "2026-11-08");
                 let folder = PathBuf::from(if cfg!(windows) { r"E:\" } else { "/media/usb" }).join(name);
                 self.copy = Some(Arc::new(Mutex::new(CopyShared { done_files: n, total_files: n, failed: 0, finished: true, folder })));
+            }
+            // the n-th damaged file found, among the others of its kind, duplicates shown
+            s if s.starts_with("damaged") => {
+                let n: usize = s.trim_start_matches("damaged").trim_start_matches('-').parse().unwrap_or(1);
+                let mut bad: Vec<usize> =
+                    self.checks.iter().filter(|(_, c)| matches!(c.verdict, Verdict::Damaged(_))).map(|(&i, _)| i).collect();
+                bad.sort();
+                if let Some(&i) = bad.get(n.saturating_sub(1)) {
+                    self.show_dupes = true;
+                    self.filter = Some(self.files[i].category);
+                    self.focus = Some(i);
+                }
             }
             _ => {}
         }
@@ -645,6 +705,15 @@ impl App {
         self.copy = None;
         self.found = 0;
         self.found_bytes = 0;
+        if let Some(i) = &self.inspector {
+            i.reset();
+        }
+        self.sent = 0;
+        self.index_of.clear();
+        self.checks.clear();
+        self.digests.clear();
+        self.dupes = 0;
+        self.show_dupes = false;
         self.last_quick = self.quick_possible() && !self.full;
         self.scanned_once = true;
         self.phase = t!("Préparation…").into();
@@ -653,7 +722,7 @@ impl App {
         let plan = ScanPlan {
             stage: sys::pick_stage(&disk, &self.disks),
             disk,
-            deep: self.admin,
+            deep: self.full_access(),
             full: self.full,
             wanted: self.wanted.clone(),
             photorec: self.photorec.clone(),
@@ -706,7 +775,52 @@ impl App {
                 self.playing = None;
             }
         }
+        self.inspect_new(ctx);
         self.refresh_view();
+    }
+
+    /// Hands the newly found files to the inspector and applies what it learned.
+    fn inspect_new(&mut self, ctx: &egui::Context) {
+        if self.sent < self.files.len() {
+            let ins = self.inspector.get_or_insert_with(|| Inspector::start(ctx.clone()));
+            for i in self.sent..self.files.len() {
+                self.index_of.insert(self.files[i].id, i);
+                ins.send(&self.files[i]);
+            }
+            self.sent = self.files.len();
+        }
+        let Some(ins) = &self.inspector else { return };
+        let got = ins.take();
+        if got.is_empty() {
+            return;
+        }
+        for s in got {
+            let Some(&i) = self.index_of.get(&s.id) else { continue };
+            let f = &mut self.files[i];
+            if let Some(n) = s.name {
+                f.name = n;
+            }
+            if s.stamp > 0 && f.stamp == 0 {
+                f.stamp = s.stamp;
+                f.date = crate::engine::secs_to_date(s.stamp);
+            }
+            let copy_of = s.digest.and_then(|d| match self.digests.entry(d) {
+                std::collections::hash_map::Entry::Occupied(e) => Some(*e.get()),
+                std::collections::hash_map::Entry::Vacant(e) => {
+                    e.insert(i);
+                    None
+                }
+            });
+            if copy_of.is_some() {
+                self.dupes += 1;
+            }
+            self.checks.insert(i, Check { verdict: s.verdict, detail: s.detail, copy_of });
+        }
+        self.view_key = None;
+    }
+
+    fn hidden_dupe(&self, i: usize) -> bool {
+        !self.show_dupes && self.checks.get(&i).is_some_and(|c| c.copy_of.is_some())
     }
 
     /// Rebuilds the visible list when the results, the filters or the sort order changed.
@@ -718,6 +832,7 @@ impl App {
             min: self.show_min,
             sort: self.sort,
             query: self.query.trim().to_lowercase(),
+            dupes: self.show_dupes,
         };
         if self.view_key.as_ref() == Some(&key) {
             return;
@@ -726,7 +841,8 @@ impl App {
         let mut v: Vec<usize> = (0..files.len())
             .filter(|&i| {
                 let f = &files[i];
-                self.filter.is_none_or(|c| f.category == c)
+                !self.hidden_dupe(i)
+                    && self.filter.is_none_or(|c| f.category == c)
                     && self.ext_filter.as_ref().is_none_or(|e| &f.ext == e)
                     && f.size >= self.show_min
                     && (key.query.is_empty() || f.name.to_lowercase().contains(&key.query) || f.place.to_lowercase().contains(&key.query))
@@ -893,7 +1009,19 @@ impl App {
                             }
                         });
                     });
-                    ui.add_space(10.0);
+                    if text_link(ui, t!("Ouvrir une image disque…"), 24.0, !busy)
+                        .on_hover_text(t!("Un fichier .img ou .dd copié depuis un disque abîmé (avec ddrescue, par exemple). \
+                             Le disque d'origine n'est plus sollicité."))
+                        .clicked()
+                        && let Some(path) = rfd::FileDialog::new()
+                            .set_title(t!("Choisir une image disque"))
+                            .add_filter(t!("Image disque"), &["img", "dd", "raw", "bin", "iso", "dmg"])
+                            .add_filter(t!("Tous les fichiers"), &["*"])
+                            .pick_file()
+                    {
+                        self.open_image(&path);
+                    }
+                    ui.add_space(6.0);
                     self.target_chips(ui, busy);
                     if self.quick_possible() {
                         self.mode_row(ui, busy);
@@ -953,7 +1081,7 @@ impl App {
                             self.start_scan(ui.ctx());
                         }
                         ui.add_space(10.0);
-                        if self.admin {
+                        if self.full_access() {
                             let what = if self.quick_possible() && !self.full {
                                 t!("Analyse rapide : quelques minutes, noms d'origine.")
                             } else {
@@ -1178,10 +1306,24 @@ impl App {
         self.art.paint(ui, d.kind.art(), pic);
         let x = pic.right() + 10.0;
         p.text(pos2(x, rect.top() + 24.0), Align2::LEFT_CENTER, elide(&d.title(), 20), bold(15.0), TEXT);
-        let second =
-            if d.total > 0 { format!("{} · {}", d.kind.label(), t!("{} libres", human_size(d.free))) } else { d.kind.label().to_string() };
+        let image = d.kind == sys::Kind::Image;
+        let second = if image {
+            format!("{} · {}", d.kind.label(), human_size(d.total))
+        } else if d.total > 0 {
+            format!("{} · {}", d.kind.label(), t!("{} libres", human_size(d.free)))
+        } else {
+            d.kind.label().to_string()
+        };
         p.text(pos2(x, rect.top() + 45.0), Align2::LEFT_CENTER, elide(&second, 26), regular(12.5), MUTED);
-        if d.total > 0 {
+        if image {
+            p.text(
+                pos2(rect.left() + 14.0, rect.bottom() - 18.0),
+                Align2::LEFT_CENTER,
+                t!("Lue sans toucher au disque d'origine"),
+                regular(12.0),
+                GREEN,
+            );
+        } else if d.total > 0 {
             let bar = Rect::from_min_max(pos2(rect.left() + 14.0, rect.bottom() - 22.0), pos2(rect.right() - 14.0, rect.bottom() - 14.0));
             p.rect_filled(bar, CornerRadius::same(4), Color32::from_rgb(229, 231, 235));
             let used = 1.0 - d.free as f32 / d.total as f32;
@@ -1207,7 +1349,9 @@ impl App {
         if !d.fs.is_empty() {
             tip.push(t!("Système de fichiers : {}", d.fs));
         }
-        if d.total > 0 {
+        if image {
+            tip.push(d.device.clone());
+        } else if d.total > 0 {
             tip.push(t!("{} libres sur {}", human_size(d.free), human_size(d.total)));
         }
         if tip.is_empty() { resp } else { resp.on_hover_text(tip.join("\n")) }
@@ -1282,7 +1426,7 @@ impl App {
             } else if self.scanned_once {
                 (
                     t!("Aucun fichier retrouvé sur ce disque"),
-                    if self.admin {
+                    if self.full_access() {
                         t!("Essayez un autre disque, ou une clé USB si les fichiers y étaient.")
                     } else {
                         t!("La recherche rapide n'a regardé que la corbeille. Passez en recherche approfondie pour lire tout le disque.")
@@ -1307,11 +1451,12 @@ impl App {
     fn chips(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 8.0;
-            if chip(ui, None, format!("{}  {}", t!("Tout"), self.files.len()), self.filter.is_none(), TEXT, true).clicked() {
+            let shown: Vec<&Found> = (0..self.files.len()).filter(|&i| !self.hidden_dupe(i)).map(|i| &self.files[i]).collect();
+            if chip(ui, None, format!("{}  {}", t!("Tout"), shown.len()), self.filter.is_none(), TEXT, true).clicked() {
                 self.filter = None;
             }
             for c in Category::ALL {
-                let n = self.files.iter().filter(|f| f.category == c).count();
+                let n = shown.iter().filter(|f| f.category == c).count();
                 if n == 0 {
                     continue;
                 }
@@ -1331,6 +1476,22 @@ impl App {
                         .margin(Margin::symmetric(10, 7)),
                 )
                 .on_hover_text(t!("Ne montre que les fichiers dont le nom ou le dossier contient ces lettres."));
+                if self.dupes > 0 {
+                    ui.add_space(6.0);
+                    let text = if self.show_dupes {
+                        t!("Masquer les doublons").to_string()
+                    } else if self.dupes == 1 {
+                        t!("1 doublon masqué · Afficher").to_string()
+                    } else {
+                        t!("{} doublons masqués · Afficher", self.dupes)
+                    };
+                    if text_link(ui, &text, 14.0, true)
+                        .on_hover_text(t!("Les mêmes fichiers retrouvés plusieurs fois : une seule copie est montrée."))
+                        .clicked()
+                    {
+                        self.show_dupes = !self.show_dupes;
+                    }
+                }
             });
         });
         ui.add_space(8.0);
@@ -1421,7 +1582,7 @@ impl App {
                 self.set_sort(k);
             }
         }
-        p.text(pos2(hr.right() - 12.0, hr.center().y), Align2::RIGHT_CENTER, t!("Chances"), bold(13.0), MUTED);
+        p.text(pos2(hr.right() - 12.0, hr.center().y), Align2::RIGHT_CENTER, t!("État"), bold(13.0), MUTED);
         p.line_segment([pos2(hr.left(), hr.bottom()), pos2(hr.right(), hr.bottom())], Stroke::new(1.0, BORDER));
 
         if visible.is_empty() {
@@ -1466,10 +1627,15 @@ impl App {
                     TEXT,
                 );
                 p.text(pos2(r.right() - 120.0, r.center().y), Align2::RIGHT_CENTER, human_size(f.size), regular(14.0), TEXT);
-                let (txt, fg, bg) = match f.chance {
-                    Chance::Excellent => (t!("Excellentes"), GREEN, GREEN_SOFT),
-                    Chance::Good => (t!("Bonnes"), ACCENT, ACCENT_SOFT),
-                    Chance::Low => (t!("Faibles"), AMBER, Color32::from_rgb(254, 243, 199)),
+                let (txt, fg, bg) = match self.checks.get(&idx).map(|c| c.verdict) {
+                    Some(Verdict::Intact) => (t!("Intact"), GREEN, GREEN_SOFT),
+                    Some(Verdict::Damaged(_)) => (t!("Endommagé"), RED, RED_SOFT),
+                    Some(Verdict::Empty) => (t!("Vide"), MUTED, Color32::from_rgb(243, 244, 246)),
+                    _ => match f.chance {
+                        Chance::Excellent => (t!("Excellentes"), GREEN, GREEN_SOFT),
+                        Chance::Good => (t!("Bonnes"), ACCENT, ACCENT_SOFT),
+                        Chance::Low => (t!("Faibles"), AMBER, Color32::from_rgb(254, 243, 199)),
+                    },
                 };
                 let br = Rect::from_min_max(pos2(r.right() - 96.0, r.center().y - 12.0), pos2(r.right() - 6.0, r.center().y + 12.0));
                 p.rect_filled(br, CornerRadius::same(255), bg);
@@ -1624,12 +1790,33 @@ impl App {
             Origin::Staged { .. } => t!("Analyse approfondie"),
             Origin::Runs { .. } | Origin::Bytes(_) => t!("Analyse rapide"),
         };
-        let facts = [
+        let mut facts = vec![
             (t!("Type"), kind),
             (t!("Taille"), human_size(f.size)),
             (date_label, f.date.clone().unwrap_or_else(|| t!("inconnue").into())),
             (t!("Trouvé dans"), place.to_string()),
         ];
+        match self.checks.get(&idx) {
+            Some(c) => {
+                let state = match c.verdict {
+                    Verdict::Intact => Some(t!("intact, vérifié de bout en bout").to_string()),
+                    Verdict::Damaged(why) => Some(t!("endommagé : {}", why)),
+                    Verdict::Empty => Some(t!("vide, que des zéros").to_string()),
+                    Verdict::Unknown => None,
+                };
+                if let Some(s) = state {
+                    facts.push((t!("État"), s));
+                }
+                if let Some(d) = &c.detail {
+                    facts.push((t!("Infos"), d.clone()));
+                }
+                if let Some(o) = c.copy_of {
+                    facts.push((t!("Doublon de"), self.files[o].name.clone()));
+                }
+            }
+            None if self.inspector.as_ref().is_some_and(|i| i.busy()) => facts.push((t!("État"), t!("vérification…").to_string())),
+            None => {}
+        }
         if column {
             ui.add(egui::Label::new(egui::RichText::new(&f.name).font(bold(16.0)).color(TEXT)).wrap()).on_hover_text(&f.place);
             ui.add_space(6.0);
@@ -1829,7 +2016,7 @@ impl App {
 
     /// Explains the two kinds of search and offers the deep one, at start and on demand.
     fn deep_modal(&mut self, ctx: &egui::Context) {
-        if !self.ask_deep || self.admin {
+        if !self.ask_deep || self.full_access() {
             return;
         }
         let mut go = false;
@@ -1964,14 +2151,21 @@ impl App {
         {
             self.focus = Some(i);
         }
-        if self.shot_done.load(Ordering::Relaxed) || self.frames > 900 {
+        if self.shot_done.load(Ordering::Relaxed) || self.frames > 3000 {
             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
             return;
         }
-        if self.frames == 60 {
+        // wait for the search and the checks to end, so the picture shows the results
+        let settled = !self.scanning() && self.sent == self.files.len() && !self.inspector.as_ref().is_some_and(|i| i.busy());
+        let after_checks = self.scene.as_deref().is_some_and(|s| s.starts_with("damaged"));
+        if self.frames == 60 && !after_checks {
             self.apply_scene();
         }
-        if self.frames >= 120 && !self.shot_requested {
+        if after_checks && settled && self.frames >= 60 {
+            self.apply_scene();
+            self.frames = 90; // a few frames to draw it
+        }
+        if self.frames >= 120 && settled && !self.shot_requested {
             self.shot_requested = true;
             let done = self.shot_done.clone();
             let c = ctx.clone();

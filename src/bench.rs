@@ -111,6 +111,173 @@ fn zip_file(r: &mut Rng) -> Vec<u8> {
 }
 
 fn pdf(r: &mut Rng) -> Vec<u8> {
+    pdf_doc(r, None)
+}
+
+// ---------------------------------------------------------------- files that say something about themselves
+
+/// A picture with the camera and the moment it was taken in its EXIF block.
+pub(crate) fn jpeg_with_exif(w: u32, h: u32, seed: u64, make: &str, model: &str, date: &str) -> Vec<u8> {
+    let mut out = Cursor::new(Vec::new());
+    image::DynamicImage::ImageRgb8(picture(&mut Rng(seed | 1), w, h)).write_to(&mut out, image::ImageFormat::Jpeg).unwrap();
+    let plain = out.into_inner();
+    // TIFF, little-endian: the main IFD at 8, the EXIF IFD at 50, the texts from 92
+    let mut data = Vec::new();
+    let mut text = |s: &str| {
+        let at = 92 + data.len() as u32;
+        data.extend_from_slice(s.as_bytes());
+        data.push(0);
+        if data.len() % 2 == 1 {
+            data.push(0);
+        }
+        (s.len() as u32 + 1, at)
+    };
+    let (make, model, date) = (text(make), text(model), text(date));
+    let mut t = b"II*\0".to_vec();
+    t.extend_from_slice(&8u32.to_le_bytes());
+    let entry = |t: &mut Vec<u8>, tag: u16, kind: u16, count: u32, value: u32| {
+        t.extend_from_slice(&tag.to_le_bytes());
+        t.extend_from_slice(&kind.to_le_bytes());
+        t.extend_from_slice(&count.to_le_bytes());
+        t.extend_from_slice(&value.to_le_bytes());
+    };
+    t.extend_from_slice(&3u16.to_le_bytes());
+    entry(&mut t, 0x010F, 2, make.0, make.1);
+    entry(&mut t, 0x0110, 2, model.0, model.1);
+    entry(&mut t, 0x8769, 4, 1, 50);
+    t.extend_from_slice(&0u32.to_le_bytes());
+    t.extend_from_slice(&3u16.to_le_bytes());
+    entry(&mut t, 0x9003, 2, date.0, date.1);
+    entry(&mut t, 0xA002, 4, 1, w);
+    entry(&mut t, 0xA003, 4, 1, h);
+    t.extend_from_slice(&0u32.to_le_bytes());
+    debug_assert_eq!(t.len(), 92);
+    t.extend_from_slice(&data);
+    let mut jpg = plain[..2].to_vec();
+    jpg.extend_from_slice(&[0xFF, 0xE1]);
+    jpg.extend_from_slice(&((t.len() + 8) as u16).to_be_bytes());
+    jpg.extend_from_slice(b"Exif\0\0");
+    jpg.extend_from_slice(&t);
+    jpg.extend_from_slice(&plain[2..]);
+    jpg
+}
+
+/// A Word document with a title and a creation date.
+pub(crate) fn docx(title: &str, created: &str) -> Vec<u8> {
+    let mut r = Rng(0x9E37_79B9_7F4A_7C15 ^ title.len() as u64);
+    let deflate = zip::write::SimpleFileOptions::default();
+    let mut z = zip::ZipWriter::new(Cursor::new(Vec::new()));
+    z.start_file("[Content_Types].xml", deflate).unwrap();
+    z.write_all(br#"<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"/>"#)
+        .unwrap();
+    z.start_file("word/document.xml", deflate).unwrap();
+    let body: String = r.words(60_000).lines().map(|l| format!("<w:p><w:r><w:t>{l}</w:t></w:r></w:p>")).collect();
+    z.write_all(format!("<w:document><w:body>{body}</w:body></w:document>").as_bytes()).unwrap();
+    z.start_file("docProps/core.xml", deflate).unwrap();
+    z.write_all(
+        format!(
+            "<?xml version=\"1.0\"?><cp:coreProperties><dc:title>{title}</dc:title>\
+             <dcterms:created xsi:type=\"dcterms:W3CDTF\">{created}</dcterms:created></cp:coreProperties>"
+        )
+        .as_bytes(),
+    )
+    .unwrap();
+    z.finish().unwrap().into_inner()
+}
+
+/// A PDF with a title and a creation date in its information dictionary.
+pub(crate) fn pdf_titled(title: &str, date: &str) -> Vec<u8> {
+    pdf_doc(&mut Rng(0xC0FF_EE11 ^ title.len() as u64), Some((title, date)))
+}
+
+/// An MP3 with an ID3 tag naming the artist and the song.
+pub(crate) fn mp3(artist: &str, title: &str) -> Vec<u8> {
+    let frame = |id: &[u8; 4], s: &str| {
+        let mut body = vec![1u8, 0xFF, 0xFE];
+        body.extend(s.encode_utf16().flat_map(u16::to_le_bytes));
+        let mut f = id.to_vec();
+        f.extend_from_slice(&(body.len() as u32).to_be_bytes());
+        f.extend_from_slice(&[0, 0]);
+        f.extend_from_slice(&body);
+        f
+    };
+    let mut frames = frame(b"TIT2", title);
+    frames.extend(frame(b"TPE1", artist));
+    let n = frames.len();
+    let mut out = b"ID3\x03\x00\x00".to_vec();
+    out.extend_from_slice(&[(n >> 21 & 0x7F) as u8, (n >> 14 & 0x7F) as u8, (n >> 7 & 0x7F) as u8, (n & 0x7F) as u8]);
+    out.extend_from_slice(&frames);
+    // MPEG-1 layer III frames, 128 kbit/s at 44.1 kHz: 417 bytes each
+    let mut r = Rng(0x5EED ^ n as u64);
+    for _ in 0..600 {
+        let mut f = vec![0u8; 417];
+        r.fill(&mut f[4..]);
+        f[..4].copy_from_slice(&[0xFF, 0xFB, 0x90, 0x00]);
+        out.extend_from_slice(&f);
+    }
+    out
+}
+
+/// An MP4 video: its index ("moov") holds when it was filmed and how long it lasts.
+pub(crate) fn mp4(with_moov: bool, date: &str, seconds: u32) -> Vec<u8> {
+    let boxed = |name: &[u8; 4], body: &[u8]| {
+        let mut b = ((body.len() + 8) as u32).to_be_bytes().to_vec();
+        b.extend_from_slice(name);
+        b.extend_from_slice(body);
+        b
+    };
+    let mut out = boxed(b"ftyp", b"isom\0\0\x02\0isomiso2mp41");
+    let mut pictures = vec![0u8; 300_000];
+    Rng(0xF11E ^ seconds as u64).fill(&mut pictures);
+    out.extend(boxed(b"mdat", &pictures));
+    if with_moov {
+        let created = (crate::inspect::parse_when(date) + 2_082_844_800) as u32;
+        let mut mvhd = vec![0u8; 100];
+        mvhd[4..8].copy_from_slice(&created.to_be_bytes());
+        mvhd[8..12].copy_from_slice(&created.to_be_bytes());
+        mvhd[12..16].copy_from_slice(&1000u32.to_be_bytes());
+        mvhd[16..20].copy_from_slice(&(seconds * 1000).to_be_bytes());
+        mvhd[20..24].copy_from_slice(&0x0001_0000u32.to_be_bytes());
+        out.extend(boxed(b"moov", &boxed(b"mvhd", &mvhd)));
+    }
+    out
+}
+
+/// A small disk image for a demo: named-less, dated, damaged and duplicated files, each on a cluster boundary.
+pub fn demo_image(out: &Path) {
+    let photo = |seed, make, model, date| jpeg_with_exif(1600, 1200, seed, make, model, date);
+    let beach = photo(11, "Apple", "iPhone 13", "2024:07:14 18:22:05");
+    let party = photo(23, "samsung", "Galaxy S21", "2023:12:24 20:41:10");
+    let hike = photo(37, "Canon", "Canon EOS 80D", "2022:08:03 11:05:47");
+    let cut = photo(41, "Apple", "iPhone 13", "2024:07:15 09:12:00");
+    let mut broken_doc = docx("Compte rendu réunion de chantier", "2024-02-06T09:30:00Z");
+    let mid = broken_doc.len() / 3;
+    broken_doc[mid] ^= 0xFF;
+    let files: Vec<Vec<u8>> = vec![
+        beach.clone(),
+        party,
+        cut[..cut.len() * 3 / 5].to_vec(),
+        hike,
+        docx("Budget vacances 2024", "2024-03-02T10:00:00Z"),
+        broken_doc,
+        pdf_titled("Contrat de location", "D:20220915120000"),
+        mp4(true, "2024-07-14T19:03:00Z", 95),
+        mp3("Les Voyageurs", "Soleil d'été"),
+        beach,
+    ];
+    let mut img = vec![0u8; 512];
+    for f in &files {
+        img.resize(img.len().next_multiple_of(CL as usize) + 16 * CL as usize, 0);
+        img.extend_from_slice(f);
+    }
+    img.resize(img.len().next_multiple_of(1 << 20) + (4 << 20), 0);
+    match std::fs::write(out, &img) {
+        Ok(()) => println!("{} : {} fichiers, {} Mo", out.display(), files.len(), img.len() >> 20),
+        Err(e) => eprintln!("{}: {e}", out.display()),
+    }
+}
+
+fn pdf_doc(r: &mut Rng, info: Option<(&str, &str)>) -> Vec<u8> {
     let mut text = String::new();
     let len = 10_000 + r.below(300_000) as usize;
     for (i, line) in r.words(len).lines().enumerate() {
@@ -118,12 +285,17 @@ fn pdf(r: &mut Rng) -> Vec<u8> {
     }
     let mut out = b"%PDF-1.4\n%\xE2\xE3\xCF\xD3\n".to_vec();
     let mut at = Vec::new();
-    let objs = [
+    let mut objs = vec![
         "<< /Type /Catalog /Pages 2 0 R >>".to_string(),
         "<< /Type /Pages /Kids [3 0 R] /Count 1 >>".to_string(),
         "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R >>".to_string(),
         format!("<< /Length {} >>\nstream\n{text}endstream", text.len()),
     ];
+    let mut trailer_info = String::new();
+    if let Some((title, date)) = info {
+        objs.push(format!("<< /Title ({title}) /CreationDate ({date}) >>"));
+        trailer_info = format!(" /Info {} 0 R", objs.len());
+    }
     for (i, o) in objs.iter().enumerate() {
         at.push(out.len());
         out.extend_from_slice(format!("{} 0 obj\n{o}\nendobj\n", i + 1).as_bytes());
@@ -133,7 +305,9 @@ fn pdf(r: &mut Rng) -> Vec<u8> {
     for a in at {
         out.extend_from_slice(format!("{a:010} 00000 n \n").as_bytes());
     }
-    out.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes());
+    out.extend_from_slice(
+        format!("trailer\n<< /Size {} /Root 1 0 R{trailer_info} >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes(),
+    );
     out
 }
 

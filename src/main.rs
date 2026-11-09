@@ -8,6 +8,7 @@ mod bench;
 mod carve;
 mod engine;
 mod icons;
+mod inspect;
 mod ntfs;
 mod photorec;
 mod preview;
@@ -61,6 +62,7 @@ fn main() -> eframe::Result {
     let mut lang: Option<String> = None;
     let mut show: Option<PathBuf> = None;
     let mut scene: Option<String> = None;
+    let mut image: Option<PathBuf> = None;
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
         match a.as_str() {
@@ -77,6 +79,14 @@ fn main() -> eframe::Result {
             "--show" => show = args.next().map(PathBuf::from),
             // with --screenshot: the moment to draw ("home", "scanning", "selected", "recovered")
             "--scene" => scene = args.next(),
+            // searches a disk image file (.img, .dd) instead of a drive
+            "--image" => image = args.next().map(PathBuf::from),
+            // writes a small disk image full of damaged, duplicated and nameless files, for a demo
+            "--demo-image" => {
+                let out = args.next().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("demo.img"));
+                bench::demo_image(&out);
+                return Ok(());
+            }
             // measures each way of searching on a disk image built for the purpose
             "--bench" => {
                 bench::run(&args.next().map(PathBuf::from).unwrap_or_else(|| std::env::temp_dir().join("open-recovr-bench")));
@@ -122,6 +132,11 @@ fn main() -> eframe::Result {
             }
             if let Some(d) = &disk {
                 app.select_disk(d);
+            }
+            if let Some(p) = &image
+                && !app.open_image(p)
+            {
+                eprintln!("cannot open {}", p.display());
             }
             if search_now {
                 app.start_scan(&cc.egui_ctx);

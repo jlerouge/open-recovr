@@ -71,8 +71,6 @@ Ce disque ne se laisse pas lire. Vérifiez qu'il est bien branché (ou le disque
 = No se puede leer este disco. Compruebe que está bien conectado (o que el disco está insertado).
 Ce son ne peut pas être lu ici : essayez « Ouvrir ».
 = Este sonido no se puede reproducir aquí: pruebe «Abrir».
-Chances
-= Posibilidades
 Chargement de l'aperçu…
 = Cargando la vista previa…
 Chercher aussi sur tout le disque…
@@ -439,3 +437,62 @@ Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit to
 = descartado
 écarté {} ({}) : hors des critères
 = descartado {} ({}): fuera de los criterios
+
+1 doublon masqué · Afficher
+= 1 duplicado oculto · Mostrar
+{} doublons masqués · Afficher
+= {} duplicados ocultos · Mostrar
+Masquer les doublons
+= Ocultar duplicados
+Les mêmes fichiers retrouvés plusieurs fois : une seule copie est montrée.
+= El mismo archivo encontrado varias veces: solo se muestra una copia.
+Choisir une image disque
+= Elegir una imagen de disco
+Ouvrir une image disque…
+= Abrir una imagen de disco…
+Un fichier .img ou .dd copié depuis un disque abîmé (avec ddrescue, par exemple). Le disque d'origine n'est plus sollicité.
+= Un archivo .img o .dd copiado de un disco dañado (con ddrescue, por ejemplo). El disco original ya no se toca.
+Image disque
+= Imagen de disco
+Tous les fichiers
+= Todos los archivos
+Lue sans toucher au disque d'origine
+= Leída sin tocar el disco original
+Doublon de
+= Duplicado de
+Infos
+= Detalles
+État
+= Estado
+Intact
+= Intacto
+Endommagé
+= Dañado
+Vide
+= Vacío
+intact, vérifié de bout en bout
+= intacto, comprobado de principio a fin
+endommagé : {}
+= dañado: {}
+vide, que des zéros
+= vacío, solo ceros
+vérification…
+= comprobando…
+la fin de l'image manque
+= falta el final de la imagen
+l'image ne se décode pas
+= la imagen no se puede decodificar
+l'image est mélangée avec une autre
+= la imagen está mezclada con otra
+le sommaire de l'archive manque
+= falta el índice del archivo comprimido
+une partie du contenu est abîmée
+= parte del contenido está dañada
+la fin du document manque
+= falta el final del documento
+le fichier est coupé avant la fin
+= el archivo está cortado antes del final
+l'index de la vidéo manque
+= falta el índice del vídeo
+les images de la vidéo manquent
+= faltan las imágenes del vídeo

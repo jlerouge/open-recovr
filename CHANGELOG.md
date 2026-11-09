@@ -4,6 +4,14 @@ All notable changes to Open Recovr are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## 0.2.0
+
+- Files with only a number get a name from their content: the date a photo was taken or a video filmed (EXIF, MP4), the title of Word, LibreOffice, EPUB and PDF documents, the artist and title of MP3s. Their date is filled in too.
+- Each file found is checked: Intact, Damaged (with the reason) or Empty. Pictures are decoded, archives and Office files unpacked, videos walked box by box.
+- Duplicates (same content found several times) are hidden behind a link.
+- Disk image files (`.img`, `.dd`, `.raw`…) can be searched: "Open a disk image…" or `--image <file>`. No administrator rights needed.
+- `--demo-image <file>` writes a small image for trying these out, and `--scene damaged-N` shows the N-th damaged file in a screenshot.
+
 ## 0.1.0 — first public release
 
 - One screen: drive choice, file types, results, preview and recovery.

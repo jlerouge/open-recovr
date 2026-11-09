@@ -71,8 +71,6 @@ Ce disque ne se laisse pas lire. Vérifiez qu'il est bien branché (ou le disque
 = Dieses Laufwerk lässt sich nicht lesen. Prüfen Sie, ob es richtig angeschlossen (oder die Disc eingelegt) ist.
 Ce son ne peut pas être lu ici : essayez « Ouvrir ».
 = Dieser Ton kann hier nicht abgespielt werden: Versuchen Sie „Öffnen“.
-Chances
-= Chancen
 Chargement de l'aperçu…
 = Vorschau wird geladen…
 Chercher aussi sur tout le disque…
@@ -439,3 +437,62 @@ Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit to
 = verworfen
 écarté {} ({}) : hors des critères
 = verworfen {} ({}): außerhalb der Kriterien
+
+1 doublon masqué · Afficher
+= 1 Duplikat ausgeblendet · Anzeigen
+{} doublons masqués · Afficher
+= {} Duplikate ausgeblendet · Anzeigen
+Masquer les doublons
+= Duplikate ausblenden
+Les mêmes fichiers retrouvés plusieurs fois : une seule copie est montrée.
+= Dieselbe Datei mehrmals gefunden: Nur eine Kopie wird angezeigt.
+Choisir une image disque
+= Datenträgerabbild wählen
+Ouvrir une image disque…
+= Datenträgerabbild öffnen…
+Un fichier .img ou .dd copié depuis un disque abîmé (avec ddrescue, par exemple). Le disque d'origine n'est plus sollicité.
+= Eine .img- oder .dd-Datei, von einem defekten Laufwerk kopiert (zum Beispiel mit ddrescue). Das Original wird nicht mehr belastet.
+Image disque
+= Datenträgerabbild
+Tous les fichiers
+= Alle Dateien
+Lue sans toucher au disque d'origine
+= Gelesen, ohne das Original anzufassen
+Doublon de
+= Duplikat von
+Infos
+= Details
+État
+= Zustand
+Intact
+= Intakt
+Endommagé
+= Beschädigt
+Vide
+= Leer
+intact, vérifié de bout en bout
+= intakt, vollständig geprüft
+endommagé : {}
+= beschädigt: {}
+vide, que des zéros
+= leer, nur Nullen
+vérification…
+= wird geprüft…
+la fin de l'image manque
+= das Ende des Bildes fehlt
+l'image ne se décode pas
+= das Bild lässt sich nicht dekodieren
+l'image est mélangée avec une autre
+= das Bild ist mit einem anderen vermischt
+le sommaire de l'archive manque
+= das Inhaltsverzeichnis des Archivs fehlt
+une partie du contenu est abîmée
+= ein Teil des Inhalts ist beschädigt
+la fin du document manque
+= das Ende des Dokuments fehlt
+le fichier est coupé avant la fin
+= die Datei ist vorzeitig abgeschnitten
+l'index de la vidéo manque
+= der Index des Videos fehlt
+les images de la vidéo manquent
+= die Bilder des Videos fehlen

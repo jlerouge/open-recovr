@@ -323,7 +323,9 @@ impl ScanJob {
             set_phase(&s, t!("Recherche dans la corbeille…"), 0.0);
             s.lock().unwrap().note(t!("Disque {} ({}, {})", disk.title(), disk.fs, crate::app::human_size(disk.total)));
             let mut in_bin = 0;
-            for f in scan_trash(&disk, &mut next_id) {
+            // an image file has no bin of its own
+            let bin = if disk.kind == crate::sys::Kind::Image { Vec::new() } else { scan_trash(&disk, &mut next_id) };
+            for f in bin {
                 let is_dir = matches!(f.origin, Origin::Recycled { is_dir: true, .. });
                 if wanted.accepts(&f.ext, f.category, f.size, is_dir) {
                     s.lock().unwrap().add(f);

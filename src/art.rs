@@ -18,6 +18,7 @@ const SOURCES: &[(&str, &str)] = &[
     ("usb", include_str!("../assets/usb.svg")),
     ("external", include_str!("../assets/external.svg")),
     ("phone", include_str!("../assets/phone.svg")),
+    ("image", include_str!("../assets/image.svg")),
 ];
 
 /// The picture as premultiplied RGBA, `side` pixels square.

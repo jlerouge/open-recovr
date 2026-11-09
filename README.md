@@ -53,6 +53,10 @@ The full walkthrough is in the **[user guide](docs/user-guide.md)**.
 - 🧲 **Full analysis.** Reads the whole drive with PhotoRec, which recognises **hundreds of file types**, even on formatted drives and on FAT/exFAT cards. If PhotoRec is missing, a built-in engine recognises the common formats instead.
 - 💿 **Damaged media.** Unreadable areas (scratched CD/DVD, worn SD card) are skipped instead of freezing the search.
 - 🖼️ **Preview before recovering.** Photos, videos, sounds, PDFs, text and Word documents.
+- 🏷️ **Names and dates that mean something.** Files that only had a number get one from what they say about themselves: `photo_2024-07-14_18-22-05.jpg` from the EXIF date, the title of a Word or PDF document, the artist and song of an MP3.
+- ✅ **Checked before you recover.** Each file found is read from end to end: **Intact**, **Damaged** (with the reason: cut short, mixed with another file, missing index…) or **Empty**.
+- 👯 **Duplicates hidden.** The same file found several times is shown once.
+- 📀 **Disk images.** Opens an `.img` / `.dd` copy of a failing drive (made with ddrescue, for example), so the original is left alone. No administrator rights needed.
 - 🗂️ **Sort and filter** by type (photos, videos, music, documents, archives), format, size and name.
 - 💾 **Every kind of drive.** Hard disks, SATA and NVMe SSDs, SD / microSD / CompactFlash cards, USB sticks, external disks, CD/DVD.
 - 🕒 **Runs in the background.** The window can hide next to the clock during a long search.
