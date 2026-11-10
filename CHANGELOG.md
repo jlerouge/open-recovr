@@ -16,7 +16,7 @@ From testers' feedback:
 - Drive cards wrap onto several rows when there are many.
 - The footer tip wraps instead of being cut off.
 - The expert log can be resized by dragging its top edge (now with a visible grip), and has an "Open the file" link.
-- Each search is logged to `journal.txt` next to the settings (`%APPDATA%Open Recovr` on Windows), with the version, the drive and the search options at the top.
+- Each search is logged to `journal.txt` next to the settings (`%APPDATA%\Open Recovr` on Windows), with the version, the drive and the search options at the top.
 
 ## 0.2.1
 
