@@ -16,19 +16,7 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
-pub const BG: Color32 = Color32::from_rgb(244, 246, 251);
-pub const CARD: Color32 = Color32::WHITE;
-pub const ACCENT: Color32 = Color32::from_rgb(79, 70, 229);
-pub const ACCENT_DARK: Color32 = Color32::from_rgb(67, 56, 202);
-pub const ACCENT_SOFT: Color32 = Color32::from_rgb(238, 240, 255);
-pub const TEXT: Color32 = Color32::from_rgb(17, 24, 39);
-pub const MUTED: Color32 = Color32::from_rgb(107, 114, 128);
-pub const BORDER: Color32 = Color32::from_rgb(229, 231, 235);
-pub const GREEN: Color32 = Color32::from_rgb(22, 163, 74);
-pub const GREEN_SOFT: Color32 = Color32::from_rgb(220, 252, 231);
-pub const AMBER: Color32 = Color32::from_rgb(180, 83, 9);
-pub const RED: Color32 = Color32::from_rgb(185, 28, 28);
-pub const RED_SOFT: Color32 = Color32::from_rgb(254, 226, 226);
+use crate::theme::{self, pal};
 
 pub fn bold(size: f32) -> FontId {
     FontId::new(size, FontFamily::Name("bold".into()))
@@ -169,6 +157,8 @@ struct Settings {
     expert: bool,
     /// The language chosen by hand ("en"…); none follows the system.
     language: Option<String>,
+    /// The colour theme ("sombre", "nord"…); none is the light one.
+    theme: Option<String>,
 }
 
 impl Settings {
@@ -176,7 +166,8 @@ impl Settings {
         let text = sys::settings_file().and_then(|p| std::fs::read_to_string(p).ok()).unwrap_or_default();
         let has = |line: &str| text.lines().any(|l| l.trim() == line);
         let language = text.lines().find_map(|l| l.trim().strip_prefix("langue=")).map(str::to_string);
-        Settings { never_ask_deep: has("proposer_recherche_approfondie=non"), expert: has("mode_expert=oui"), language }
+        let theme = text.lines().find_map(|l| l.trim().strip_prefix("theme=")).map(str::to_string);
+        Settings { never_ask_deep: has("proposer_recherche_approfondie=non"), expert: has("mode_expert=oui"), language, theme }
     }
 
     fn save(&self) {
@@ -189,6 +180,9 @@ impl Settings {
         if let Some(l) = &self.language {
             text.push_str(&format!("langue={l}\n"));
         }
+        if let Some(t) = &self.theme {
+            text.push_str(&format!("theme={t}\n"));
+        }
         let _ = std::fs::write(p, text);
     }
 }
@@ -199,6 +193,14 @@ pub fn choose_language(forced: Option<&str>) {
     let wanted = forced.or(saved.as_deref());
     if !wanted.is_some_and(i18n::set) {
         i18n::set(i18n::system_language());
+    }
+}
+
+/// Sets the colour theme: the one asked for, else the one saved, else the light one.
+pub fn choose_theme(forced: Option<&str>) {
+    let saved = Settings::load().theme;
+    if let Some(id) = forced.or(saved.as_deref()) {
+        theme::set(id);
     }
 }
 
@@ -243,11 +245,11 @@ fn chip_sized(
     small: bool,
 ) -> egui::Response {
     let fg = if on {
-        Color32::WHITE
+        theme::ink_on(color)
     } else if enabled {
-        TEXT
+        pal().text
     } else {
-        MUTED
+        pal().muted
     };
     let (fs, pad) = if small { (13.0, 11.0) } else { (14.0, 16.0) };
     let galley = ui.painter().layout_no_wrap(label, bold(fs), fg);
@@ -258,11 +260,11 @@ fn chip_sized(
     let fill = if on {
         color
     } else if hovered {
-        Color32::from_rgb(243, 244, 246)
+        pal().hover
     } else {
-        CARD
+        pal().card
     };
-    let stroke = if on { Stroke::NONE } else { Stroke::new(1.0, BORDER) };
+    let stroke = if on { Stroke::NONE } else { Stroke::new(1.0, pal().border) };
     ui.painter().rect(r, CornerRadius::same(255), fill, stroke, StrokeKind::Inside);
     if let Some(icon) = icon {
         icons::draw(ui.painter(), icon, pos2(r.left() + 22.0, r.center().y), 16.0, if on { fg } else { color });
@@ -277,14 +279,14 @@ fn chip_sized(
 
 /// A bold label at the height of the chips that follow it.
 fn row_label(ui: &mut egui::Ui, text: &str, h: f32) {
-    let galley = ui.painter().layout_no_wrap(text.into(), bold(14.0), TEXT);
+    let galley = ui.painter().layout_no_wrap(text.into(), bold(14.0), pal().text);
     let (r, _) = ui.allocate_exact_size(vec2(galley.size().x + 2.0, h), Sense::hover());
-    ui.painter().galley(pos2(r.left(), r.center().y - galley.size().y / 2.0), galley, TEXT);
+    ui.painter().galley(pos2(r.left(), r.center().y - galley.size().y / 2.0), galley, pal().text);
 }
 
 /// Clickable accent text, centred in a row of height `h`.
 fn text_link(ui: &mut egui::Ui, text: &str, h: f32, enabled: bool) -> egui::Response {
-    let color = if enabled { ACCENT } else { MUTED };
+    let color = if enabled { pal().accent } else { pal().muted };
     let galley = ui.painter().layout_no_wrap(text.into(), bold(14.0), color);
     let (r, resp) = ui.allocate_exact_size(vec2(galley.size().x, h), if enabled { Sense::click() } else { Sense::hover() });
     let y = r.center().y - galley.size().y / 2.0;
@@ -324,14 +326,16 @@ fn sort_arrow(p: &egui::Painter, at: egui::Pos2, up: bool, color: Color32) {
 }
 
 fn cat_style(c: Category) -> (Icon, Color32, Color32) {
-    match c {
-        Category::Photos => (Icon::Photo, Color32::from_rgb(124, 58, 237), Color32::from_rgb(243, 232, 255)),
-        Category::Videos => (Icon::Video, Color32::from_rgb(220, 38, 38), Color32::from_rgb(254, 226, 226)),
-        Category::Music => (Icon::Music, Color32::from_rgb(234, 88, 12), Color32::from_rgb(255, 237, 213)),
-        Category::Documents => (Icon::Document, Color32::from_rgb(37, 99, 235), Color32::from_rgb(219, 234, 254)),
-        Category::Archives => (Icon::Archive, Color32::from_rgb(161, 98, 7), Color32::from_rgb(254, 249, 195)),
-        Category::Other => (Icon::Folder, Color32::from_rgb(75, 85, 99), Color32::from_rgb(243, 244, 246)),
-    }
+    let (icon, i) = match c {
+        Category::Photos => (Icon::Photo, 0),
+        Category::Videos => (Icon::Video, 1),
+        Category::Music => (Icon::Music, 2),
+        Category::Documents => (Icon::Document, 3),
+        Category::Archives => (Icon::Archive, 4),
+        Category::Other => (Icon::Folder, 5),
+    };
+    let color = pal().cats[i];
+    (icon, color, theme::soft(color))
 }
 
 /// An icon followed by a label, laid out like a normal widget.
@@ -345,9 +349,9 @@ fn icon_label(ui: &mut egui::Ui, icon: Icon, size: f32, color: Color32, text: eg
 
 fn card() -> Frame {
     Frame::new()
-        .fill(CARD)
+        .fill(pal().card)
         .corner_radius(CornerRadius::same(16))
-        .stroke(Stroke::new(1.0, BORDER))
+        .stroke(Stroke::new(1.0, pal().border))
         .inner_margin(Margin::same(18))
         .shadow(Shadow { offset: [0, 2], blur: 10, spread: 0, color: Color32::from_black_alpha(10) })
 }
@@ -362,17 +366,17 @@ fn icon_button(ui: &mut egui::Ui, size: Vec2, icon: Option<Icon>, text: &str, pr
     let fs = if size.y >= 50.0 { 18.0 } else { 15.0 };
     let icon_w = if icon.is_some() { fs + 10.0 } else { 0.0 };
     // a longer translation widens the button rather than spilling out of it
-    let text_w = ui.painter().layout_no_wrap(text.to_string(), bold(fs), TEXT).size().x;
+    let text_w = ui.painter().layout_no_wrap(text.to_string(), bold(fs), pal().text).size().x;
     let size = vec2(size.x.max(text_w + icon_w + 36.0), size.y);
     let (rect, resp) = ui.allocate_exact_size(size, sense);
     let hovered = enabled && resp.hovered();
     let (fill, fg, stroke) = match (primary, enabled) {
-        (true, true) => (if hovered { ACCENT_DARK } else { ACCENT }, Color32::WHITE, Stroke::NONE),
-        (true, false) => (Color32::from_rgb(199, 202, 238), Color32::WHITE, Stroke::NONE),
+        (true, true) => (if hovered { pal().accent_hover } else { pal().accent }, pal().on_accent, Stroke::NONE),
+        (true, false) => (pal().accent_muted, pal().on_accent_muted, Stroke::NONE),
         (false, e) => (
-            if hovered { ACCENT_SOFT } else { CARD },
-            if e { ACCENT } else { MUTED },
-            Stroke::new(1.0, if e { Color32::from_rgb(199, 202, 238) } else { BORDER }),
+            if hovered { pal().accent_soft } else { pal().card },
+            if e { pal().accent } else { pal().muted },
+            Stroke::new(1.0, if e { pal().accent_muted } else { pal().border }),
         ),
     };
     let r = CornerRadius::same((size.y / 2.0).min(14.0) as u8);
@@ -389,16 +393,37 @@ fn icon_button(ui: &mut egui::Ui, size: Vec2, icon: Option<Icon>, text: &str, pr
     resp
 }
 
+/// A small round button with only an icon, for the top bar.
+fn round_icon(ui: &mut egui::Ui, icon: Icon) -> egui::Response {
+    let (r, resp) = ui.allocate_exact_size(vec2(32.0, 32.0), Sense::click());
+    let hovered = resp.hovered();
+    if hovered {
+        ui.painter().circle_filled(r.center(), 16.0, pal().hover);
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    icons::draw(ui.painter(), icon, r.center(), 19.0, if hovered { pal().text } else { pal().muted });
+    resp
+}
+
+/// Ours are translated; the others keep the palette's own name.
+fn theme_name(t: &theme::Theme) -> &'static str {
+    match t.id {
+        "clair" => t!("Clair"),
+        "sombre" => t!("Sombre"),
+        _ => t.name,
+    }
+}
+
 fn step_title(ui: &mut egui::Ui, n: u32, title: &str, hint: &str) {
     ui.horizontal(|ui| {
         let (r, _) = ui.allocate_exact_size(vec2(28.0, 28.0), Sense::hover());
-        ui.painter().circle_filled(r.center(), 14.0, ACCENT);
-        ui.painter().text(r.center(), Align2::CENTER_CENTER, n.to_string(), bold(15.0), Color32::WHITE);
+        ui.painter().circle_filled(r.center(), 14.0, pal().accent);
+        ui.painter().text(r.center(), Align2::CENTER_CENTER, n.to_string(), bold(15.0), pal().on_accent);
         ui.add_space(4.0);
-        ui.label(egui::RichText::new(title).font(bold(19.0)).color(TEXT));
+        ui.label(egui::RichText::new(title).font(bold(19.0)).color(pal().text));
         if !hint.is_empty() {
             ui.add_space(6.0);
-            ui.label(egui::RichText::new(hint).font(regular(14.0)).color(MUTED));
+            ui.label(egui::RichText::new(hint).font(regular(14.0)).color(pal().muted));
         }
     });
 }
@@ -406,17 +431,17 @@ fn step_title(ui: &mut egui::Ui, n: u32, title: &str, hint: &str) {
 fn checkbox_at(painter: &egui::Painter, center: egui::Pos2, on: bool, partial: bool) {
     let r = Rect::from_center_size(center, vec2(20.0, 20.0));
     if on || partial {
-        painter.rect_filled(r, CornerRadius::same(6), ACCENT);
+        painter.rect_filled(r, CornerRadius::same(6), pal().accent);
         if on {
             let pts =
                 vec![pos2(r.left() + 5.0, r.center().y), pos2(r.left() + 8.5, r.bottom() - 5.5), pos2(r.right() - 4.5, r.top() + 5.5)];
-            painter.add(egui::Shape::line(pts, Stroke::new(2.2, Color32::WHITE)));
+            painter.add(egui::Shape::line(pts, Stroke::new(2.2, pal().on_accent)));
         } else {
             painter
-                .line_segment([pos2(r.left() + 5.0, r.center().y), pos2(r.right() - 5.0, r.center().y)], Stroke::new(2.2, Color32::WHITE));
+                .line_segment([pos2(r.left() + 5.0, r.center().y), pos2(r.right() - 5.0, r.center().y)], Stroke::new(2.2, pal().on_accent));
         }
     } else {
-        painter.rect(r, CornerRadius::same(6), CARD, Stroke::new(1.5, Color32::from_rgb(209, 213, 219)), StrokeKind::Inside);
+        painter.rect(r, CornerRadius::same(6), pal().card, Stroke::new(1.5, pal().border_strong), StrokeKind::Inside);
     }
 }
 
@@ -960,19 +985,21 @@ impl App {
             ui.add_space(8.0);
             ui.vertical(|ui| {
                 ui.add_space(1.0);
-                ui.label(egui::RichText::new("Open Recovr").font(bold(21.0)).color(TEXT));
-                ui.label(egui::RichText::new(t!("Retrouvez vos fichiers effacés, simplement.")).font(regular(14.0)).color(MUTED));
+                ui.label(egui::RichText::new("Open Recovr").font(bold(21.0)).color(pal().text));
+                ui.label(egui::RichText::new(t!("Retrouvez vos fichiers effacés, simplement.")).font(regular(14.0)).color(pal().muted));
             });
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 self.language_chip(ui);
+                ui.add_space(6.0);
+                self.theme_buttons(ui);
                 ui.add_space(10.0);
                 if self.admin {
                     let txt = t!("Recherche approfondie activée");
-                    let galley = ui.painter().layout_no_wrap(txt.into(), bold(13.0), GREEN);
+                    let galley = ui.painter().layout_no_wrap(txt.into(), bold(13.0), pal().green);
                     let (r, _) = ui.allocate_exact_size(galley.size() + vec2(44.0, 14.0), Sense::hover());
-                    ui.painter().rect_filled(r, CornerRadius::same(255), GREEN_SOFT);
-                    icons::draw(ui.painter(), Icon::Shield, pos2(r.left() + 20.0, r.center().y), 16.0, GREEN);
-                    ui.painter().galley(r.min + vec2(34.0, 7.0), galley, GREEN);
+                    ui.painter().rect_filled(r, CornerRadius::same(255), pal().green_soft);
+                    icons::draw(ui.painter(), Icon::Shield, pos2(r.left() + 20.0, r.center().y), 16.0, pal().green);
+                    ui.painter().galley(r.min + vec2(34.0, 7.0), galley, pal().green);
                 } else {
                     let resp = icon_button(
                         ui,
@@ -990,7 +1017,7 @@ impl App {
                 }
                 ui.add_space(10.0);
                 let expert = self.settings.expert;
-                if chip_sized(ui, None, t!("Mode expert").into(), expert, TEXT, true, true)
+                if chip_sized(ui, None, t!("Mode expert").into(), expert, pal().text, true, true)
                     .on_hover_text(t!("Affiche le journal de la recherche (avec les lignes de PhotoRec) et les premiers octets \
                          des fichiers qui n'ont pas d'aperçu."))
                     .clicked()
@@ -1002,7 +1029,7 @@ impl App {
                 }
                 if self.photorec.is_some() {
                     ui.add_space(12.0);
-                    ui.label(egui::RichText::new(t!("Analyse par PhotoRec, logiciel libre")).font(regular(12.5)).color(MUTED))
+                    ui.label(egui::RichText::new(t!("Analyse par PhotoRec, logiciel libre")).font(regular(12.5)).color(pal().muted))
                         .on_hover_text(t!(
                             "La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL \
                              (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers."
@@ -1012,13 +1039,59 @@ impl App {
         });
     }
 
+    /// The day/night switch, and a menu of all the colour themes.
+    fn theme_buttons(&mut self, ui: &mut egui::Ui) {
+        let mut chosen: Option<&'static str> = None;
+        // right to left: the menu of themes, then the switch in front of it
+        let menu = round_icon(ui, Icon::Palette).on_hover_text(t!("Thème de couleurs"));
+        egui::Popup::menu(&menu).show(|ui| {
+            for (i, t) in theme::THEMES.iter().enumerate() {
+                let on = i == theme::current();
+                let (r, resp) = ui.allocate_exact_size(vec2(230.0, 32.0), Sense::click());
+                let p = ui.painter();
+                if on {
+                    p.rect_filled(r, CornerRadius::same(8), pal().accent_soft);
+                } else if resp.hovered() {
+                    p.rect_filled(r, CornerRadius::same(8), pal().hover);
+                }
+                // a swatch: the theme's background with its accent in the middle
+                let c = pos2(r.left() + 20.0, r.center().y);
+                p.circle(c, 10.0, t.p.bg, Stroke::new(1.0, t.p.border_strong));
+                p.circle_filled(c, 5.0, t.p.accent);
+                let font = if on { bold(14.5) } else { regular(14.5) };
+                p.text(pos2(r.left() + 40.0, r.center().y), Align2::LEFT_CENTER, theme_name(t), font, pal().text);
+                if on {
+                    icons::draw(p, Icon::Check, pos2(r.right() - 16.0, r.center().y), 16.0, pal().accent);
+                }
+                if resp.hovered() {
+                    ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+                }
+                if resp.clicked() {
+                    chosen = Some(t.id);
+                }
+            }
+        });
+        let dark = theme::theme().dark;
+        let (icon, tip) = if dark { (Icon::Sun, t!("Passer en thème clair")) } else { (Icon::Moon, t!("Passer en thème sombre")) };
+        if round_icon(ui, icon).on_hover_text(tip).clicked() {
+            chosen = Some(theme::day_night());
+        }
+        if let Some(id) = chosen
+            && theme::set(id)
+        {
+            theme::apply(ui.ctx());
+            self.settings.theme = Some(id.to_string());
+            self.settings.save();
+        }
+    }
+
     /// The language, with a menu of the others.
     fn language_chip(&mut self, ui: &mut egui::Ui) {
         let current = &i18n::LANGS[i18n::current()];
         // right to left: the menu, then the globe in front of it
-        let chip = chip_sized(ui, None, current.name.into(), false, ACCENT, true, true);
+        let chip = chip_sized(ui, None, current.name.into(), false, pal().accent, true, true);
         let (r, globe) = ui.allocate_exact_size(vec2(20.0, 20.0), Sense::click());
-        icons::draw(ui.painter(), Icon::Globe, r.center(), 18.0, MUTED);
+        icons::draw(ui.painter(), Icon::Globe, r.center(), 18.0, pal().muted);
         if globe.hovered() {
             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
@@ -1055,7 +1128,7 @@ impl App {
                     step_title(ui, 1, t!("Où étaient vos fichiers ?"), t!("Choisissez le disque, la carte mémoire ou la clé USB."));
                     ui.add_space(12.0);
                     if self.disks.is_empty() {
-                        ui.label(egui::RichText::new(t!("Aucun disque trouvé.")).color(MUTED));
+                        ui.label(egui::RichText::new(t!("Aucun disque trouvé.")).color(pal().muted));
                     }
                     // as many cards per row as the window allows, the others below
                     ui.horizontal_wrapped(|ui| {
@@ -1104,8 +1177,8 @@ impl App {
                         self.progress_bar(ui, 310.0, self.progress, true);
                         ui.add_space(6.0);
                         let pct = (self.progress * 100.0).floor() as u32;
-                        ui.label(egui::RichText::new(format!("{}  {pct} %", self.phase)).font(regular(13.5)).color(MUTED));
-                        ui.label(egui::RichText::new(time_left(self.eta)).font(bold(13.5)).color(TEXT));
+                        ui.label(egui::RichText::new(format!("{}  {pct} %", self.phase)).font(regular(13.5)).color(pal().muted));
+                        ui.label(egui::RichText::new(time_left(self.eta)).font(bold(13.5)).color(pal().text));
                         ui.label(
                             egui::RichText::new(format!(
                                 "{} · {}",
@@ -1113,7 +1186,7 @@ impl App {
                                 human_size(self.found_bytes)
                             ))
                             .font(regular(13.5))
-                            .color(MUTED),
+                            .color(pal().muted),
                         );
                         ui.add_space(2.0);
                         let hint = if sys::Tray::AVAILABLE {
@@ -1123,7 +1196,7 @@ impl App {
                             t!("Réduit la fenêtre : la recherche continue.")
                         };
                         if ui
-                            .link(egui::RichText::new(t!("Continuer en arrière-plan")).font(bold(13.5)).color(ACCENT))
+                            .link(egui::RichText::new(t!("Continuer en arrière-plan")).font(bold(13.5)).color(pal().accent))
                             .on_hover_text(hint)
                             .clicked()
                         {
@@ -1142,12 +1215,16 @@ impl App {
                             } else {
                                 t!("Recherche approfondie : tout le disque est lu.")
                             };
-                            ui.label(egui::RichText::new(what).font(regular(13.5)).color(MUTED));
-                            ui.label(egui::RichText::new(t!("Rien n'est modifié sur le disque.")).font(regular(13.5)).color(MUTED));
+                            ui.label(egui::RichText::new(what).font(regular(13.5)).color(pal().muted));
+                            ui.label(egui::RichText::new(t!("Rien n'est modifié sur le disque.")).font(regular(13.5)).color(pal().muted));
                             if self.last_quick
                                 && self.quick_possible()
                                 && ui
-                                    .link(egui::RichText::new(t!("Pas trouvé ? Lancer l'analyse complète")).font(bold(13.5)).color(ACCENT))
+                                    .link(
+                                        egui::RichText::new(t!("Pas trouvé ? Lancer l'analyse complète"))
+                                            .font(bold(13.5))
+                                            .color(pal().accent),
+                                    )
                                     .on_hover_text(t!("Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens."))
                                     .clicked()
                             {
@@ -1158,10 +1235,10 @@ impl App {
                             ui.label(
                                 egui::RichText::new(t!("Recherche rapide : seule la corbeille est fouillée."))
                                     .font(regular(13.5))
-                                    .color(MUTED),
+                                    .color(pal().muted),
                             );
                             if ui
-                                .link(egui::RichText::new(t!("Chercher aussi sur tout le disque…")).font(bold(13.5)).color(ACCENT))
+                                .link(egui::RichText::new(t!("Chercher aussi sur tout le disque…")).font(bold(13.5)).color(pal().accent))
                                 .clicked()
                             {
                                 self.ask_deep = true;
@@ -1176,35 +1253,30 @@ impl App {
     /// A phone plugged by USB only lends its files one by one (MTP): there is no free space
     /// to read, and its memory is encrypted anyway. Says where to look instead.
     fn phone_help(&self, ui: &mut egui::Ui) {
-        Frame::new().fill(Color32::from_rgb(255, 251, 235)).corner_radius(CornerRadius::same(12)).inner_margin(Margin::same(12)).show(
-            ui,
-            |ui| {
-                ui.set_width(296.0);
-                icon_label(
-                    ui,
-                    Icon::Warning,
-                    18.0,
-                    AMBER,
-                    egui::RichText::new(t!("Un téléphone ne se fouille pas ainsi")).font(bold(14.5)).color(AMBER),
-                );
-                ui.add_space(4.0);
-                ui.label(
-                    egui::RichText::new(t!("Branché en USB, il ne montre que ses fichiers présents, et sa mémoire est chiffrée : \
+        Frame::new().fill(pal().warn_bg).corner_radius(CornerRadius::same(12)).inner_margin(Margin::same(12)).show(ui, |ui| {
+            ui.set_width(296.0);
+            icon_label(
+                ui,
+                Icon::Warning,
+                18.0,
+                pal().amber,
+                egui::RichText::new(t!("Un téléphone ne se fouille pas ainsi")).font(bold(14.5)).color(pal().amber),
+            );
+            ui.add_space(4.0);
+            ui.label(
+                egui::RichText::new(t!("Branché en USB, il ne montre que ses fichiers présents, et sa mémoire est chiffrée : \
                          les fichiers effacés ne peuvent pas être lus depuis l'ordinateur."))
-                    .font(regular(13.0))
-                    .color(TEXT),
-                );
-                ui.add_space(4.0);
-                ui.label(
-                    egui::RichText::new(t!(
-                        "Regardez plutôt dans la corbeille de l'appli Galerie ou Photos (30 jours), dans Google Photos \
-                         ou iCloud. Si le téléphone a une carte microSD, mettez-la dans un lecteur de cartes."
-                    ))
-                    .font(regular(13.0))
-                    .color(MUTED),
-                );
-            },
-        );
+                .font(regular(13.0))
+                .color(pal().text),
+            );
+            ui.add_space(4.0);
+            ui.label(
+                egui::RichText::new(t!("Regardez plutôt dans la corbeille de l'appli Galerie ou Photos (30 jours), dans Google Photos \
+                         ou iCloud. Si le téléphone a une carte microSD, mettez-la dans un lecteur de cartes."))
+                .font(regular(13.0))
+                .color(pal().muted),
+            );
+        });
     }
 
     /// "Je cherche : Tout · Photos · …" — narrowing it makes the search sort better and finish sooner.
@@ -1212,7 +1284,7 @@ impl App {
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing = vec2(8.0, 8.0);
             row_label(ui, t!("Je cherche :"), 34.0);
-            let all = chip(ui, None, t!("Tout").into(), self.wanted.kinds.is_empty(), TEXT, !busy)
+            let all = chip(ui, None, t!("Tout").into(), self.wanted.kinds.is_empty(), pal().text, !busy)
                 .on_hover_text(t!("Tous les types de fichiers que l'analyse sait reconnaître."));
             if all.clicked() {
                 self.wanted.kinds.clear();
@@ -1242,7 +1314,7 @@ impl App {
             // the triangle is drawn: the bold font has no arrow characters
             ui.spacing_mut().item_spacing.x = 4.0;
             let (ar, arrow) = ui.allocate_exact_size(vec2(10.0, 34.0), if busy { Sense::hover() } else { Sense::click() });
-            let (c, color) = (ar.center(), if busy { MUTED } else { ACCENT });
+            let (c, color) = (ar.center(), if busy { pal().muted } else { pal().accent });
             let pts = if self.refine_open {
                 vec![pos2(c.x - 4.5, c.y - 2.5), pos2(c.x + 4.5, c.y - 2.5), pos2(c.x, c.y + 3.0)]
             } else {
@@ -1270,7 +1342,7 @@ impl App {
         ui.horizontal_wrapped(|ui| {
             ui.spacing_mut().item_spacing = vec2(6.0, 6.0);
             row_label(ui, t!("Analyse :"), 28.0);
-            if chip_sized(ui, None, t!("Rapide").into(), !self.full, ACCENT, !busy, true)
+            if chip_sized(ui, None, t!("Rapide").into(), !self.full, pal().accent, !busy, true)
                 .on_hover_text(t!(
                     "Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. \
                      Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille."
@@ -1279,7 +1351,7 @@ impl App {
             {
                 self.full = false;
             }
-            if chip_sized(ui, None, t!("Complète").into(), self.full, ACCENT, !busy, true)
+            if chip_sized(ui, None, t!("Complète").into(), self.full, pal().accent, !busy, true)
                 .on_hover_text(t!(
                     "Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, \
                      souvent sans leur nom. Peut prendre plus d'une heure."
@@ -1300,10 +1372,10 @@ impl App {
                 let galley = ui.painter().layout_no_wrap(
                     t!("Choisissez d'abord Photos, Documents… pour préciser le format.").into(),
                     regular(13.5),
-                    MUTED,
+                    pal().muted,
                 );
                 let (r, _) = ui.allocate_exact_size(vec2(galley.size().x, 28.0), Sense::hover());
-                ui.painter().galley(pos2(r.left(), r.center().y - galley.size().y / 2.0), galley, MUTED);
+                ui.painter().galley(pos2(r.left(), r.center().y - galley.size().y / 2.0), galley, pal().muted);
             }
             for (i, f) in FORMATS.iter().enumerate() {
                 if !self.wanted.kinds.contains(&f.cat) {
@@ -1325,7 +1397,7 @@ impl App {
             ui.label(
                 egui::RichText::new(t!("Aucun format coché dans une catégorie : tous ses formats sont cherchés."))
                     .font(regular(12.5))
-                    .color(MUTED),
+                    .color(pal().muted),
             );
         }
         ui.add_space(2.0);
@@ -1334,7 +1406,7 @@ impl App {
             row_label(ui, t!("Taille :"), 28.0);
             for s in SIZES {
                 let label = if s == 0 { t!("Toutes").to_string() } else { size_label(s) };
-                if chip_sized(ui, None, label, self.wanted.min_size == s, ACCENT, !busy, true).clicked() {
+                if chip_sized(ui, None, label, self.wanted.min_size == s, pal().accent, !busy, true).clicked() {
                     self.wanted.min_size = s;
                 }
             }
@@ -1348,19 +1420,19 @@ impl App {
         let hovered = resp.hovered() && !busy;
         let p = ui.painter();
         let fill = if sel {
-            ACCENT_SOFT
+            pal().accent_soft
         } else if hovered {
-            Color32::from_rgb(249, 250, 251)
+            pal().raised
         } else {
-            CARD
+            pal().card
         };
-        let stroke = if sel { Stroke::new(2.0, ACCENT) } else { Stroke::new(1.0, BORDER) };
+        let stroke = if sel { Stroke::new(2.0, pal().accent) } else { Stroke::new(1.0, pal().border) };
         p.rect(rect, CornerRadius::same(14), fill, stroke, StrokeKind::Inside);
         // the picture of the kind of drive: hard disk, SSD, card, key, phone…
         let pic = Rect::from_min_size(rect.min + vec2(10.0, 10.0), vec2(48.0, 48.0));
         self.art.paint(ui, d.kind.art(), pic);
         let x = pic.right() + 10.0;
-        p.text(pos2(x, rect.top() + 24.0), Align2::LEFT_CENTER, elide(&d.title(), 20), bold(15.0), TEXT);
+        p.text(pos2(x, rect.top() + 24.0), Align2::LEFT_CENTER, elide(&d.title(), 20), bold(15.0), pal().text);
         let image = d.kind == sys::Kind::Image;
         let second = if image {
             format!("{} · {}", d.kind.label(), human_size(d.total))
@@ -1369,29 +1441,29 @@ impl App {
         } else {
             d.kind.label().to_string()
         };
-        p.text(pos2(x, rect.top() + 45.0), Align2::LEFT_CENTER, elide(&second, 26), regular(12.5), MUTED);
+        p.text(pos2(x, rect.top() + 45.0), Align2::LEFT_CENTER, elide(&second, 26), regular(12.5), pal().muted);
         if image {
             p.text(
                 pos2(rect.left() + 14.0, rect.bottom() - 18.0),
                 Align2::LEFT_CENTER,
                 t!("Lue sans toucher au disque d'origine"),
                 regular(12.0),
-                GREEN,
+                pal().green,
             );
         } else if d.total > 0 {
             let bar = Rect::from_min_max(pos2(rect.left() + 14.0, rect.bottom() - 22.0), pos2(rect.right() - 14.0, rect.bottom() - 14.0));
-            p.rect_filled(bar, CornerRadius::same(4), Color32::from_rgb(229, 231, 235));
+            p.rect_filled(bar, CornerRadius::same(4), pal().track);
             let used = 1.0 - d.free as f32 / d.total as f32;
             let mut fillr = bar;
             fillr.set_width(bar.width() * used.clamp(0.02, 1.0));
-            p.rect_filled(fillr, CornerRadius::same(4), if sel { ACCENT } else { Color32::from_rgb(156, 163, 175) });
+            p.rect_filled(fillr, CornerRadius::same(4), if sel { pal().accent } else { pal().faint });
         } else {
             p.text(
                 pos2(rect.left() + 14.0, rect.bottom() - 18.0),
                 Align2::LEFT_CENTER,
                 t!("Pas de recherche possible"),
                 regular(12.0),
-                AMBER,
+                pal().amber,
             );
         }
         if hovered {
@@ -1418,19 +1490,19 @@ impl App {
         let (rect, resp) = ui.allocate_exact_size(vec2(238.0, 96.0), if busy { Sense::hover() } else { Sense::click() });
         let hovered = resp.hovered() && !busy;
         let p = ui.painter();
-        let color = if busy { MUTED } else { ACCENT };
-        p.rect_filled(rect, CornerRadius::same(14), if hovered { ACCENT_SOFT } else { CARD });
+        let color = if busy { pal().muted } else { pal().accent };
+        p.rect_filled(rect, CornerRadius::same(14), if hovered { pal().accent_soft } else { pal().card });
         p.extend(egui::Shape::dashed_line(
             &rounded_outline(rect.shrink(0.5), 14.0),
-            Stroke::new(if hovered { 1.5 } else { 1.0 }, if hovered { ACCENT } else { Color32::from_rgb(165, 170, 190) }),
+            Stroke::new(if hovered { 1.5 } else { 1.0 }, if hovered { pal().accent } else { pal().border_strong }),
             6.0,
             4.0,
         ));
         let pic = Rect::from_min_size(rect.min + vec2(10.0, 10.0), vec2(48.0, 48.0));
         self.art.paint(ui, sys::Kind::Image.art(), pic);
         let x = pic.right() + 10.0;
-        p.text(pos2(x, rect.top() + 24.0), Align2::LEFT_CENTER, elide(t!("Image disque"), 20), bold(15.0), TEXT);
-        p.text(pos2(x, rect.top() + 45.0), Align2::LEFT_CENTER, elide(t!("Fichier .img ou .dd"), 26), regular(12.5), MUTED);
+        p.text(pos2(x, rect.top() + 24.0), Align2::LEFT_CENTER, elide(t!("Image disque"), 20), bold(15.0), pal().text);
+        p.text(pos2(x, rect.top() + 45.0), Align2::LEFT_CENTER, elide(t!("Fichier .img ou .dd"), 26), regular(12.5), pal().muted);
         p.text(pos2(rect.left() + 14.0, rect.bottom() - 18.0), Align2::LEFT_CENTER, t!("+ Ouvrir une image disque…"), bold(13.0), color);
         if hovered {
             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
@@ -1442,10 +1514,10 @@ impl App {
     fn progress_bar(&self, ui: &mut egui::Ui, w: f32, v: f32, animate: bool) {
         let (r, _) = ui.allocate_exact_size(vec2(w, 10.0), Sense::hover());
         let p = ui.painter();
-        p.rect_filled(r, CornerRadius::same(5), Color32::from_rgb(229, 231, 235));
+        p.rect_filled(r, CornerRadius::same(5), pal().track);
         let mut f = r;
         f.set_width((r.width() * v.clamp(0.0, 1.0)).max(10.0));
-        p.rect_filled(f, CornerRadius::same(5), ACCENT);
+        p.rect_filled(f, CornerRadius::same(5), pal().accent);
         if animate {
             let t = ui.input(|i| i.time) as f32;
             let x = f.left() + (t * 0.6).fract() * f.width();
@@ -1488,19 +1560,19 @@ impl App {
             ui.add_space((h / 2.0 - 110.0).max(4.0));
             let (r, _) = ui.allocate_exact_size(vec2(120.0, 120.0), Sense::hover());
             let p = ui.painter();
-            p.circle_filled(r.center(), 60.0, ACCENT_SOFT);
-            p.circle_filled(r.center(), 42.0, Color32::from_rgb(224, 231, 255));
+            p.circle_filled(r.center(), 60.0, pal().accent_soft);
+            p.circle_filled(r.center(), 42.0, pal().accent_mid);
             if self.scanning() {
                 let t = ui.input(|i| i.time) as f32;
                 let a = t * 2.4;
                 let c = r.center() + vec2(a.cos(), a.sin()) * 12.0;
-                p.circle_stroke(c, 16.0, Stroke::new(4.0, ACCENT));
-                p.line_segment([c + vec2(11.0, 11.0), c + vec2(22.0, 22.0)], Stroke::new(5.0, ACCENT));
+                p.circle_stroke(c, 16.0, Stroke::new(4.0, pal().accent));
+                p.line_segment([c + vec2(11.0, 11.0), c + vec2(22.0, 22.0)], Stroke::new(5.0, pal().accent));
                 ui.ctx().request_repaint();
             } else {
                 let c = r.center() + vec2(-6.0, -6.0);
-                p.circle_stroke(c, 18.0, Stroke::new(4.5, ACCENT));
-                p.line_segment([c + vec2(13.0, 13.0), c + vec2(26.0, 26.0)], Stroke::new(5.5, ACCENT));
+                p.circle_stroke(c, 18.0, Stroke::new(4.5, pal().accent));
+                p.line_segment([c + vec2(13.0, 13.0), c + vec2(26.0, 26.0)], Stroke::new(5.5, pal().accent));
             }
             ui.add_space(18.0);
             let (title, sub) = if self.scanning() {
@@ -1520,12 +1592,12 @@ impl App {
                     t!("Choisissez un disque, cliquez sur « Rechercher », puis cochez ce que vous voulez retrouver."),
                 )
             };
-            ui.label(egui::RichText::new(title).font(bold(22.0)).color(TEXT));
+            ui.label(egui::RichText::new(title).font(bold(22.0)).color(pal().text));
             ui.add_space(6.0);
-            ui.label(egui::RichText::new(sub).font(regular(15.0)).color(MUTED));
+            ui.label(egui::RichText::new(sub).font(regular(15.0)).color(pal().muted));
             if let Some(p) = &self.problem {
                 ui.add_space(10.0);
-                ui.label(egui::RichText::new(p).font(regular(14.0)).color(AMBER));
+                ui.label(egui::RichText::new(p).font(regular(14.0)).color(pal().amber));
             }
         });
     }
@@ -1534,7 +1606,7 @@ impl App {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 8.0;
             let shown: Vec<&Found> = (0..self.files.len()).filter(|&i| !self.hidden_dupe(i)).map(|i| &self.files[i]).collect();
-            if chip(ui, None, format!("{}  {}", t!("Tout"), shown.len()), self.filter.is_none(), TEXT, true).clicked() {
+            if chip(ui, None, format!("{}  {}", t!("Tout"), shown.len()), self.filter.is_none(), pal().text, true).clicked() {
                 self.filter = None;
             }
             for c in Category::ALL {
@@ -1591,7 +1663,7 @@ impl App {
             ui.spacing_mut().item_spacing.x = 6.0;
             if counts.len() > 1 || self.ext_filter.is_some() {
                 row_label(ui, t!("Format :"), 28.0);
-                if chip_sized(ui, None, t!("Tous").into(), self.ext_filter.is_none(), TEXT, true, true).clicked() {
+                if chip_sized(ui, None, t!("Tous").into(), self.ext_filter.is_none(), pal().text, true, true).clicked() {
                     self.ext_filter = None;
                 }
                 for (e, n) in &counts {
@@ -1603,7 +1675,7 @@ impl App {
                     } else {
                         format!("{}  {n}", e.to_uppercase())
                     };
-                    if chip_sized(ui, None, label, on, ACCENT, true, true).clicked() {
+                    if chip_sized(ui, None, label, on, pal().accent, true, true).clicked() {
                         self.ext_filter = if on { None } else { Some(e.clone()) };
                     }
                 }
@@ -1611,7 +1683,7 @@ impl App {
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 ui.spacing_mut().item_spacing.x = 6.0;
                 for s in SIZES.iter().rev() {
-                    if chip_sized(ui, None, size_short(*s), self.show_min == *s, ACCENT, true, true).clicked() {
+                    if chip_sized(ui, None, size_short(*s), self.show_min == *s, pal().accent, true, true).clicked() {
                         self.show_min = *s;
                     }
                 }
@@ -1648,14 +1720,14 @@ impl App {
         ];
         for (k, title, x, align) in columns {
             let active = self.sort.filter(|(s, _)| *s == k);
-            let color = if active.is_some() { ACCENT } else { MUTED };
+            let color = if active.is_some() { pal().accent } else { pal().muted };
             let tr = p.text(pos2(x, hr.center().y), align, title, bold(13.0), color);
             let zone = tr.expand2(vec2(6.0, 6.0)).with_max_x(tr.right() + 18.0);
             let resp = ui.interact(zone, ui.scope_id().with(("sort", title)), Sense::click());
             if let Some((_, asc)) = active {
-                sort_arrow(&p, pos2(tr.right() + 9.0, hr.center().y), asc, ACCENT);
+                sort_arrow(&p, pos2(tr.right() + 9.0, hr.center().y), asc, pal().accent);
             } else if resp.hovered() {
-                sort_arrow(&p, pos2(tr.right() + 9.0, hr.center().y), false, Color32::from_rgb(209, 213, 219));
+                sort_arrow(&p, pos2(tr.right() + 9.0, hr.center().y), false, pal().border_strong);
             }
             if resp.hovered() {
                 ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
@@ -1664,13 +1736,13 @@ impl App {
                 self.set_sort(k);
             }
         }
-        p.text(pos2(hr.right() - 12.0, hr.center().y), Align2::RIGHT_CENTER, t!("État"), bold(13.0), MUTED);
-        p.line_segment([pos2(hr.left(), hr.bottom()), pos2(hr.right(), hr.bottom())], Stroke::new(1.0, BORDER));
+        p.text(pos2(hr.right() - 12.0, hr.center().y), Align2::RIGHT_CENTER, t!("État"), bold(13.0), pal().muted);
+        p.line_segment([pos2(hr.left(), hr.bottom()), pos2(hr.right(), hr.bottom())], Stroke::new(1.0, pal().border));
 
         if visible.is_empty() {
             ui.add_space(30.0);
             ui.vertical_centered(|ui| {
-                ui.label(egui::RichText::new(t!("Aucun fichier ne correspond à ces filtres.")).font(regular(14.5)).color(MUTED));
+                ui.label(egui::RichText::new(t!("Aucun fichier ne correspond à ces filtres.")).font(regular(14.5)).color(pal().muted));
             });
         }
         let row_h = 54.0;
@@ -1684,9 +1756,9 @@ impl App {
                 let p = ui.painter();
                 let focused = self.focus == Some(idx);
                 if focused {
-                    p.rect_filled(r.shrink2(vec2(0.0, 2.0)), CornerRadius::same(10), ACCENT_SOFT);
+                    p.rect_filled(r.shrink2(vec2(0.0, 2.0)), CornerRadius::same(10), pal().accent_soft);
                 } else if resp.hovered() {
-                    p.rect_filled(r.shrink2(vec2(0.0, 2.0)), CornerRadius::same(10), Color32::from_rgb(249, 250, 251));
+                    p.rect_filled(r.shrink2(vec2(0.0, 2.0)), CornerRadius::same(10), pal().raised);
                 }
                 checkbox_at(p, pos2(r.left() + 22.0, r.center().y), f.checked, false);
                 let (icon, color, soft) = cat_style(f.category);
@@ -1694,29 +1766,29 @@ impl App {
                 p.rect_filled(ir, CornerRadius::same(9), soft);
                 icons::draw(p, icon, ir.center(), 20.0, color);
                 let name_w = ((r.width() - 420.0) / 8.0).max(12.0) as usize;
-                p.text(pos2(r.left() + 100.0, r.top() + 18.0), Align2::LEFT_CENTER, elide(&f.name, name_w), bold(15.0), TEXT);
+                p.text(pos2(r.left() + 100.0, r.top() + 18.0), Align2::LEFT_CENTER, elide(&f.name, name_w), bold(15.0), pal().text);
                 let sub = if f.ext.is_empty() || f.ext == "dossier" {
                     f.place.clone()
                 } else {
                     format!("{} · {}", f.ext.to_uppercase(), f.place)
                 };
-                p.text(pos2(r.left() + 100.0, r.top() + 37.0), Align2::LEFT_CENTER, elide(&sub, name_w + 10), regular(12.5), MUTED);
+                p.text(pos2(r.left() + 100.0, r.top() + 37.0), Align2::LEFT_CENTER, elide(&sub, name_w + 10), regular(12.5), pal().muted);
                 p.text(
                     pos2(r.right() - 300.0, r.center().y),
                     Align2::LEFT_CENTER,
                     f.date.clone().unwrap_or_else(|| "—".into()),
                     regular(14.0),
-                    TEXT,
+                    pal().text,
                 );
-                p.text(pos2(r.right() - 120.0, r.center().y), Align2::RIGHT_CENTER, human_size(f.size), regular(14.0), TEXT);
+                p.text(pos2(r.right() - 120.0, r.center().y), Align2::RIGHT_CENTER, human_size(f.size), regular(14.0), pal().text);
                 let (txt, fg, bg) = match self.checks.get(&idx).map(|c| c.verdict) {
-                    Some(Verdict::Intact) => (t!("Intact"), GREEN, GREEN_SOFT),
-                    Some(Verdict::Damaged(_)) => (t!("Endommagé"), RED, RED_SOFT),
-                    Some(Verdict::Empty) => (t!("Vide"), MUTED, Color32::from_rgb(243, 244, 246)),
+                    Some(Verdict::Intact) => (t!("Intact"), pal().green, pal().green_soft),
+                    Some(Verdict::Damaged(_)) => (t!("Endommagé"), pal().red, pal().red_soft),
+                    Some(Verdict::Empty) => (t!("Vide"), pal().muted, pal().hover),
                     _ => match f.chance {
-                        Chance::Excellent => (t!("Excellentes"), GREEN, GREEN_SOFT),
-                        Chance::Good => (t!("Bonnes"), ACCENT, ACCENT_SOFT),
-                        Chance::Low => (t!("Faibles"), AMBER, Color32::from_rgb(254, 243, 199)),
+                        Chance::Excellent => (t!("Excellentes"), pal().green, pal().green_soft),
+                        Chance::Good => (t!("Bonnes"), pal().accent, pal().accent_soft),
+                        Chance::Low => (t!("Faibles"), pal().amber, pal().amber_soft),
                     },
                 };
                 let br = Rect::from_min_max(pos2(r.right() - 96.0, r.center().y - 12.0), pos2(r.right() - 6.0, r.center().y + 12.0));
@@ -1751,9 +1823,9 @@ impl App {
     fn preview_panel(&mut self, ui: &mut egui::Ui) {
         let w = ui.available_width();
         Frame::new()
-            .fill(Color32::from_rgb(249, 250, 251))
+            .fill(pal().raised)
             .corner_radius(CornerRadius::same(14))
-            .stroke(Stroke::new(1.0, BORDER))
+            .stroke(Stroke::new(1.0, pal().border))
             .inner_margin(Margin::same(14))
             .show(ui, |ui| {
                 ui.set_width(w - 28.0);
@@ -1762,10 +1834,12 @@ impl App {
                     ui.add_space(60.0);
                     ui.vertical_centered(|ui| {
                         let (r, _) = ui.allocate_exact_size(vec2(40.0, 40.0), Sense::hover());
-                        icons::draw(ui.painter(), Icon::Pointer, r.center(), 34.0, MUTED);
+                        icons::draw(ui.painter(), Icon::Pointer, r.center(), 34.0, pal().muted);
                         ui.add_space(8.0);
-                        ui.label(egui::RichText::new(t!("Aperçu")).font(bold(17.0)).color(TEXT));
-                        ui.label(egui::RichText::new(t!("Cliquez sur un fichier pour le voir ici.")).font(regular(14.0)).color(MUTED));
+                        ui.label(egui::RichText::new(t!("Aperçu")).font(bold(17.0)).color(pal().text));
+                        ui.label(
+                            egui::RichText::new(t!("Cliquez sur un fichier pour le voir ici.")).font(regular(14.0)).color(pal().muted),
+                        );
                     });
                     return;
                 };
@@ -1804,7 +1878,7 @@ impl App {
 
     /// The picture, the first lines or the first bytes of `f`, fitted in `r`.
     fn preview_area(&mut self, ui: &mut egui::Ui, f: &Found, r: Rect) {
-        ui.painter().rect_filled(r, CornerRadius::same(10), CARD);
+        ui.painter().rect_filled(r, CornerRadius::same(10), pal().card);
         let mut drawn = false;
         let expert = self.settings.expert;
         if preview::can_preview(f) || expert {
@@ -1822,7 +1896,7 @@ impl App {
                     let t = t.clone();
                     ui.scope_builder(egui::UiBuilder::new().max_rect(r.shrink(8.0)), |ui| {
                         egui::ScrollArea::both().id_salt(("text-preview", f.id)).auto_shrink([false, false]).show(ui, |ui| {
-                            ui.add(egui::Label::new(egui::RichText::new(t).font(FontId::monospace(12.0)).color(TEXT)).extend());
+                            ui.add(egui::Label::new(egui::RichText::new(t).font(FontId::monospace(12.0)).color(pal().text)).extend());
                         });
                     });
                     drawn = true;
@@ -1833,7 +1907,7 @@ impl App {
                         self.preview_wanted = Some(f.id);
                         preview::load(f.clone(), expert, ui.ctx().clone(), self.preview_slot.clone());
                     }
-                    ui.painter().text(r.center(), Align2::CENTER_CENTER, t!("Chargement de l'aperçu…"), regular(13.0), MUTED);
+                    ui.painter().text(r.center(), Align2::CENTER_CENTER, t!("Chargement de l'aperçu…"), regular(13.0), pal().muted);
                     drawn = true;
                 }
             }
@@ -1849,7 +1923,7 @@ impl App {
                     Align2::CENTER_CENTER,
                     t!("Pas d'aperçu pour ce fichier"),
                     regular(12.5),
-                    MUTED,
+                    pal().muted,
                 );
             }
         }
@@ -1900,25 +1974,25 @@ impl App {
             None => {}
         }
         if column {
-            ui.add(egui::Label::new(egui::RichText::new(&f.name).font(bold(16.0)).color(TEXT)).wrap()).on_hover_text(&f.place);
+            ui.add(egui::Label::new(egui::RichText::new(&f.name).font(bold(16.0)).color(pal().text)).wrap()).on_hover_text(&f.place);
             ui.add_space(6.0);
             for (k, v) in facts {
                 ui.horizontal_top(|ui| {
-                    ui.label(egui::RichText::new(k).font(regular(12.5)).color(MUTED));
+                    ui.label(egui::RichText::new(k).font(regular(12.5)).color(pal().muted));
                     ui.with_layout(Layout::right_to_left(Align::Min), |ui| {
-                        ui.add(egui::Label::new(egui::RichText::new(v).font(regular(13.0)).color(TEXT)).wrap());
+                        ui.add(egui::Label::new(egui::RichText::new(v).font(regular(13.0)).color(pal().text)).wrap());
                     });
                 });
             }
             ui.add_space(8.0);
         } else {
-            ui.label(egui::RichText::new(elide(&f.name, 34)).font(bold(16.0)).color(TEXT));
+            ui.label(egui::RichText::new(elide(&f.name, 34)).font(bold(16.0)).color(pal().text));
             ui.add_space(6.0);
             for (k, v) in facts {
                 ui.horizontal(|ui| {
-                    ui.label(egui::RichText::new(k).font(regular(13.0)).color(MUTED));
+                    ui.label(egui::RichText::new(k).font(regular(13.0)).color(pal().muted));
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        ui.label(egui::RichText::new(v).font(regular(13.0)).color(TEXT));
+                        ui.label(egui::RichText::new(v).font(regular(13.0)).color(pal().text));
                     });
                 });
             }
@@ -1957,7 +2031,7 @@ impl App {
         let (cr, cresp) = ui.allocate_exact_size(vec2(ui.available_width(), 30.0), Sense::click());
         checkbox_at(ui.painter(), pos2(cr.left() + 11.0, cr.center().y), f.checked, false);
         let ctext = if f.checked { t!("Coché pour la récupération") } else { t!("Cocher pour la récupération") };
-        ui.painter().text(pos2(cr.left() + 30.0, cr.center().y), Align2::LEFT_CENTER, ctext, bold(13.5), TEXT);
+        ui.painter().text(pos2(cr.left() + 30.0, cr.center().y), Align2::LEFT_CENTER, ctext, bold(13.5), pal().text);
         if cresp.hovered() {
             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
@@ -1979,8 +2053,8 @@ impl App {
             // what the three buttons on the right leave: the words wrap in it instead of being cut
             let left_w = (ui.available_width() - 28.0 - 4.0 - 3.0 * ui.spacing().item_spacing.x - 600.0).max(200.0);
             let (r, _) = ui.allocate_exact_size(vec2(28.0, 28.0), Sense::hover());
-            ui.painter().circle_filled(r.center(), 14.0, ACCENT);
-            ui.painter().text(r.center(), Align2::CENTER_CENTER, "3", bold(15.0), Color32::WHITE);
+            ui.painter().circle_filled(r.center(), 14.0, pal().accent);
+            ui.painter().text(r.center(), Align2::CENTER_CENTER, "3", bold(15.0), pal().on_accent);
             ui.add_space(4.0);
             ui.allocate_ui_with_layout(vec2(left_w, 0.0), Layout::top_down(Align::Min), |ui| {
                 ui.set_max_width(left_w);
@@ -1990,7 +2064,7 @@ impl App {
                 });
                 match copy {
                     Some((done, total, _, false, _)) => {
-                        ui.label(egui::RichText::new(t!("Récupération… {} / {}", done, total)).font(bold(17.0)).color(TEXT));
+                        ui.label(egui::RichText::new(t!("Récupération… {} / {}", done, total)).font(bold(17.0)).color(pal().text));
                         self.progress_bar(ui, left_w.min(320.0), done as f32 / total.max(1) as f32, true);
                     }
                     Some((done, _, failed, true, folder)) => {
@@ -2002,12 +2076,14 @@ impl App {
                             t!("{} · {} impossible(s) à lire", done_txt, failed)
                         };
                         ui.horizontal(|ui| {
-                            icon_label(ui, Icon::Check, 18.0, GREEN, egui::RichText::new(txt).font(bold(17.0)).color(GREEN));
-                            if ui.link(egui::RichText::new(t!("Ouvrir le dossier")).font(bold(14.0)).color(ACCENT)).clicked() {
+                            icon_label(ui, Icon::Check, 18.0, pal().green, egui::RichText::new(txt).font(bold(17.0)).color(pal().green));
+                            if ui.link(egui::RichText::new(t!("Ouvrir le dossier")).font(bold(14.0)).color(pal().accent)).clicked() {
                                 sys::open_path(&folder);
                             }
                         });
-                        ui.add(egui::Label::new(egui::RichText::new(folder.to_string_lossy()).font(regular(12.5)).color(MUTED)).wrap());
+                        ui.add(
+                            egui::Label::new(egui::RichText::new(folder.to_string_lossy()).font(regular(12.5)).color(pal().muted)).wrap(),
+                        );
                     }
                     None => {
                         let head = if n == 0 {
@@ -2015,12 +2091,12 @@ impl App {
                         } else {
                             format!("{} · {}", plural(n, t!("fichier coché"), t!("fichiers cochés")), human_size(bytes))
                         };
-                        ui.label(egui::RichText::new(head).font(bold(17.0)).color(TEXT));
+                        ui.label(egui::RichText::new(head).font(bold(17.0)).color(pal().text));
                         let tip = self
                             .notice
                             .clone()
                             .unwrap_or_else(|| t!("Conseil : enregistrez-les sur un autre disque (une clé USB par exemple).").into());
-                        ui.add(egui::Label::new(egui::RichText::new(tip).font(regular(13.0)).color(MUTED)).wrap());
+                        ui.add(egui::Label::new(egui::RichText::new(tip).font(regular(13.0)).color(pal().muted)).wrap());
                     }
                 }
                 self.about_line(ui);
@@ -2058,8 +2134,8 @@ impl App {
         ui.add_space(2.0);
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 4.0;
-            let small = |s: &str| egui::RichText::new(s).font(regular(11.5)).color(MUTED);
-            let link = |s: &str| egui::RichText::new(s).font(regular(11.5)).color(ACCENT);
+            let small = |s: &str| egui::RichText::new(s).font(regular(11.5)).color(pal().muted);
+            let link = |s: &str| egui::RichText::new(s).font(regular(11.5)).color(pal().accent);
             ui.label(small(concat!("Open Recovr v", env!("CARGO_PKG_VERSION"))));
             ui.label(small("·"));
             ui.hyperlink_to(link("GitHub"), "https://github.com/jlerouge/open-recovr")
@@ -2088,8 +2164,8 @@ impl App {
                 ui,
                 Icon::Warning,
                 20.0,
-                AMBER,
-                egui::RichText::new(t!("Même disque que les fichiers perdus")).font(bold(18.0)).color(AMBER),
+                pal().amber,
+                egui::RichText::new(t!("Même disque que les fichiers perdus")).font(bold(18.0)).color(pal().amber),
             );
             ui.add_space(8.0);
             ui.label(
@@ -2097,7 +2173,7 @@ impl App {
                     "Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque."
                 ))
                 .font(regular(14.5))
-                .color(TEXT),
+                .color(pal().text),
             );
             ui.add_space(16.0);
             ui.horizontal(|ui| {
@@ -2109,7 +2185,7 @@ impl App {
                 }
             });
             ui.add_space(4.0);
-            if ui.link(egui::RichText::new(t!("Annuler")).color(MUTED)).clicked() {
+            if ui.link(egui::RichText::new(t!("Annuler")).color(pal().muted)).clicked() {
                 close = true;
             }
         });
@@ -2133,18 +2209,20 @@ impl App {
         let mut stay = false;
         egui::Modal::new(egui::Id::unique("deep-search")).show(ctx, |ui| {
             ui.set_width(500.0);
-            icon_label(ui, Icon::Shield, 22.0, ACCENT, egui::RichText::new(t!("Jusqu'où chercher ?")).font(bold(20.0)).color(TEXT));
+            icon_label(
+                ui,
+                Icon::Shield,
+                22.0,
+                pal().accent,
+                egui::RichText::new(t!("Jusqu'où chercher ?")).font(bold(20.0)).color(pal().text),
+            );
             ui.add_space(10.0);
             let item = |ui: &mut egui::Ui, title: &str, body: &str| {
-                Frame::new()
-                    .fill(Color32::from_rgb(249, 250, 251))
-                    .corner_radius(CornerRadius::same(10))
-                    .inner_margin(Margin::same(12))
-                    .show(ui, |ui| {
-                        ui.set_width(ui.available_width());
-                        ui.label(egui::RichText::new(title).font(bold(15.0)).color(TEXT));
-                        ui.label(egui::RichText::new(body).font(regular(14.0)).color(MUTED));
-                    });
+                Frame::new().fill(pal().raised).corner_radius(CornerRadius::same(10)).inner_margin(Margin::same(12)).show(ui, |ui| {
+                    ui.set_width(ui.available_width());
+                    ui.label(egui::RichText::new(title).font(bold(15.0)).color(pal().text));
+                    ui.label(egui::RichText::new(body).font(regular(14.0)).color(pal().muted));
+                });
             };
             item(
                 ui,
@@ -2176,7 +2254,7 @@ impl App {
             ui.add_space(8.0);
             let mut never = self.settings.never_ask_deep;
             if ui
-                .checkbox(&mut never, egui::RichText::new(t!("Ne plus me le proposer au démarrage")).font(regular(13.5)).color(MUTED))
+                .checkbox(&mut never, egui::RichText::new(t!("Ne plus me le proposer au démarrage")).font(regular(13.5)).color(pal().muted))
                 .changed()
             {
                 self.settings.never_ask_deep = never;
@@ -2197,21 +2275,17 @@ impl App {
 
     /// Expert mode: every step of the search, PhotoRec's own lines included, as they come.
     fn journal(&mut self, ui: &mut egui::Ui) {
-        let light = Color32::from_rgb(229, 231, 235);
-        let dim = Color32::from_rgb(156, 163, 175);
+        let light = pal().log_text;
+        let dim = pal().log_dim;
         // a grip on the top edge, which can be dragged to make the journal taller or shorter
         let top = ui.max_rect().top() - 4.0;
         let cx = ui.max_rect().center().x;
-        ui.painter().rect_filled(
-            Rect::from_center_size(pos2(cx, top), vec2(44.0, 4.0)),
-            CornerRadius::same(2),
-            Color32::from_rgb(75, 85, 99),
-        );
+        ui.painter().rect_filled(Rect::from_center_size(pos2(cx, top), vec2(44.0, 4.0)), CornerRadius::same(2), pal().log_grip);
         ui.horizontal(|ui| {
             ui.label(egui::RichText::new(t!("Journal de la recherche")).font(bold(14.0)).color(light));
             ui.label(egui::RichText::new(plural(self.log.len(), t!("ligne"), t!("lignes"))).font(regular(12.5)).color(dim));
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                let link = |s: &str| egui::RichText::new(s).font(bold(13.0)).color(Color32::from_rgb(165, 180, 252));
+                let link = |s: &str| egui::RichText::new(s).font(bold(13.0)).color(pal().log_link);
                 if ui.link(link(t!("Effacer"))).clicked() {
                     self.log.clear();
                 }
@@ -2256,11 +2330,11 @@ impl App {
                     let (r, _) = ui.allocate_exact_size(vec2(ui.available_width(), row_h), Sense::hover());
                     let text = line.split_once("] ").map_or("", |x| x.1);
                     let color = if text.starts_with(dropped) {
-                        Color32::from_rgb(107, 114, 128)
+                        pal().log_faint
                     } else if text.starts_with(kept) {
-                        Color32::from_rgb(134, 239, 172)
+                        pal().log_kept
                     } else if text.starts_with("» ") {
-                        Color32::from_rgb(147, 197, 253)
+                        pal().log_info
                     } else {
                         light
                     };
@@ -2347,10 +2421,10 @@ impl eframe::App for App {
         }
 
         egui::Panel::top("top")
-            .frame(Frame::new().fill(CARD).inner_margin(Margin::symmetric(24, 12)).stroke(Stroke::new(1.0, BORDER)))
+            .frame(Frame::new().fill(pal().card).inner_margin(Margin::symmetric(24, 12)).stroke(Stroke::new(1.0, pal().border)))
             .show(ui, |ui| self.top_bar(ui));
         egui::Panel::bottom("bottom")
-            .frame(Frame::new().fill(CARD).inner_margin(Margin::symmetric(24, 14)).stroke(Stroke::new(1.0, BORDER)))
+            .frame(Frame::new().fill(pal().card).inner_margin(Margin::symmetric(24, 14)).stroke(Stroke::new(1.0, pal().border)))
             .show(ui, |ui| self.bottom_bar(ui));
         if self.settings.expert {
             egui::Panel::bottom("journal")
@@ -2358,10 +2432,10 @@ impl eframe::App for App {
                 .default_size(200.0)
                 .min_size(90.0)
                 .max_size(520.0)
-                .frame(Frame::new().fill(Color32::from_rgb(17, 24, 39)).inner_margin(Margin::symmetric(20, 10)))
+                .frame(Frame::new().fill(pal().log_bg).inner_margin(Margin::symmetric(20, 10)))
                 .show(ui, |ui| self.journal(ui));
         }
-        egui::CentralPanel::default().frame(Frame::new().fill(BG).inner_margin(Margin::same(20))).show(ui, |ui| {
+        egui::CentralPanel::default().frame(Frame::new().fill(pal().bg).inner_margin(Margin::same(20))).show(ui, |ui| {
             self.disk_section(ui);
             ui.add_space(16.0);
             self.results_section(ui);
@@ -2371,6 +2445,6 @@ impl eframe::App for App {
     }
 
     fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
-        BG.to_normalized_gamma_f32()
+        pal().bg.to_normalized_gamma_f32()
     }
 }

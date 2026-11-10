@@ -4,6 +4,10 @@ All notable changes to Open Recovr are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+- Colour themes: a sun/moon button next to the language switches between light and dark, and a palette button opens the other themes (Nord, Catppuccin Mocha and Latte, Tokyo Night, Solarized Dark and Light, Monokai, Gruvbox). The choice is remembered; `--theme <id>` picks one for a run.
+
 ## 0.2.2
 
 From testers' feedback:

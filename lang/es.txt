@@ -506,3 +506,13 @@ Le journal de la dernière recherche, à joindre si vous signalez un problème.
 = El registro de la última búsqueda, para adjuntarlo si informa de un problema.
 Ouvrir le fichier
 = Abrir el archivo
+Thème de couleurs
+= Tema de colores
+Passer en thème clair
+= Cambiar al tema claro
+Passer en thème sombre
+= Cambiar al tema oscuro
+Clair
+= Claro
+Sombre
+= Oscuro

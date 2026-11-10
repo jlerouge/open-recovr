@@ -13,6 +13,7 @@ mod ntfs;
 mod photorec;
 mod preview;
 mod sys;
+mod theme;
 
 use eframe::egui::{self, FontData, FontDefinitions, FontFamily, FontId, TextStyle};
 use std::path::PathBuf;
@@ -36,16 +37,10 @@ fn setup_fonts(ctx: &egui::Context) {
     defs.families.insert(FontFamily::Name("bold".into()), bold_family);
     ctx.set_fonts(defs);
 
+    theme::apply(ctx);
     ctx.all_styles_mut(|s| {
-        s.visuals = egui::Visuals::light();
-        s.visuals.panel_fill = app::BG;
-        s.visuals.window_fill = app::CARD;
-        s.visuals.selection.bg_fill = app::ACCENT;
-        // the chosen item of a menu: white on the accent, readable
-        s.visuals.selection.stroke = egui::Stroke::new(1.0, egui::Color32::WHITE);
         // an interface, not a page: its words can't be selected
         s.interaction.selectable_labels = false;
-        s.visuals.hyperlink_color = app::ACCENT;
         s.text_styles = [
             (TextStyle::Small, FontId::proportional(12.0)),
             (TextStyle::Body, FontId::proportional(15.0)),
@@ -67,6 +62,7 @@ fn main() -> eframe::Result {
     let mut show: Option<PathBuf> = None;
     let mut scene: Option<String> = None;
     let mut image: Option<PathBuf> = None;
+    let mut theme_id: Option<String> = None;
     let mut args = std::env::args().skip(1);
     while let Some(a) = args.next() {
         match a.as_str() {
@@ -79,6 +75,8 @@ fn main() -> eframe::Result {
             "--disk" => disk = args.next(),
             // the interface language for this run ("en", "fr", "es", "de")
             "--lang" => lang = args.next(),
+            // the colour theme for this run ("sombre", "nord"…)
+            "--theme" => theme_id = args.next(),
             // lists this file as found, to see its preview
             "--show" => show = args.next().map(PathBuf::from),
             // with --screenshot: the moment to draw ("home", "scanning", "selected", "recovered")
@@ -105,6 +103,7 @@ fn main() -> eframe::Result {
         }
     }
     app::choose_language(lang.as_deref());
+    app::choose_theme(theme_id.as_deref());
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_title(app::window_title())

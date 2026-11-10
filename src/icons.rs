@@ -18,6 +18,9 @@ pub enum Icon {
     Warning,
     Check,
     Globe,
+    Sun,
+    Moon,
+    Palette,
 }
 
 /// Draws `icon` centred on `c`, about `s` points wide.
@@ -98,6 +101,33 @@ pub fn draw(p: &Painter, icon: Icon, c: Pos2, s: f32, color: Color32) {
                 })
                 .collect();
             p.add(Shape::line(pts, st));
+        }
+        Icon::Sun => {
+            p.circle_stroke(at(10.0, 10.0), 3.6 * k, st);
+            for i in 0..8 {
+                let a = i as f32 / 8.0 * std::f32::consts::TAU;
+                let (s, c) = a.sin_cos();
+                p.line_segment([at(10.0 + 6.3 * c, 10.0 + 6.3 * s), at(10.0 + 8.6 * c, 10.0 + 8.6 * s)], st);
+            }
+        }
+        Icon::Moon => {
+            // a crescent: the part of a disc that a second, offset disc doesn't cover
+            let (o, big, cut, small): ((f32, f32), f32, (f32, f32), f32) = ((10.0, 10.5), 7.0, (13.8, 6.4), 5.6);
+            let ring = |(cx, cy): (f32, f32), r: f32| -> Vec<(f32, f32)> {
+                let start = (cut.1 - o.1).atan2(cut.0 - o.0);
+                (0..=64).map(|i| start + i as f32 / 64.0 * std::f32::consts::TAU).map(|a| (cx + r * a.cos(), cy + r * a.sin())).collect()
+            };
+            let inside = |(x, y): (f32, f32), (cx, cy): (f32, f32), r: f32| (x - cx).powi(2) + (y - cy).powi(2) < r * r;
+            let mut pts: Vec<Pos2> = ring(o, big).into_iter().filter(|&q| !inside(q, cut, small)).map(|(x, y)| at(x, y)).collect();
+            let inner: Vec<Pos2> = ring(cut, small).into_iter().filter(|&q| inside(q, o, big)).map(|(x, y)| at(x, y)).collect();
+            pts.extend(inner.into_iter().rev());
+            p.add(Shape::closed_line(pts, st));
+        }
+        Icon::Palette => {
+            p.circle_stroke(at(10.0, 10.0), 7.5 * k, st);
+            for (x, y) in [(6.6, 8.2), (10.0, 5.8), (13.4, 8.2), (12.6, 12.6)] {
+                p.circle_filled(at(x, y), 1.4 * k, color);
+            }
         }
     }
 }

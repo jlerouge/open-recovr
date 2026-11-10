@@ -506,3 +506,13 @@ Le journal de la dernière recherche, à joindre si vous signalez un problème.
 = Das Protokoll der letzten Suche, zum Anhängen, wenn Sie ein Problem melden.
 Ouvrir le fichier
 = Datei öffnen
+Thème de couleurs
+= Farbschema
+Passer en thème clair
+= Zum hellen Design wechseln
+Passer en thème sombre
+= Zum dunklen Design wechseln
+Clair
+= Hell
+Sombre
+= Dunkel
