@@ -12,8 +12,10 @@ mod inspect;
 mod ntfs;
 mod photorec;
 mod preview;
+mod report;
 mod sys;
 mod theme;
+mod update;
 
 use eframe::egui::{self, FontData, FontDefinitions, FontFamily, FontId, TextStyle};
 use std::path::PathBuf;
@@ -77,6 +79,8 @@ fn main() -> eframe::Result {
             "--lang" => lang = args.next(),
             // the colour theme for this run ("sombre", "nord"…)
             "--theme" => theme_id = args.next(),
+            // debug builds only: pretend to be an older version, to try the update
+            "--pretend-version" => update::pretend(args.next().unwrap_or_default()),
             // lists this file as found, to see its preview
             "--show" => show = args.next().map(PathBuf::from),
             // with --screenshot: the moment to draw ("home", "scanning", "selected", "recovered")
@@ -102,6 +106,7 @@ fn main() -> eframe::Result {
             _ => {}
         }
     }
+    update::tidy();
     app::choose_language(lang.as_deref());
     app::choose_theme(theme_id.as_deref());
     let options = eframe::NativeOptions {
@@ -130,6 +135,7 @@ fn main() -> eframe::Result {
             }
             #[cfg(not(windows))]
             app.attach_tray(0, &cc.egui_ctx);
+            app.check_updates_at_start(&cc.egui_ctx);
             if expert {
                 app.show_journal();
             }

@@ -102,6 +102,10 @@ Nothing is ever written to the drive being searched. The files are only read fro
 
 The **Expert mode** button at the top shows the search log: the drive and file system, each phase, and PhotoRec's own lines. **Copy all** copies the log, which is useful for a bug report.
 
+## Asking someone for help
+
+In the menu at the top right (☰), **Prepare a report…** saves a zip you can send to someone who helps you, by e-mail or any other way. Open Recovr only writes the file; it never sends it. Inside are plain text files: what the report is, the system and drives (model, size, file system), the settings and the log of the last search. Before anything is written, your account name, the computer's name, your home folder and e-mail addresses are masked, and so are the document titles PhotoRec puts in the names of the files it finds. Open the zip and read it before passing it on.
+
 ## FAQ
 
 **My file isn't in the list. What now?**
@@ -123,7 +127,7 @@ Often, yes, with the full analysis. A quick format leaves the contents in place.
 It reads the drive sector by sector, below the file system, and the operating system reserves that for administrators. Open Recovr only reads; it never writes to that drive.
 
 **Is it safe? Does it send my data anywhere?**
-Open Recovr works fully offline. It has no account, no telemetry and no update check. The code is open: see for yourself.
+Open Recovr works offline. It has no account and no telemetry. Its only connection is the update check: at startup it asks GitHub for the number of the latest release, and sends nothing else. Untick "Check for updates at startup" in Settings (the menu at the top right) to turn it off; the menu can still check on request. An update is installed only if it is signed with the project's key, which never goes to GitHub: a fake version put there by someone else is refused. The code is open: see for yourself.
 
 **Linux / macOS: the deep search says PhotoRec isn't available.**
 Install it: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) or `brew install testdisk` (macOS). Open Recovr then finds `photorec` on its own. Without it, a simpler built-in engine searches for the most common formats.

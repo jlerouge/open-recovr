@@ -62,7 +62,7 @@ The full walkthrough is in the **[user guide](docs/user-guide.md)**.
 - 🕒 **Runs in the background.** The window can hide next to the clock during a long search.
 - 🛠️ **Expert mode.** The full search log and PhotoRec's output, for the curious and for bug reports.
 - 🌍 **4 languages:** English, French, Spanish, German.
-- 🔒 **Read-only.** Nothing is ever written to the drive being searched. No account, no telemetry, no internet needed.
+- 🔒 **Read-only.** Nothing is ever written to the drive being searched. No account, no telemetry, no internet needed: the only connection is an update check (just the latest version number, asked of GitHub), which can be turned off in Settings.
 
 A phone plugged in over USB cannot be searched. It only shows the files it still has, and its memory is encrypted. Open Recovr explains where to look instead: the Gallery or Photos app's bin, Google Photos, iCloud, or the microSD card.
 
@@ -72,7 +72,7 @@ Get the latest version from **[Releases](https://github.com/jlerouge/open-recovr
 
 | System | File | How to start it |
 |---|---|---|
-| **Windows 10 / 11** (64-bit) | `open-recovr-…-windows-x64.zip` | Unzip, then open `open-recovr.exe`. PhotoRec is included. |
+| **Windows 10 / 11** (64-bit) | `open-recovr-…-windows-x64-setup.exe` or `…-windows-x64.zip` | Run the installer (no administrator rights asked), or unzip and open `open-recovr.exe`. PhotoRec is included. Both update themselves in one click. |
 | Linux (64-bit) | `open-recovr-…-linux-x64.tar.gz` | Extract, then run `./open-recovr`. Install PhotoRec for the deep search: `sudo apt install testdisk`. |
 | macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Extract, then right-click → *Open* (the app is not signed). Install PhotoRec: `brew install testdisk`. |
 

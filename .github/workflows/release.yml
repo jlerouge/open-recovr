@@ -1,4 +1,6 @@
-# Pushing a tag like v0.1.0 builds the program for each system and publishes a GitHub release.
+# Pushing a tag like v0.1.0 builds the program for each system and makes a draft GitHub release.
+# The draft is published by hand once its SHA256SUMS.txt is signed (scripts/sign-release.ps1),
+# with a key that never comes to GitHub: Open Recovr refuses updates that are not signed.
 name: Release
 
 on:
@@ -37,6 +39,11 @@ jobs:
           if [ "v$version" != "$GITHUB_REF_NAME" ]; then
             echo "The tag $GITHUB_REF_NAME does not match version $version in Cargo.toml"; exit 1
           fi
+      - name: The build carries the release signing key
+        shell: bash
+        run: |
+          # without it, this version would refuse every update (see keys/README.md)
+          sed -n 2p keys/open-recovr.pub | grep -q '^RW' || { echo "keys/open-recovr.pub holds no key"; exit 1; }
       - name: Fetch PhotoRec (checked against known SHA-256)
         if: runner.os == 'Windows'
         shell: pwsh
@@ -54,6 +61,11 @@ jobs:
             mkdir -p "$dir/vendor"
             cp -r vendor/testdisk-7.2 vendor/README.md "$dir/vendor/"
             7z a "dist/$dir.zip" "$dir" > /dev/null
+            # the installer, from the same folder (Inno Setup comes with the runner, or from Chocolatey)
+            iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
+            [ -f "$iscc" ] || choco install innosetup -y --no-progress > /dev/null
+            ico=$(find target -name open-recovr.ico | head -n1)
+            "$iscc" //Q "//DAppVersion=${GITHUB_REF_NAME#v}" "//DSourceDir=$PWD/$dir" "//DIconFile=$PWD/$ico" installer/open-recovr.iss
           else
             cp "target/${{ matrix.target }}/release/open-recovr" "$dir/"
             chmod +x "$dir/open-recovr"
@@ -77,11 +89,12 @@ jobs:
         run: curl -fsSL -o dist/testdisk-7.2.tar.bz2 https://www.cgsecurity.org/testdisk-7.2.tar.bz2
       - name: Checksums
         run: cd dist && sha256sum * > SHA256SUMS.txt
-      - name: Publish the release
+      - name: Draft the release (published by hand once signed)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           # the notes are this version's part of CHANGELOG.md
           awk -v v="${GITHUB_REF_NAME#v}" '/^## /{on = index($0, "## " v) == 1; next} on' CHANGELOG.md > notes.md
           printf '\n---\nThe Windows build includes PhotoRec 7.2 © Christophe Grenier (GNU GPL v2+). Its source code is attached as `testdisk-7.2.tar.bz2`.\n' >> notes.md
-          gh release create "$GITHUB_REF_NAME" dist/* --title "Open Recovr $GITHUB_REF_NAME" --notes-file notes.md
+          printf '\n`SHA256SUMS.txt` is signed with [minisign](https://jedisct1.github.io/minisign/) (`SHA256SUMS.txt.minisig`) with the key in [`keys/open-recovr.pub`](https://github.com/%s/blob/main/keys/open-recovr.pub). To check a download: `minisign -Vm SHA256SUMS.txt -p open-recovr.pub`, then `sha256sum -c SHA256SUMS.txt --ignore-missing`.\n' "$GITHUB_REPOSITORY" >> notes.md
+          gh release create "$GITHUB_REF_NAME" dist/* --title "Open Recovr $GITHUB_REF_NAME" --notes-file notes.md --draft

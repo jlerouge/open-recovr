@@ -21,6 +21,10 @@ pub enum Icon {
     Sun,
     Moon,
     Palette,
+    Menu,
+    Back,
+    Download,
+    Gear,
 }
 
 /// Draws `icon` centred on `c`, about `s` points wide.
@@ -128,6 +132,33 @@ pub fn draw(p: &Painter, icon: Icon, c: Pos2, s: f32, color: Color32) {
             for (x, y) in [(6.6, 8.2), (10.0, 5.8), (13.4, 8.2), (12.6, 12.6)] {
                 p.circle_filled(at(x, y), 1.4 * k, color);
             }
+        }
+        Icon::Menu => {
+            for y in [5.5, 10.0, 14.5] {
+                p.line_segment([at(3.5, y), at(16.5, y)], st);
+            }
+        }
+        Icon::Back => {
+            p.line_segment([at(16.0, 10.0), at(4.5, 10.0)], st);
+            p.add(Shape::line(vec![at(9.5, 5.0), at(4.5, 10.0), at(9.5, 15.0)], st));
+        }
+        Icon::Gear => {
+            p.circle_stroke(at(10.0, 10.0), 2.6 * k, st);
+            let pts: Vec<Pos2> = (0..=96)
+                .map(|i| {
+                    let a = i as f32 / 96.0 * std::f32::consts::TAU;
+                    // eight teeth: the radius steps between 5.6 and 7.8
+                    let tooth = ((a * 8.0 / std::f32::consts::TAU + 0.25).fract() < 0.5) as u8 as f32;
+                    let rad = 5.6 + 2.2 * tooth;
+                    at(10.0 + rad * a.cos(), 10.0 + rad * a.sin())
+                })
+                .collect();
+            p.add(Shape::closed_line(pts, st));
+        }
+        Icon::Download => {
+            p.line_segment([at(10.0, 3.0), at(10.0, 12.5)], st);
+            p.add(Shape::line(vec![at(6.0, 8.8), at(10.0, 12.8), at(14.0, 8.8)], st));
+            p.add(Shape::line(vec![at(3.5, 13.5), at(3.5, 16.5), at(16.5, 16.5), at(16.5, 13.5)], st));
         }
     }
 }

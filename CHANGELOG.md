@@ -7,6 +7,11 @@ All notable changes to Open Recovr are listed here. The format follows
 ## Unreleased
 
 - Colour themes: a sun/moon button next to the language switches between light and dark, and a palette button opens the other themes (Nord, Catppuccin Mocha and Latte, Tokyo Night, Solarized Dark and Light, Monokai, Gruvbox). The choice is remembered; `--theme <id>` picks one for a run.
+- A menu at the top right (☰) holds the settings, the colour themes, expert mode, the report and the project's page. The main screen keeps only the language and the sun/moon button.
+- A Settings page: language and theme, expert mode, the deep search offer at startup, updates, and about.
+- Updates: at startup Open Recovr asks GitHub for the latest version number (nothing else is sent; it can be turned off in Settings). When a new version is out, the footer shows "→ v0.3.0: update": one click downloads it, checks that the release's `SHA256SUMS.txt` is signed with the Open Recovr key (minisign, `keys/open-recovr.pub`) and that the file's SHA-256 matches, installs it and restarts Open Recovr. The secret key never goes to GitHub: someone who took over the repository could not push an update. Releases are made as drafts and published once signed (`scripts/sign-release.ps1`).
+- **Prepare a report…** in the menu (and in Settings, under Help) saves a zip to send to someone who helps: the system and drives, the settings and the last search log, as plain text. The account and computer names, the home folder, e-mail addresses and document titles in recovered file names are masked. Open Recovr never sends it.
+- A Windows installer (`…-windows-x64-setup.exe`), for the current user, with no administrator rights asked; it adds a Start menu entry and an uninstaller. The zip stays, and updates itself in place.
 
 ## 0.2.2
 

@@ -21,6 +21,8 @@ image = { version = "0.25.10", default-features = false, features = ["jpeg", "pn
 rfd = { version = "0.17.2", default-features = false }
 zip = { version = "9.3.0", default-features = false, features = ["deflate"] }
 resvg = { version = "0.49", default-features = false }
+sha2 = "0.10"
+minisign-verify = "0.3.0"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61.2", features = ["Win32_Devices_DeviceAndDriverInstallation", "Win32_Foundation", "Win32_Globalization", "Win32_Graphics_Gdi", "Win32_Media", "Win32_Media_Multimedia", "Win32_Storage_FileSystem", "Win32_System_Com", "Win32_System_IO", "Win32_System_Ioctl", "Win32_System_LibraryLoader", "Win32_UI_Shell", "Win32_UI_WindowsAndMessaging"] }
@@ -52,3 +54,6 @@ enum_variant_names = "allow"
 manual_checked_ops = "allow"
 type_complexity = "allow"
 while_let_loop = "allow"
+
+[dev-dependencies]
+minisign = "0.10.0"

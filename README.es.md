@@ -57,7 +57,7 @@ La guía paso a paso completa está en la **[guía de uso](docs/user-guide.md)**
 - 🕒 **En segundo plano.** La ventana puede ocultarse junto al reloj durante una búsqueda larga.
 - 🛠️ **Modo experto.** El registro completo de la búsqueda y la salida de PhotoRec.
 - 🌍 **4 idiomas:** español, inglés, francés y alemán.
-- 🔒 **Solo lectura.** Nunca se escribe nada en la unidad analizada. Sin cuenta, sin telemetría y sin necesidad de Internet.
+- 🔒 **Solo lectura.** Nunca se escribe nada en la unidad analizada. Sin cuenta, sin telemetría y sin necesidad de Internet: la única conexión es la búsqueda de actualizaciones (el número de la última versión, pedido a GitHub), que se puede desactivar en Ajustes.
 
 ## Descargar
 
@@ -65,7 +65,7 @@ Descarga la última versión en **[Releases](https://github.com/jlerouge/open-re
 
 | Sistema | Archivo | Cómo iniciarlo |
 |---|---|---|
-| **Windows 10 / 11** (64 bits) | `open-recovr-…-windows-x64.zip` | Descomprime y abre `open-recovr.exe`. PhotoRec está incluido. |
+| **Windows 10 / 11** (64 bits) | `open-recovr-…-windows-x64-setup.exe` o `…-windows-x64.zip` | Ejecuta el instalador (sin derechos de administrador), o descomprime y abre `open-recovr.exe`. PhotoRec está incluido. Ambos se actualizan con un clic. |
 | Linux (64 bits) | `open-recovr-…-linux-x64.tar.gz` | Descomprime y ejecuta `./open-recovr`. Para el análisis completo: `sudo apt install testdisk`. |
 | macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Descomprime, luego clic derecho → *Abrir* (la aplicación no está firmada). Después, `brew install testdisk`. |
 

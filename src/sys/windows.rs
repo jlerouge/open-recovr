@@ -210,7 +210,11 @@ pub fn relaunch_as_admin() -> bool {
     let Ok(exe) = std::env::current_exe() else { return false };
     let exe = wide(&exe.to_string_lossy());
     let verb = wide("runas");
-    let r = unsafe { ShellExecuteW(null_mut(), verb.as_ptr(), exe.as_ptr(), null(), null(), 1) };
+    // the elevated copy starts with a fresh environment: carry a pretended version over
+    let v = crate::update::current();
+    let params = (v != env!("CARGO_PKG_VERSION")).then(|| wide(&format!("--pretend-version {v}")));
+    let params = params.as_ref().map_or(null(), |p| p.as_ptr());
+    let r = unsafe { ShellExecuteW(null_mut(), verb.as_ptr(), exe.as_ptr(), params, null(), 1) };
     r as isize > 32
 }
 

@@ -330,6 +330,24 @@ pub fn open_path(path: &Path) {
     let _ = std::process::Command::new(tool).arg(path).spawn();
 }
 
+/// Shows a file in the file manager, selected when the system allows it.
+pub fn reveal(path: &Path) {
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        let _ = std::process::Command::new("explorer").raw_arg(format!("/select,\"{}\"", path.display())).spawn();
+    }
+    #[cfg(not(windows))]
+    if let Some(dir) = path.parent() {
+        open_path(dir);
+    }
+}
+
+/// Opens a web page in the default browser.
+pub fn open_url(url: &str) {
+    open_path(Path::new(url));
+}
+
 /// Where the app keeps its few settings.
 pub fn settings_file() -> Option<PathBuf> {
     let base = if cfg!(windows) {

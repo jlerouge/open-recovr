@@ -57,7 +57,7 @@ Die vollständige Anleitung finden Sie im **[Benutzerhandbuch](docs/user-guide.m
 - 🕒 **Im Hintergrund.** Das Fenster kann sich während einer langen Suche neben der Uhr verstecken.
 - 🛠️ **Expertenmodus.** Das vollständige Suchprotokoll und die Ausgabe von PhotoRec.
 - 🌍 **4 Sprachen:** Deutsch, Englisch, Französisch und Spanisch.
-- 🔒 **Nur lesend.** Auf das durchsuchte Laufwerk wird nie etwas geschrieben. Kein Konto, keine Telemetrie, kein Internet nötig.
+- 🔒 **Nur lesend.** Auf das durchsuchte Laufwerk wird nie etwas geschrieben. Kein Konto, keine Telemetrie, kein Internet nötig: Die einzige Verbindung ist die Suche nach Updates (nur die Nummer der neuesten Version, bei GitHub abgefragt), abschaltbar in den Einstellungen.
 
 ## Herunterladen
 
@@ -65,7 +65,7 @@ Laden Sie die neueste Version unter **[Releases](https://github.com/jlerouge/ope
 
 | System | Datei | So starten Sie es |
 |---|---|---|
-| **Windows 10 / 11** (64 Bit) | `open-recovr-…-windows-x64.zip` | Entpacken und `open-recovr.exe` öffnen. PhotoRec ist enthalten. |
+| **Windows 10 / 11** (64 Bit) | `open-recovr-…-windows-x64-setup.exe` oder `…-windows-x64.zip` | Installer starten (ohne Administratorrechte) oder entpacken und `open-recovr.exe` öffnen. PhotoRec ist enthalten. Beide aktualisieren sich mit einem Klick. |
 | Linux (64 Bit) | `open-recovr-…-linux-x64.tar.gz` | Entpacken und `./open-recovr` starten. Für die vollständige Analyse: `sudo apt install testdisk`. |
 | macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Entpacken, dann Rechtsklick → *Öffnen* (die App ist nicht signiert). Danach `brew install testdisk`. |
 

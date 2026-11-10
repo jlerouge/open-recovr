@@ -57,7 +57,7 @@ Le pas-à-pas complet se trouve dans le **[guide d'utilisation](docs/user-guide.
 - 🕒 **En arrière-plan.** La fenêtre peut se ranger près de l'horloge pendant une longue recherche.
 - 🛠️ **Mode expert.** Le journal complet de la recherche et les lignes de PhotoRec.
 - 🌍 **4 langues :** français, anglais, espagnol, allemand.
-- 🔒 **Lecture seule.** Rien n'est jamais écrit sur le disque fouillé. Pas de compte, pas de télémétrie, pas besoin d'Internet.
+- 🔒 **Lecture seule.** Rien n'est jamais écrit sur le disque fouillé. Pas de compte, pas de télémétrie, pas besoin d'Internet : la seule connexion est la recherche de mises à jour (le numéro de la dernière version, demandé à GitHub), désactivable dans les Paramètres.
 
 Un téléphone branché en USB ne peut pas être fouillé : il ne montre que les fichiers encore présents, et sa mémoire est chiffrée. L'application explique où chercher à la place : la corbeille de l'appli Galerie ou Photos, Google Photos, iCloud ou la carte microSD.
 
@@ -67,7 +67,7 @@ Prenez la dernière version dans **[Releases](https://github.com/jlerouge/open-r
 
 | Système | Fichier | Comment le lancer |
 |---|---|---|
-| **Windows 10 / 11** (64 bits) | `open-recovr-…-windows-x64.zip` | Décompressez, puis ouvrez `open-recovr.exe`. PhotoRec est inclus. |
+| **Windows 10 / 11** (64 bits) | `open-recovr-…-windows-x64-setup.exe` ou `…-windows-x64.zip` | Lancez l'installeur (sans droits d'administrateur), ou décompressez et ouvrez `open-recovr.exe`. PhotoRec est inclus. Les deux se mettent à jour en un clic. |
 | Linux (64 bits) | `open-recovr-…-linux-x64.tar.gz` | Décompressez, puis lancez `./open-recovr`. Pour l'analyse complète : `sudo apt install testdisk`. |
 | macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Décompressez, puis clic droit → *Ouvrir* (l'application n'est pas signée). Puis `brew install testdisk`. |
 

@@ -19,8 +19,6 @@ Analyse complète du disque…
 = Análisis completo del disco…
 Analyse de l'espace libre du disque…
 = Analizando el espacio libre del disco…
-Analyse par PhotoRec, logiciel libre
-= Análisis con PhotoRec, software libre
 Analyse rapide
 = Análisis rápido
 Analyse rapide : lecture de la liste des fichiers…
@@ -516,3 +514,83 @@ Clair
 = Claro
 Sombre
 = Oscuro
+Apparence
+= Apariencia
+C'est la dernière version.
+= Es la última versión.
+Impossible de joindre GitHub.
+= No se pudo contactar con GitHub.
+Installer la version {}
+= Instalar la versión {}
+Journal de la dernière recherche
+= Registro de la última búsqueda
+La mise à jour attendra la fin de la recherche et de la récupération.
+= La actualización esperará a que terminen la búsqueda y la recuperación.
+La mise à jour n'a pas pu se faire.
+= No se pudo realizar la actualización.
+La version {} est disponible.
+= La versión {} está disponible.
+Logiciel libre sous licence MIT. Pas de compte, pas de télémétrie.
+= Software libre con licencia MIT. Sin cuenta, sin telemetría.
+Menu
+= Menú
+Mises à jour
+= Actualizaciones
+Open Recovr demande à GitHub le numéro de la dernière version. Rien d'autre n'est envoyé.
+= Open Recovr pregunta a GitHub el número de la última versión. No se envía nada más.
+Ouvre la page de téléchargement de la nouvelle version.
+= Abre la página de descarga de la nueva versión.
+Paramètres
+= Ajustes
+Proposer la recherche approfondie au démarrage
+= Proponer la búsqueda a fondo al iniciar
+Recherche
+= Búsqueda
+Recherche des mises à jour…
+= Buscando actualizaciones…
+Rechercher les mises à jour
+= Buscar actualizaciones
+Rechercher les mises à jour au démarrage
+= Buscar actualizaciones al iniciar
+Rechercher maintenant
+= Buscar ahora
+Redémarrage…
+= Reiniciando…
+Retour
+= Volver
+Sans les droits d'administrateur, seule la corbeille est fouillée : Open Recovr propose alors de les demander.
+= Sin derechos de administrador, solo se busca en la papelera: Open Recovr propone entonces pedirlos.
+Site du projet (GitHub)
+= Sitio del proyecto (GitHub)
+Télécharge et installe la nouvelle version, puis relance Open Recovr.
+= Descarga e instala la nueva versión y luego reinicia Open Recovr.
+Téléchargement de la version {}…
+= Descargando la versión {}…
+Téléchargement de la version {}… {} %
+= Descargando la versión {}… {} %
+{} — cliquez pour ouvrir la page de téléchargement.
+= {} — haga clic para abrir la página de descarga.
+À propos
+= Acerca de
+→ v{} : mettre à jour
+= → v{}: actualizar
+Afficher
+= Mostrar
+Aide
+= Ayuda
+Ce rapport aide quelqu'un à comprendre un problème avec Open Recovr. Open Recovr ne l'envoie pas : c'est vous qui décidez de le transmettre.\n\nIl contient :\n- systeme.txt : la version d'Open Recovr, le système et la liste des disques (nom, type, taille) ;\n- reglages.txt : vos réglages ;\n- journal.txt : le journal de la dernière recherche, s'il y en a une.\n\nAucun de vos fichiers n'y est. Votre nom d'utilisateur, le nom de l'ordinateur, votre dossier personnel et les adresses e-mail sont remplacés par <user>, <computer>, ~ et <e-mail>.\n\nCe ne sont que des fichiers texte : ouvrez-les pour vérifier ce qu'ils disent avant de les transmettre.
+= Este informe ayuda a alguien a entender un problema con Open Recovr. Open Recovr no lo envía: usted decide si lo transmite.\n\nContiene:\n- systeme.txt: la versión de Open Recovr, el sistema y la lista de unidades (nombre, tipo, tamaño);\n- reglages.txt: sus ajustes;\n- journal.txt: el registro de la última búsqueda, si la hubo.\n\nNo contiene ninguno de sus archivos. Su nombre de usuario, el nombre del equipo, su carpeta personal y las direcciones de correo se sustituyen por <user>, <computer>, ~ y <e-mail>.\n\nSon archivos de texto: ábralos para comprobar lo que dicen antes de transmitirlos.
+En cas de problème, préparez un rapport et joignez-le à votre mail ou à un signalement sur GitHub. Il contient le journal de la dernière recherche, vos réglages et la liste des disques. Votre nom, celui de l'ordinateur et vos dossiers personnels sont masqués, et aucun de vos fichiers n'y est. Open Recovr n'envoie rien : c'est un zip de fichiers texte, que vous pouvez relire avant de le transmettre.
+= Si hay un problema, prepare un informe y adjúntelo a su correo o a una incidencia en GitHub. Contiene el registro de la última búsqueda, sus ajustes y la lista de unidades. Su nombre, el del equipo y sus carpetas personales se ocultan, y no contiene ninguno de sus archivos. Open Recovr no envía nada: es un zip de archivos de texto que puede revisar antes de transmitirlo.
+Enregistre un fichier à joindre à un mail ou à un signalement : le journal, les réglages et la liste des disques, sans vos fichiers ni votre nom. Rien n'est envoyé.
+= Guarda un archivo para adjuntar a un correo o a una incidencia: el registro, los ajustes y la lista de unidades, sin sus archivos ni su nombre. No se envía nada.
+Enregistré : {}
+= Guardado: {}
+Le rapport n'a pas pu être enregistré : {}
+= No se pudo guardar el informe: {}
+Où enregistrer le rapport ?
+= ¿Dónde guardar el informe?
+Préparer un rapport…
+= Preparar un informe…
+Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
+= Informe guardado: {}. Ábralo para revisarlo antes de transmitirlo.

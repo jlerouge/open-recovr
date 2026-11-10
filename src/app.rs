@@ -6,6 +6,7 @@ use crate::i18n;
 use crate::icons::{self, Icon};
 use crate::inspect::{Inspector, Verdict};
 use crate::preview::{self, Preview};
+use crate::report;
 use crate::sys::{self, Disk};
 use eframe::egui::{
     self, Align, Align2, Color32, CornerRadius, FontFamily, FontId, Frame, Layout, Margin, Rect, Sense, Shadow, Stroke, StrokeKind,
@@ -17,6 +18,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 
 use crate::theme::{self, pal};
+use crate::update;
 
 pub fn bold(size: f32) -> FontId {
     FontId::new(size, FontFamily::Name("bold".into()))
@@ -159,6 +161,8 @@ struct Settings {
     language: Option<String>,
     /// The colour theme ("sombre", "nord"…); none is the light one.
     theme: Option<String>,
+    /// Asks GitHub for a newer version at each start.
+    check_updates: bool,
 }
 
 impl Settings {
@@ -167,7 +171,13 @@ impl Settings {
         let has = |line: &str| text.lines().any(|l| l.trim() == line);
         let language = text.lines().find_map(|l| l.trim().strip_prefix("langue=")).map(str::to_string);
         let theme = text.lines().find_map(|l| l.trim().strip_prefix("theme=")).map(str::to_string);
-        Settings { never_ask_deep: has("proposer_recherche_approfondie=non"), expert: has("mode_expert=oui"), language, theme }
+        Settings {
+            never_ask_deep: has("proposer_recherche_approfondie=non"),
+            expert: has("mode_expert=oui"),
+            language,
+            theme,
+            check_updates: !has("rechercher_mises_a_jour=non"),
+        }
     }
 
     fn save(&self) {
@@ -176,7 +186,12 @@ impl Settings {
             let _ = std::fs::create_dir_all(dir);
         }
         let yes = |b: bool| if b { "oui" } else { "non" };
-        let mut text = format!("proposer_recherche_approfondie={}\nmode_expert={}\n", yes(!self.never_ask_deep), yes(self.expert));
+        let mut text = format!(
+            "proposer_recherche_approfondie={}\nmode_expert={}\nrechercher_mises_a_jour={}\n",
+            yes(!self.never_ask_deep),
+            yes(self.expert),
+            yes(self.check_updates)
+        );
         if let Some(l) = &self.language {
             text.push_str(&format!("langue={l}\n"));
         }
@@ -414,6 +429,82 @@ fn theme_name(t: &theme::Theme) -> &'static str {
     }
 }
 
+/// A row of a menu: an icon, the words, a tick when it's on.
+fn menu_row(ui: &mut egui::Ui, icon: Option<Icon>, text: &str, on: bool, enabled: bool) -> egui::Response {
+    let w = 280.0;
+    let (r, resp) = ui.allocate_exact_size(vec2(w, 32.0), if enabled { Sense::click() } else { Sense::hover() });
+    let p = ui.painter();
+    if enabled && resp.hovered() {
+        p.rect_filled(r, CornerRadius::same(8), pal().hover);
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    let color = if enabled { pal().text } else { pal().muted };
+    if let Some(icon) = icon {
+        icons::draw(p, icon, pos2(r.left() + 20.0, r.center().y), 17.0, if enabled { pal().muted } else { pal().faint });
+    }
+    let font = if on { bold(14.5) } else { regular(14.5) };
+    p.text(pos2(r.left() + 40.0, r.center().y), Align2::LEFT_CENTER, text, font, color);
+    if on {
+        icons::draw(p, Icon::Check, pos2(r.right() - 16.0, r.center().y), 16.0, pal().accent);
+    }
+    resp
+}
+
+/// A setting that's on or off: a box, its name, and a line on what it does. True when clicked.
+fn toggle_row(ui: &mut egui::Ui, on: bool, title: &str, desc: &str) -> bool {
+    let w = ui.available_width();
+    let desc_g = ui.painter().layout(desc.to_string(), regular(13.5), pal().muted, w - 44.0);
+    let h = 26.0 + desc_g.size().y + 8.0;
+    let (r, resp) = ui.allocate_exact_size(vec2(w, h), Sense::click());
+    if resp.hovered() {
+        ui.painter().rect_filled(r, CornerRadius::same(8), pal().raised);
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    checkbox_at(ui.painter(), pos2(r.left() + 16.0, r.top() + 15.0), on, false);
+    ui.painter().text(pos2(r.left() + 38.0, r.top() + 15.0), Align2::LEFT_CENTER, title, bold(15.0), pal().text);
+    ui.painter().galley(pos2(r.left() + 38.0, r.top() + 27.0), desc_g, pal().muted);
+    resp.clicked()
+}
+
+/// A theme drawn small: its background, a card, its accent, and its name.
+fn theme_tile(ui: &mut egui::Ui, t: &theme::Theme, on: bool) -> egui::Response {
+    let (r, resp) = ui.allocate_exact_size(vec2(150.0, 92.0), Sense::click());
+    let p = ui.painter();
+    let preview = Rect::from_min_size(r.min, vec2(r.width(), 60.0));
+    p.rect(preview, CornerRadius::same(10), t.p.bg, Stroke::new(1.0, t.p.border), StrokeKind::Inside);
+    let card = Rect::from_min_size(preview.min + vec2(12.0, 12.0), vec2(126.0, 36.0));
+    p.rect(card, CornerRadius::same(7), t.p.card, Stroke::new(1.0, t.p.border), StrokeKind::Inside);
+    p.rect_filled(Rect::from_min_size(card.min + vec2(10.0, 9.0), vec2(56.0, 6.0)), CornerRadius::same(3), t.p.text);
+    p.rect_filled(Rect::from_min_size(card.min + vec2(10.0, 21.0), vec2(40.0, 5.0)), CornerRadius::same(3), t.p.muted);
+    p.rect_filled(Rect::from_min_size(card.min + vec2(80.0, 10.0), vec2(36.0, 16.0)), CornerRadius::same(8), t.p.accent);
+    if on {
+        p.rect_stroke(preview.expand(2.0), CornerRadius::same(12), Stroke::new(2.5, pal().accent), StrokeKind::Outside);
+    } else if resp.hovered() {
+        p.rect_stroke(preview.expand(1.0), CornerRadius::same(11), Stroke::new(1.5, pal().border_strong), StrokeKind::Outside);
+    }
+    let font = if on { bold(14.0) } else { regular(14.0) };
+    p.text(pos2(r.left() + 2.0, preview.bottom() + 16.0), Align2::LEFT_CENTER, theme_name(t), font, pal().text);
+    if resp.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    resp
+}
+
+/// Where the update stands, in words, with their colour.
+fn update_text(state: &update::State, tried: bool) -> (String, Color32) {
+    use update::State::*;
+    match state {
+        Unknown => (String::new(), pal().muted),
+        Checking => (t!("Recherche des mises à jour…").into(), pal().muted),
+        UpToDate => (t!("C'est la dernière version.").into(), pal().green),
+        Available(v) => (t!("La version {} est disponible.", v), pal().accent),
+        Downloading(v, f) => (t!("Téléchargement de la version {}… {} %", v, (f * 100.0) as u32), pal().accent),
+        Restart => (t!("Redémarrage…").into(), pal().accent),
+        Failed(_) if tried => (t!("La mise à jour n'a pas pu se faire.").into(), pal().amber),
+        Failed(_) => (t!("Impossible de joindre GitHub.").into(), pal().amber),
+    }
+}
+
 fn step_title(ui: &mut egui::Ui, n: u32, title: &str, hint: &str) {
     ui.horizontal(|ui| {
         let (r, _) = ui.allocate_exact_size(vec2(28.0, 28.0), Sense::hover());
@@ -518,6 +609,14 @@ pub struct App {
     digests: HashMap<u64, usize>,
     dupes: usize,
     show_dupes: bool,
+    /// The settings page is shown instead of the search.
+    settings_open: bool,
+    /// Newer versions on GitHub, and the update under way.
+    update: update::Shared,
+    /// An update was asked for: its failure is shown.
+    update_tried: bool,
+    /// The last report written, shown on the settings page.
+    report: Option<Result<PathBuf, String>>,
 }
 
 impl App {
@@ -585,6 +684,10 @@ impl App {
             digests: HashMap::new(),
             dupes: 0,
             show_dupes: false,
+            settings_open: false,
+            update: update::shared(),
+            update_tried: false,
+            report: None,
         }
     }
 
@@ -620,6 +723,13 @@ impl App {
         true
     }
 
+    /// Looks for a newer version at start, unless that was turned off (or for a screenshot).
+    pub fn check_updates_at_start(&mut self, ctx: &egui::Context) {
+        if self.settings.check_updates && self.screenshot.is_none() {
+            update::check(self.update.clone(), ctx.clone());
+        }
+    }
+
     pub fn show_journal(&mut self) {
         self.settings.expert = true;
     }
@@ -650,6 +760,14 @@ impl App {
                     g.phase = t!("Analyse de l'espace libre du disque…").into();
                 }
             }
+            "settings" => self.settings_open = true,
+            "report" => {
+                self.settings_open = true;
+                if let Some(shot) = self.screenshot.clone() {
+                    self.write_report(shot.with_extension("zip"), false);
+                }
+            }
+            "update" => *self.update.lock().unwrap() = update::State::Available("0.3.0".into()),
             "selected" => {
                 photos(&mut self.files);
                 self.filter = Some(Category::Photos);
@@ -802,6 +920,10 @@ impl App {
     }
 
     fn poll(&mut self, ctx: &egui::Context) {
+        if *self.update.lock().unwrap() == update::State::Restart && !self.quitting {
+            self.quitting = true;
+            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+        }
         if let Some(job) = &self.scan {
             let mut g = job.shared.lock().unwrap();
             self.files.append(&mut g.new_files);
@@ -989,9 +1111,11 @@ impl App {
                 ui.label(egui::RichText::new(t!("Retrouvez vos fichiers effacés, simplement.")).font(regular(14.0)).color(pal().muted));
             });
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                self.burger_menu(ui);
+                ui.add_space(4.0);
                 self.language_chip(ui);
                 ui.add_space(6.0);
-                self.theme_buttons(ui);
+                self.day_night_button(ui);
                 ui.add_space(10.0);
                 if self.admin {
                     let txt = t!("Recherche approfondie activée");
@@ -1015,74 +1139,389 @@ impl App {
                         self.ask_deep = true;
                     }
                 }
-                ui.add_space(10.0);
-                let expert = self.settings.expert;
-                if chip_sized(ui, None, t!("Mode expert").into(), expert, pal().text, true, true)
-                    .on_hover_text(t!("Affiche le journal de la recherche (avec les lignes de PhotoRec) et les premiers octets \
-                         des fichiers qui n'ont pas d'aperçu."))
-                    .clicked()
-                {
-                    self.settings.expert = !expert;
-                    self.settings.save();
-                    self.preview = None;
-                    self.preview_wanted = None;
-                }
-                if self.photorec.is_some() {
-                    ui.add_space(12.0);
-                    ui.label(egui::RichText::new(t!("Analyse par PhotoRec, logiciel libre")).font(regular(12.5)).color(pal().muted))
-                        .on_hover_text(t!(
-                            "La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL \
-                             (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers."
-                        ));
-                }
             });
         });
     }
 
-    /// The day/night switch, and a menu of all the colour themes.
-    fn theme_buttons(&mut self, ui: &mut egui::Ui) {
-        let mut chosen: Option<&'static str> = None;
-        // right to left: the menu of themes, then the switch in front of it
-        let menu = round_icon(ui, Icon::Palette).on_hover_text(t!("Thème de couleurs"));
-        egui::Popup::menu(&menu).show(|ui| {
-            for (i, t) in theme::THEMES.iter().enumerate() {
-                let on = i == theme::current();
-                let (r, resp) = ui.allocate_exact_size(vec2(230.0, 32.0), Sense::click());
-                let p = ui.painter();
-                if on {
-                    p.rect_filled(r, CornerRadius::same(8), pal().accent_soft);
-                } else if resp.hovered() {
-                    p.rect_filled(r, CornerRadius::same(8), pal().hover);
-                }
-                // a swatch: the theme's background with its accent in the middle
-                let c = pos2(r.left() + 20.0, r.center().y);
-                p.circle(c, 10.0, t.p.bg, Stroke::new(1.0, t.p.border_strong));
-                p.circle_filled(c, 5.0, t.p.accent);
-                let font = if on { bold(14.5) } else { regular(14.5) };
-                p.text(pos2(r.left() + 40.0, r.center().y), Align2::LEFT_CENTER, theme_name(t), font, pal().text);
-                if on {
-                    icons::draw(p, Icon::Check, pos2(r.right() - 16.0, r.center().y), 16.0, pal().accent);
-                }
-                if resp.hovered() {
-                    ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
-                }
-                if resp.clicked() {
-                    chosen = Some(t.id);
-                }
-            }
-        });
-        let dark = theme::theme().dark;
-        let (icon, tip) = if dark { (Icon::Sun, t!("Passer en thème clair")) } else { (Icon::Moon, t!("Passer en thème sombre")) };
-        if round_icon(ui, icon).on_hover_text(tip).clicked() {
-            chosen = Some(theme::day_night());
-        }
-        if let Some(id) = chosen
-            && theme::set(id)
-        {
-            theme::apply(ui.ctx());
+    fn toggle_expert(&mut self) {
+        self.settings.expert = !self.settings.expert;
+        self.settings.save();
+        self.preview = None;
+        self.preview_wanted = None;
+    }
+
+    fn set_theme(&mut self, ctx: &egui::Context, id: &str) {
+        if theme::set(id) {
+            theme::apply(ctx);
             self.settings.theme = Some(id.to_string());
             self.settings.save();
         }
+    }
+
+    fn set_language(&mut self, ctx: &egui::Context, code: &str) {
+        if code != i18n::LANGS[i18n::current()].code && i18n::set(code) {
+            self.settings.language = Some(code.to_string());
+            self.settings.save();
+            ctx.send_viewport_cmd(egui::ViewportCommand::Title(window_title().into()));
+            // the dates and the words shown in the list come from the search: they stay as they were
+            self.view_key = None;
+        }
+    }
+
+    fn update_state(&self) -> update::State {
+        self.update.lock().unwrap().clone()
+    }
+
+    /// Writes a report (journal, settings, the computer and its drives) where the person
+    /// chooses, masked, and shows it in the file manager. Nothing is sent.
+    fn make_report(&mut self) {
+        let Some(path) = rfd::FileDialog::new()
+            .set_title(t!("Où enregistrer le rapport ?"))
+            .set_file_name(report::file_name())
+            .add_filter("zip", &["zip"])
+            .save_file()
+        else {
+            return;
+        };
+        self.write_report(path, true);
+    }
+
+    fn write_report(&mut self, path: PathBuf, reveal: bool) {
+        let yes = |b: bool| if b { "yes" } else { "no" };
+        let kind = match update::kind() {
+            update::Kind::Installer => "installed",
+            update::Kind::Portable => "portable",
+            update::Kind::Page => "unpacked",
+        };
+        let mut system = format!(
+            "Open Recovr {} ({kind}, {})\nSystem: {} {}\nLanguage: {} · theme: {}\nAdministrator: {}\nPhotoRec: {}\nExpert mode: {} · update check: {}\n\nDrives:\n",
+            update::current(),
+            if cfg!(debug_assertions) { "debug build" } else { "release build" },
+            std::env::consts::OS,
+            std::env::consts::ARCH,
+            i18n::LANGS[i18n::current()].code,
+            theme::theme().id,
+            yes(self.admin),
+            self.photorec.as_ref().map_or("not found".into(), |p| p.display().to_string()),
+            yes(self.settings.expert),
+            yes(self.settings.check_updates),
+        );
+        for d in &self.disks {
+            let mut line = vec![d.title(), d.kind.label().to_string(), human_size(d.total), format!("{} free", human_size(d.free))];
+            line.extend([d.fs.clone(), d.model.clone()].into_iter().filter(|s| !s.is_empty()));
+            if d.removable {
+                line.push("removable".into());
+            }
+            system.push_str(&format!("- {}\n", line.join(" · ")));
+        }
+        let read = |p: Option<PathBuf>| p.and_then(|p| std::fs::read_to_string(p).ok());
+        let mut parts = vec![
+            report::Part {
+                name: "LISEZMOI.txt",
+                text: t!("Ce rapport aide quelqu'un à comprendre un problème avec Open Recovr. Open Recovr ne l'envoie pas : \
+                     c'est vous qui décidez de le transmettre.\n\nIl contient :\n- systeme.txt : la version d'Open Recovr, \
+                     le système et la liste des disques (nom, type, taille) ;\n- reglages.txt : vos réglages ;\n- journal.txt : \
+                     le journal de la dernière recherche, s'il y en a une.\n\nAucun de vos fichiers n'y est. Votre nom \
+                     d'utilisateur, le nom de l'ordinateur, votre dossier personnel et les adresses e-mail sont remplacés par \
+                     <user>, <computer>, ~ et <e-mail>.\n\nCe ne sont que des fichiers texte : ouvrez-les pour vérifier ce \
+                     qu'ils disent avant de les transmettre.")
+                .to_string(),
+            },
+            report::Part { name: "systeme.txt", text: system },
+        ];
+        if let Some(text) = read(sys::settings_file()) {
+            parts.push(report::Part { name: "reglages.txt", text });
+        }
+        if let Some(text) = read(sys::log_file()) {
+            parts.push(report::Part { name: "journal.txt", text });
+        }
+        match report::write(&path, &parts, &report::Mask::here()) {
+            Ok(()) => {
+                if reveal {
+                    sys::reveal(&path);
+                }
+                self.notice = Some(t!("Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.", path.display()));
+                self.report = Some(Ok(path));
+            }
+            Err(e) => {
+                self.notice = Some(t!("Le rapport n'a pas pu être enregistré : {}", e));
+                self.report = Some(Err(e.to_string()));
+            }
+        }
+    }
+
+    /// Fetches and starts the newer version, once the search and the copy are over.
+    fn start_update(&mut self, ctx: &egui::Context) {
+        let update::State::Available(v) = self.update_state() else { return };
+        if self.scanning() || self.copying() {
+            self.notice = Some(t!("La mise à jour attendra la fin de la recherche et de la récupération.").into());
+            return;
+        }
+        self.update_tried = true;
+        update::install(v, self.update.clone(), ctx.clone());
+    }
+
+    /// The day/night switch, between the first two themes.
+    fn day_night_button(&mut self, ui: &mut egui::Ui) {
+        let dark = theme::theme().dark;
+        let (icon, tip) = if dark { (Icon::Sun, t!("Passer en thème clair")) } else { (Icon::Moon, t!("Passer en thème sombre")) };
+        if round_icon(ui, icon).on_hover_text(tip).clicked() {
+            self.set_theme(ui.ctx(), theme::day_night());
+        }
+    }
+
+    /// The rows of the theme menu, each with a swatch of its colours.
+    fn theme_rows(&mut self, ui: &mut egui::Ui) {
+        let mut chosen = None;
+        for (i, t) in theme::THEMES.iter().enumerate() {
+            let on = i == theme::current();
+            let resp = menu_row(ui, None, theme_name(t), on, true);
+            // a swatch: the theme's background with its accent in the middle
+            let c = pos2(resp.rect.left() + 20.0, resp.rect.center().y);
+            ui.painter().circle(c, 10.0, t.p.bg, Stroke::new(1.0, t.p.border_strong));
+            ui.painter().circle_filled(c, 5.0, t.p.accent);
+            if resp.clicked() {
+                chosen = Some(t.id);
+            }
+        }
+        if let Some(id) = chosen {
+            self.set_theme(ui.ctx(), id);
+        }
+    }
+
+    /// Everything that isn't needed to get files back: settings, expert mode, updates, the project.
+    fn burger_menu(&mut self, ui: &mut egui::Ui) {
+        let resp = round_icon(ui, Icon::Menu).on_hover_text(t!("Menu"));
+        let state = self.update_state();
+        let mut expert = false;
+        let mut open_settings = false;
+        let mut check = false;
+        let mut install = false;
+        let mut report = false;
+        egui::Popup::menu(&resp).show(|ui| {
+            ui.set_max_width(280.0);
+            if menu_row(ui, Some(Icon::Gear), t!("Paramètres"), false, true).clicked() {
+                open_settings = true;
+            }
+            let themes = ui.menu_button(egui::RichText::new(format!("          {}", t!("Thème de couleurs"))).font(regular(14.5)), |ui| {
+                self.theme_rows(ui);
+            });
+            let r = themes.response.rect;
+            icons::draw(ui.painter(), Icon::Palette, pos2(r.left() + 20.0, r.center().y), 17.0, pal().muted);
+            if menu_row(ui, Some(Icon::Search), t!("Mode expert"), self.settings.expert, true)
+                .on_hover_text(t!("Affiche le journal de la recherche (avec les lignes de PhotoRec) et les premiers octets \
+                     des fichiers qui n'ont pas d'aperçu."))
+                .clicked()
+            {
+                expert = true;
+            }
+            ui.separator();
+            match &state {
+                update::State::Available(v) => {
+                    if menu_row(ui, Some(Icon::Download), &t!("Installer la version {}", v), false, true).clicked() {
+                        install = true;
+                    }
+                }
+                update::State::Checking => {
+                    menu_row(ui, Some(Icon::Download), t!("Recherche des mises à jour…"), false, false);
+                }
+                update::State::Downloading(v, _) => {
+                    menu_row(ui, Some(Icon::Download), &t!("Téléchargement de la version {}…", v), false, false);
+                }
+                _ => {
+                    if menu_row(ui, Some(Icon::Download), t!("Rechercher les mises à jour"), false, true).clicked() {
+                        check = true;
+                    }
+                }
+            }
+            if menu_row(ui, Some(Icon::Document), t!("Préparer un rapport…"), false, true)
+                .on_hover_text(t!("Enregistre un fichier à joindre à un mail ou à un signalement : le journal, les réglages et la liste \
+                     des disques, sans vos fichiers ni votre nom. Rien n'est envoyé."))
+                .clicked()
+            {
+                report = true;
+            }
+            if menu_row(ui, Some(Icon::Globe), t!("Site du projet (GitHub)"), false, true)
+                .on_hover_text(t!("Code source, nouvelles versions, signaler un problème"))
+                .clicked()
+            {
+                ui.ctx().open_url(egui::OpenUrl::new_tab("https://github.com/jlerouge/open-recovr"));
+            }
+        });
+        if expert {
+            self.toggle_expert();
+        }
+        if open_settings {
+            self.settings_open = true;
+        }
+        if check {
+            update::check(self.update.clone(), ui.ctx().clone());
+        }
+        if install {
+            self.start_update(ui.ctx());
+        }
+        if report {
+            self.make_report();
+        }
+    }
+
+    /// The settings, in place of the search, with a way back.
+    fn settings_page(&mut self, ui: &mut egui::Ui) {
+        let ctx = ui.ctx().clone();
+        ui.horizontal(|ui| {
+            if icon_button(ui, vec2(120.0, 40.0), Some(Icon::Back), t!("Retour"), false, true).clicked() {
+                self.settings_open = false;
+            }
+            ui.add_space(10.0);
+            ui.label(egui::RichText::new(t!("Paramètres")).font(bold(22.0)).color(pal().text));
+        });
+        ui.add_space(14.0);
+        let section = |ui: &mut egui::Ui, title: &str, body: &mut dyn FnMut(&mut egui::Ui)| {
+            card().show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                ui.label(egui::RichText::new(title).font(bold(17.0)).color(pal().text));
+                ui.add_space(8.0);
+                body(ui);
+            });
+            ui.add_space(14.0);
+        };
+        egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+            ui.set_max_width(860.0);
+            section(ui, t!("Apparence"), &mut |ui| {
+                row_label(ui, t!("Langue de l'interface"), 24.0);
+                ui.horizontal_wrapped(|ui| {
+                    let current = i18n::current();
+                    for (i, l) in i18n::LANGS.iter().enumerate() {
+                        if chip(ui, None, l.name.into(), i == current, pal().accent, true).clicked() {
+                            self.set_language(&ctx, l.code);
+                        }
+                    }
+                });
+                ui.add_space(12.0);
+                row_label(ui, t!("Thème de couleurs"), 24.0);
+                ui.horizontal_wrapped(|ui| {
+                    ui.spacing_mut().item_spacing = vec2(10.0, 10.0);
+                    for (i, t) in theme::THEMES.iter().enumerate() {
+                        if theme_tile(ui, t, i == theme::current()).clicked() {
+                            self.set_theme(&ctx, t.id);
+                        }
+                    }
+                });
+            });
+            section(ui, t!("Recherche"), &mut |ui| {
+                if toggle_row(
+                    ui,
+                    self.settings.expert,
+                    t!("Mode expert"),
+                    t!("Affiche le journal de la recherche (avec les lignes de PhotoRec) et les premiers octets \
+                        des fichiers qui n'ont pas d'aperçu."),
+                ) {
+                    self.toggle_expert();
+                }
+                if toggle_row(
+                    ui,
+                    !self.settings.never_ask_deep,
+                    t!("Proposer la recherche approfondie au démarrage"),
+                    t!("Sans les droits d'administrateur, seule la corbeille est fouillée : Open Recovr propose alors de les demander."),
+                ) {
+                    self.settings.never_ask_deep = !self.settings.never_ask_deep;
+                    self.settings.save();
+                }
+            });
+            section(ui, t!("Mises à jour"), &mut |ui| {
+                if toggle_row(
+                    ui,
+                    self.settings.check_updates,
+                    t!("Rechercher les mises à jour au démarrage"),
+                    t!("Open Recovr demande à GitHub le numéro de la dernière version. Rien d'autre n'est envoyé."),
+                ) {
+                    self.settings.check_updates = !self.settings.check_updates;
+                    self.settings.save();
+                }
+                ui.add_space(6.0);
+                ui.horizontal(|ui| {
+                    let state = self.update_state();
+                    let (text, color) = update_text(&state, self.update_tried);
+                    let current = update::current();
+                    ui.label(egui::RichText::new(format!("Open Recovr v{current}")).font(bold(14.5)).color(pal().text));
+                    ui.label(egui::RichText::new(text).font(regular(14.0)).color(color)).on_hover_text(match &state {
+                        update::State::Failed(e) => e.clone(),
+                        _ => String::new(),
+                    });
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| match state {
+                        update::State::Available(v) => {
+                            if icon_button(ui, vec2(200.0, 38.0), Some(Icon::Download), &t!("Installer la version {}", v), true, true)
+                                .clicked()
+                            {
+                                self.start_update(&ctx);
+                            }
+                        }
+                        update::State::Checking | update::State::Downloading(..) | update::State::Restart => {}
+                        _ => {
+                            if pill_button(ui, vec2(200.0, 38.0), t!("Rechercher maintenant"), false, true).clicked() {
+                                update::check(self.update.clone(), ctx.clone());
+                            }
+                        }
+                    });
+                });
+            });
+            section(ui, t!("Aide"), &mut |ui| {
+                let text = |s: &str| egui::RichText::new(s).font(regular(14.0)).color(pal().muted);
+                ui.add(
+                    egui::Label::new(text(t!(
+                        "En cas de problème, préparez un rapport et joignez-le à votre mail ou à un signalement sur GitHub. \
+                         Il contient le journal de la dernière recherche, vos réglages et la liste des disques. Votre nom, \
+                         celui de l'ordinateur et vos dossiers personnels sont masqués, et aucun de vos fichiers n'y est. \
+                         Open Recovr n'envoie rien : c'est un zip de fichiers texte, que vous pouvez relire avant de le transmettre."
+                    )))
+                    .wrap(),
+                );
+                ui.add_space(6.0);
+                ui.horizontal(|ui| {
+                    if icon_button(ui, vec2(230.0, 38.0), Some(Icon::Document), t!("Préparer un rapport…"), false, true).clicked() {
+                        self.make_report();
+                    }
+                    match &self.report {
+                        Some(Ok(path)) => {
+                            let name = path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+                            ui.label(egui::RichText::new(t!("Enregistré : {}", name)).font(regular(14.0)).color(pal().green));
+                            if ui.link(egui::RichText::new(t!("Afficher")).font(bold(14.0)).color(pal().accent)).clicked() {
+                                sys::reveal(path);
+                            }
+                        }
+                        Some(Err(e)) => {
+                            ui.label(
+                                egui::RichText::new(t!("Le rapport n'a pas pu être enregistré : {}", e))
+                                    .font(regular(14.0))
+                                    .color(pal().red),
+                            );
+                        }
+                        None => {}
+                    }
+                });
+            });
+            section(ui, t!("À propos"), &mut |ui| {
+                let text = |s: &str| egui::RichText::new(s).font(regular(14.0)).color(pal().muted);
+                ui.label(text(t!("Logiciel libre sous licence MIT. Pas de compte, pas de télémétrie.")));
+                if self.photorec.is_some() {
+                    ui.label(text(t!(
+                        "La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL \
+                         (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers."
+                    )));
+                }
+                ui.add_space(4.0);
+                ui.horizontal(|ui| {
+                    let link = |s: &str| egui::RichText::new(s).font(bold(14.0)).color(pal().accent);
+                    ui.hyperlink_to(link(t!("Site du projet (GitHub)")), "https://github.com/jlerouge/open-recovr");
+                    if let Some(path) = sys::log_file().filter(|p| p.exists()) {
+                        ui.add_space(12.0);
+                        if ui.link(link(t!("Journal de la dernière recherche"))).clicked() {
+                            sys::open_path(&path);
+                        }
+                    }
+                });
+            });
+        });
     }
 
     /// The language, with a menu of the others.
@@ -1106,15 +1545,8 @@ impl App {
                 }
             }
         });
-        if let Some(code) = chosen
-            && code != current.code
-            && i18n::set(code)
-        {
-            self.settings.language = Some(code.to_string());
-            self.settings.save();
-            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Title(window_title().into()));
-            // the dates and the words shown in the list come from the search: they stay as they were
-            self.view_key = None;
+        if let Some(code) = chosen {
+            self.set_language(ui.ctx(), code);
         }
     }
 
@@ -2130,13 +2562,48 @@ impl App {
     }
 
     /// The version, the project page and the journal file, small, at the bottom left.
-    fn about_line(&self, ui: &mut egui::Ui) {
+    /// Next to the version: the newer one, which installs on a click, or how its install goes.
+    fn update_link(&mut self, ui: &mut egui::Ui) {
+        let state = self.update_state();
+        let font = bold(11.5);
+        match &state {
+            update::State::Available(v) => {
+                let tip = if update::kind() == update::Kind::Page {
+                    t!("Ouvre la page de téléchargement de la nouvelle version.")
+                } else {
+                    t!("Télécharge et installe la nouvelle version, puis relance Open Recovr.")
+                };
+                if ui.link(egui::RichText::new(t!("→ v{} : mettre à jour", v)).font(font).color(pal().accent)).on_hover_text(tip).clicked()
+                {
+                    self.start_update(ui.ctx());
+                }
+            }
+            update::State::Downloading(..) | update::State::Restart => {
+                let (text, color) = update_text(&state, true);
+                ui.label(egui::RichText::new(text).font(font).color(color));
+            }
+            update::State::Failed(e) if self.update_tried => {
+                let (text, color) = update_text(&state, true);
+                if ui
+                    .link(egui::RichText::new(text).font(font).color(color))
+                    .on_hover_text(t!("{} — cliquez pour ouvrir la page de téléchargement.", e))
+                    .clicked()
+                {
+                    ui.ctx().open_url(egui::OpenUrl::new_tab(update::RELEASES_PAGE));
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn about_line(&mut self, ui: &mut egui::Ui) {
         ui.add_space(2.0);
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 4.0;
             let small = |s: &str| egui::RichText::new(s).font(regular(11.5)).color(pal().muted);
             let link = |s: &str| egui::RichText::new(s).font(regular(11.5)).color(pal().accent);
-            ui.label(small(concat!("Open Recovr v", env!("CARGO_PKG_VERSION"))));
+            ui.label(small(&format!("Open Recovr v{}", update::current())));
+            self.update_link(ui);
             ui.label(small("·"));
             ui.hyperlink_to(link("GitHub"), "https://github.com/jlerouge/open-recovr")
                 .on_hover_text(t!("Code source, nouvelles versions, signaler un problème"));
@@ -2408,6 +2875,7 @@ impl Drop for App {
 impl eframe::App for App {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
+        let _links = OpenLinks(ctx.clone());
         self.poll(&ctx);
         self.handle_screenshot(&ctx);
         // closing while the search (or a copy) runs only puts the window away
@@ -2423,6 +2891,13 @@ impl eframe::App for App {
         egui::Panel::top("top")
             .frame(Frame::new().fill(pal().card).inner_margin(Margin::symmetric(24, 12)).stroke(Stroke::new(1.0, pal().border)))
             .show(ui, |ui| self.top_bar(ui));
+        if self.settings_open {
+            egui::CentralPanel::default()
+                .frame(Frame::new().fill(pal().bg).inner_margin(Margin::symmetric(32, 20)))
+                .show(ui, |ui| self.settings_page(ui));
+            self.deep_modal(&ctx);
+            return;
+        }
         egui::Panel::bottom("bottom")
             .frame(Frame::new().fill(pal().card).inner_margin(Margin::symmetric(24, 14)).stroke(Stroke::new(1.0, pal().border)))
             .show(ui, |ui| self.bottom_bar(ui));
@@ -2446,5 +2921,23 @@ impl eframe::App for App {
 
     fn clear_color(&self, _visuals: &egui::Visuals) -> [f32; 4] {
         pal().bg.to_normalized_gamma_f32()
+    }
+}
+
+/// eframe is built without its "links" feature, so links clicked in a frame do nothing by
+/// themselves: at the end of the frame, this hands them to the system's browser.
+struct OpenLinks(egui::Context);
+
+impl Drop for OpenLinks {
+    fn drop(&mut self) {
+        self.0.output_mut(|o| {
+            o.commands.retain(|c| match c {
+                egui::OutputCommand::OpenUrl(u) => {
+                    sys::open_url(&u.url);
+                    false
+                }
+                _ => true,
+            })
+        });
     }
 }

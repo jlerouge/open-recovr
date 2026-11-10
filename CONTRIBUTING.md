@@ -92,6 +92,17 @@ scripts/screenshots.sh C     # drive letter or mount point to show
 
 This regenerates the 7 phases in the 4 languages. The quick search lists what is in the Recycle Bin, so put a few harmless demo files there first.
 
+## Releasing
+
+For the maintainer. Open Recovr only installs an update whose `SHA256SUMS.txt` is signed with the key in [`keys/open-recovr.pub`](keys/README.md), and the secret half of that key stays off GitHub. So a release takes one step by hand:
+
+1. Set the version in `Cargo.toml`, move the `Unreleased` part of `CHANGELOG.md` under it, commit, then tag and push: `git tag v0.3.0 && git push origin main v0.3.0`.
+2. The release workflow builds everything and makes a **draft** release. Nobody sees it yet, and the updater ignores it.
+3. Download `SHA256SUMS.txt` from the draft, then run `./scripts/sign-release.ps1 -Tag v0.3.0`. It checks that GitHub's tag points to your commit and that the checksums are this version's, then signs them (minisign asks for the key's password).
+4. Attach the `SHA256SUMS.txt.minisig` it writes to the draft, and publish.
+
+A release published without its `.minisig` is not dangerous: Open Recovr refuses to install it and says why. Add the file and the update goes through.
+
 ## Use of AI tools
 
 **Generative AI is welcome.** The first version of Open Recovr was itself built with AI assistance. You can use Copilot, Claude, ChatGPT or any other tool to write code, tests, docs or translations, on these conditions:
