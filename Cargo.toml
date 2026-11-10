@@ -1,6 +1,6 @@
 [package]
 name = "open-recovr"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.95"
 description = "Get your deleted files back, simply: one screen, PhotoRec underneath."

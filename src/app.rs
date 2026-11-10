@@ -274,6 +274,26 @@ fn text_link(ui: &mut egui::Ui, text: &str, h: f32, enabled: bool) -> egui::Resp
     resp
 }
 
+/// The outline of a rounded rectangle, as points, for a dashed border.
+fn rounded_outline(r: Rect, radius: f32) -> Vec<egui::Pos2> {
+    use std::f32::consts::FRAC_PI_2;
+    let corners = [
+        (pos2(r.right() - radius, r.top() + radius), -FRAC_PI_2),
+        (pos2(r.right() - radius, r.bottom() - radius), 0.0),
+        (pos2(r.left() + radius, r.bottom() - radius), FRAC_PI_2),
+        (pos2(r.left() + radius, r.top() + radius), 2.0 * FRAC_PI_2),
+    ];
+    let mut pts = Vec::new();
+    for (c, start) in corners {
+        for k in 0..=6 {
+            let a = start + FRAC_PI_2 * k as f32 / 6.0;
+            pts.push(c + vec2(a.cos(), a.sin()) * radius);
+        }
+    }
+    pts.push(pts[0]);
+    pts
+}
+
 /// A small triangle telling which way a column is sorted.
 fn sort_arrow(p: &egui::Painter, at: egui::Pos2, up: bool, color: Color32) {
     let (a, b) = if up { (-3.0, 3.0) } else { (3.0, -3.0) };
@@ -1007,21 +1027,19 @@ impl App {
                                 }
                                 ui.add_space(4.0);
                             }
+                            if self.image_card(ui, busy).clicked()
+                                && !busy
+                                && let Some(path) = rfd::FileDialog::new()
+                                    .set_title(t!("Choisir une image disque"))
+                                    .add_filter(t!("Image disque"), &["img", "dd", "raw", "bin", "iso", "dmg"])
+                                    .add_filter(t!("Tous les fichiers"), &["*"])
+                                    .pick_file()
+                            {
+                                self.open_image(&path);
+                            }
                         });
                     });
-                    if text_link(ui, t!("Ouvrir une image disque…"), 24.0, !busy)
-                        .on_hover_text(t!("Un fichier .img ou .dd copié depuis un disque abîmé (avec ddrescue, par exemple). \
-                             Le disque d'origine n'est plus sollicité."))
-                        .clicked()
-                        && let Some(path) = rfd::FileDialog::new()
-                            .set_title(t!("Choisir une image disque"))
-                            .add_filter(t!("Image disque"), &["img", "dd", "raw", "bin", "iso", "dmg"])
-                            .add_filter(t!("Tous les fichiers"), &["*"])
-                            .pick_file()
-                    {
-                        self.open_image(&path);
-                    }
-                    ui.add_space(6.0);
+                    ui.add_space(10.0);
                     self.target_chips(ui, busy);
                     if self.quick_possible() {
                         self.mode_row(ui, busy);
@@ -1355,6 +1373,32 @@ impl App {
             tip.push(t!("{} libres sur {}", human_size(d.free), human_size(d.total)));
         }
         if tip.is_empty() { resp } else { resp.on_hover_text(tip.join("\n")) }
+    }
+
+    /// The card after the drives that opens a disk image file instead.
+    fn image_card(&self, ui: &mut egui::Ui, busy: bool) -> egui::Response {
+        let (rect, resp) = ui.allocate_exact_size(vec2(238.0, 96.0), if busy { Sense::hover() } else { Sense::click() });
+        let hovered = resp.hovered() && !busy;
+        let p = ui.painter();
+        let color = if busy { MUTED } else { ACCENT };
+        p.rect_filled(rect, CornerRadius::same(14), if hovered { ACCENT_SOFT } else { CARD });
+        p.extend(egui::Shape::dashed_line(
+            &rounded_outline(rect.shrink(0.5), 14.0),
+            Stroke::new(if hovered { 1.5 } else { 1.0 }, if hovered { ACCENT } else { Color32::from_rgb(165, 170, 190) }),
+            6.0,
+            4.0,
+        ));
+        let pic = Rect::from_min_size(rect.min + vec2(10.0, 10.0), vec2(48.0, 48.0));
+        self.art.paint(ui, sys::Kind::Image.art(), pic);
+        let x = pic.right() + 10.0;
+        p.text(pos2(x, rect.top() + 24.0), Align2::LEFT_CENTER, elide(t!("Image disque"), 20), bold(15.0), TEXT);
+        p.text(pos2(x, rect.top() + 45.0), Align2::LEFT_CENTER, elide(t!("Fichier .img ou .dd"), 26), regular(12.5), MUTED);
+        p.text(pos2(rect.left() + 14.0, rect.bottom() - 18.0), Align2::LEFT_CENTER, t!("+ Ouvrir une image disque…"), bold(13.0), color);
+        if hovered {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+        }
+        resp.on_hover_text(t!("Un fichier .img ou .dd copié depuis un disque abîmé (avec ddrescue, par exemple). \
+             Le disque d'origine n'est plus sollicité."))
     }
 
     fn progress_bar(&self, ui: &mut egui::Ui, w: f32, v: f32, animate: bool) {

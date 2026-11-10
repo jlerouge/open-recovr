@@ -4,6 +4,10 @@ All notable changes to Open Recovr are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## 0.2.1
+
+- "Open a disk image" is now a card next to the drives instead of a small link under them.
+
 ## 0.2.0
 
 - Files with only a number get a name from their content: the date a photo was taken or a video filmed (EXIF, MP4), the title of Word, LibreOffice, EPUB and PDF documents, the artist and title of MP3s. Their date is filled in too.
