@@ -64,8 +64,11 @@ jobs:
             # the installer, from the same folder (Inno Setup comes with the runner, or from Chocolatey)
             iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
             [ -f "$iscc" ] || choco install innosetup -y --no-progress > /dev/null
-            ico=$(find target -name open-recovr.ico | head -n1)
-            "$iscc" //Q "//DAppVersion=${GITHUB_REF_NAME#v}" "//DSourceDir=$PWD/$dir" "//DIconFile=$PWD/$ico" installer/open-recovr.iss
+            # ISCC is a Windows program: it needs Windows paths, not Git Bash ones (/d/a/…)
+            src=$(cygpath -w "$PWD/$dir")
+            ico=$(cygpath -w "$(find "$PWD/target" -name open-recovr.ico | head -n1)")
+            "$iscc" //Q "//DAppVersion=${GITHUB_REF_NAME#v}" "//DSourceDir=$src" "//DIconFile=$ico" installer/open-recovr.iss
+            ls -l dist
           else
             cp "target/${{ matrix.target }}/release/open-recovr" "$dir/"
             chmod +x "$dir/open-recovr"
