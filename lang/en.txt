@@ -498,3 +498,11 @@ l'index de la vidéo manque
 = the video's index is missing
 les images de la vidéo manquent
 = the video's frames are missing
+Code source, nouvelles versions, signaler un problème
+= Source code, new versions, report a problem
+Journal
+= Log
+Le journal de la dernière recherche, à joindre si vous signalez un problème.
+= The log of the last search, to attach if you report a problem.
+Ouvrir le fichier
+= Open the file

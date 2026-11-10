@@ -41,6 +41,10 @@ fn setup_fonts(ctx: &egui::Context) {
         s.visuals.panel_fill = app::BG;
         s.visuals.window_fill = app::CARD;
         s.visuals.selection.bg_fill = app::ACCENT;
+        // the chosen item of a menu: white on the accent, readable
+        s.visuals.selection.stroke = egui::Stroke::new(1.0, egui::Color32::WHITE);
+        // an interface, not a page: its words can't be selected
+        s.interaction.selectable_labels = false;
         s.visuals.hyperlink_color = app::ACCENT;
         s.text_styles = [
             (TextStyle::Small, FontId::proportional(12.0)),

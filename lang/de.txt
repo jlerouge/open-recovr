@@ -498,3 +498,11 @@ l'index de la vidéo manque
 = der Index des Videos fehlt
 les images de la vidéo manquent
 = die Bilder des Videos fehlen
+Code source, nouvelles versions, signaler un problème
+= Quellcode, neue Versionen, Problem melden
+Journal
+= Protokoll
+Le journal de la dernière recherche, à joindre si vous signalez un problème.
+= Das Protokoll der letzten Suche, zum Anhängen, wenn Sie ein Problem melden.
+Ouvrir le fichier
+= Datei öffnen

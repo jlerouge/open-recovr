@@ -4,6 +4,20 @@ All notable changes to Open Recovr are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## 0.2.2
+
+From testers' feedback:
+
+- The highlighted item of a menu is readable (white on violet).
+- Labels can no longer be selected like text on a web page.
+- The language globe sits outside the menu.
+- The footer shows the version, a link to GitHub and a link to the search log.
+- A drive card's tooltip shows its full name.
+- Drive cards wrap onto several rows when there are many.
+- The footer tip wraps instead of being cut off.
+- The expert log can be resized by dragging its top edge (now with a visible grip), and has an "Open the file" link.
+- Each search is logged to `journal.txt` next to the settings (`%APPDATA%Open Recovr` on Windows), with the version, the drive and the search options at the top.
+
 ## 0.2.1
 
 - "Open a disk image" is now a card next to the drives instead of a small link under them.

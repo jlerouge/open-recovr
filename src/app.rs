@@ -206,6 +206,28 @@ pub fn window_title() -> &'static str {
     t!("Open Recovr — récupération de fichiers")
 }
 
+/// Starts the journal file of a search, headed with what a bug report needs: version, system, drive, mode.
+fn start_log_file(plan: &ScanPlan) -> Option<std::fs::File> {
+    use std::io::Write;
+    let path = sys::log_file()?;
+    let _ = std::fs::create_dir_all(path.parent()?);
+    let mut f = std::fs::File::create(&path).ok()?;
+    let d = &plan.disk;
+    let _ = writeln!(f, "Open Recovr {} · {} {}", env!("CARGO_PKG_VERSION"), std::env::consts::OS, std::env::consts::ARCH);
+    let mut drive = vec![d.title(), d.kind.label().to_string(), human_size(d.total)];
+    drive.extend([d.fs.clone(), d.model.clone()].into_iter().filter(|s| !s.is_empty()));
+    let _ = writeln!(f, "Drive: {}", drive.join(" · "));
+    let _ = writeln!(
+        f,
+        "Search: {} · whole drive {} · PhotoRec {}",
+        if plan.deep { "deep" } else { "quick" },
+        if plan.full { "yes" } else { "no" },
+        plan.photorec.as_ref().map_or("none".into(), |p| p.display().to_string())
+    );
+    let _ = writeln!(f);
+    Some(f)
+}
+
 /// A rounded, clickable tag.
 fn chip(ui: &mut egui::Ui, icon: Option<Icon>, label: String, on: bool, color: Color32, enabled: bool) -> egui::Response {
     chip_sized(ui, icon, label, on, color, enabled, false)
@@ -441,6 +463,8 @@ pub struct App {
     copy: Option<Arc<Mutex<CopyShared>>>,
     /// The search journal shown in expert mode.
     log: Vec<String>,
+    /// The journal file of the current search, for a bug report.
+    log_out: Option<std::fs::File>,
     found: usize,
     found_bytes: u64,
     /// Narrows the results to names (or folders) holding these letters.
@@ -512,6 +536,7 @@ impl App {
             preview_wanted: None,
             copy: None,
             log: Vec::new(),
+            log_out: None,
             found: 0,
             found_bytes: 0,
             query: String::new(),
@@ -747,6 +772,7 @@ impl App {
             wanted: self.wanted.clone(),
             photorec: self.photorec.clone(),
         };
+        self.log_out = start_log_file(&plan);
         self.scan = Some(ScanJob::start(plan, ctx.clone()));
     }
 
@@ -764,6 +790,12 @@ impl App {
                 self.problem = g.problem.clone();
             }
             if !g.log.is_empty() {
+                if let Some(f) = &mut self.log_out {
+                    use std::io::Write;
+                    for line in &g.log {
+                        let _ = writeln!(f, "{line}");
+                    }
+                }
                 self.log.append(&mut g.log);
                 if self.log.len() > 20_000 {
                     self.log.drain(..self.log.len() - 15_000);
@@ -983,8 +1015,14 @@ impl App {
     /// The language, with a menu of the others.
     fn language_chip(&mut self, ui: &mut egui::Ui) {
         let current = &i18n::LANGS[i18n::current()];
-        let resp =
-            chip_sized(ui, Some(Icon::Globe), current.name.into(), false, ACCENT, true, true).on_hover_text(t!("Langue de l'interface"));
+        // right to left: the menu, then the globe in front of it
+        let chip = chip_sized(ui, None, current.name.into(), false, ACCENT, true, true);
+        let (r, globe) = ui.allocate_exact_size(vec2(20.0, 20.0), Sense::click());
+        icons::draw(ui.painter(), Icon::Globe, r.center(), 18.0, MUTED);
+        if globe.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+        }
+        let resp = chip.union(globe).on_hover_text(t!("Langue de l'interface"));
         let mut chosen: Option<&'static str> = None;
         egui::Popup::menu(&resp).show(|ui| {
             ui.set_min_width(150.0);
@@ -1019,25 +1057,24 @@ impl App {
                     if self.disks.is_empty() {
                         ui.label(egui::RichText::new(t!("Aucun disque trouvé.")).color(MUTED));
                     }
-                    egui::ScrollArea::horizontal().id_salt("disks").show(ui, |ui| {
-                        ui.horizontal(|ui| {
-                            for i in 0..self.disks.len() {
-                                if self.disk_card(ui, i, busy).clicked() && !busy {
-                                    self.selected = i;
-                                }
-                                ui.add_space(4.0);
+                    // as many cards per row as the window allows, the others below
+                    ui.horizontal_wrapped(|ui| {
+                        ui.spacing_mut().item_spacing = vec2(12.0, 12.0);
+                        for i in 0..self.disks.len() {
+                            if self.disk_card(ui, i, busy).clicked() && !busy {
+                                self.selected = i;
                             }
-                            if self.image_card(ui, busy).clicked()
-                                && !busy
-                                && let Some(path) = rfd::FileDialog::new()
-                                    .set_title(t!("Choisir une image disque"))
-                                    .add_filter(t!("Image disque"), &["img", "dd", "raw", "bin", "iso", "dmg"])
-                                    .add_filter(t!("Tous les fichiers"), &["*"])
-                                    .pick_file()
-                            {
-                                self.open_image(&path);
-                            }
-                        });
+                        }
+                        if self.image_card(ui, busy).clicked()
+                            && !busy
+                            && let Some(path) = rfd::FileDialog::new()
+                                .set_title(t!("Choisir une image disque"))
+                                .add_filter(t!("Image disque"), &["img", "dd", "raw", "bin", "iso", "dmg"])
+                                .add_filter(t!("Tous les fichiers"), &["*"])
+                                .pick_file()
+                        {
+                            self.open_image(&path);
+                        }
                     });
                     ui.add_space(10.0);
                     self.target_chips(ui, busy);
@@ -1360,8 +1397,9 @@ impl App {
         if hovered {
             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
-        let mut tip = Vec::new();
-        if !d.model.is_empty() {
+        // the full name first: the card cuts long ones
+        let mut tip = vec![d.title()];
+        if !d.model.is_empty() && d.model != d.title() {
             tip.push(d.model.clone());
         }
         if !d.fs.is_empty() {
@@ -1372,7 +1410,7 @@ impl App {
         } else if d.total > 0 {
             tip.push(t!("{} libres sur {}", human_size(d.free), human_size(d.total)));
         }
-        if tip.is_empty() { resp } else { resp.on_hover_text(tip.join("\n")) }
+        resp.on_hover_text(tip.join("\n"))
     }
 
     /// The card after the drives that opens a disk image file instead.
@@ -1938,11 +1976,14 @@ impl App {
         let n = checked.len();
         let bytes: u64 = checked.iter().map(|f| f.size).sum();
         ui.horizontal(|ui| {
+            // what the three buttons on the right leave: the words wrap in it instead of being cut
+            let left_w = (ui.available_width() - 28.0 - 4.0 - 3.0 * ui.spacing().item_spacing.x - 600.0).max(200.0);
             let (r, _) = ui.allocate_exact_size(vec2(28.0, 28.0), Sense::hover());
             ui.painter().circle_filled(r.center(), 14.0, ACCENT);
             ui.painter().text(r.center(), Align2::CENTER_CENTER, "3", bold(15.0), Color32::WHITE);
             ui.add_space(4.0);
-            ui.vertical(|ui| {
+            ui.allocate_ui_with_layout(vec2(left_w, 0.0), Layout::top_down(Align::Min), |ui| {
+                ui.set_max_width(left_w);
                 let copy = self.copy.as_ref().map(|c| {
                     let g = c.lock().unwrap();
                     (g.done_files, g.total_files, g.failed, g.finished, g.folder.clone())
@@ -1950,7 +1991,7 @@ impl App {
                 match copy {
                     Some((done, total, _, false, _)) => {
                         ui.label(egui::RichText::new(t!("Récupération… {} / {}", done, total)).font(bold(17.0)).color(TEXT));
-                        self.progress_bar(ui, 320.0, done as f32 / total.max(1) as f32, true);
+                        self.progress_bar(ui, left_w.min(320.0), done as f32 / total.max(1) as f32, true);
                     }
                     Some((done, _, failed, true, folder)) => {
                         let ok = done - failed;
@@ -1966,7 +2007,7 @@ impl App {
                                 sys::open_path(&folder);
                             }
                         });
-                        ui.label(egui::RichText::new(folder.to_string_lossy()).font(regular(12.5)).color(MUTED));
+                        ui.add(egui::Label::new(egui::RichText::new(folder.to_string_lossy()).font(regular(12.5)).color(MUTED)).wrap());
                     }
                     None => {
                         let head = if n == 0 {
@@ -1979,9 +2020,10 @@ impl App {
                             .notice
                             .clone()
                             .unwrap_or_else(|| t!("Conseil : enregistrez-les sur un autre disque (une clé USB par exemple).").into());
-                        ui.label(egui::RichText::new(tip).font(regular(13.0)).color(MUTED));
+                        ui.add(egui::Label::new(egui::RichText::new(tip).font(regular(13.0)).color(MUTED)).wrap());
                     }
                 }
+                self.about_line(ui);
             });
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 let busy = self.copying();
@@ -2008,6 +2050,30 @@ impl App {
                     }
                 }
             });
+        });
+    }
+
+    /// The version, the project page and the journal file, small, at the bottom left.
+    fn about_line(&self, ui: &mut egui::Ui) {
+        ui.add_space(2.0);
+        ui.horizontal(|ui| {
+            ui.spacing_mut().item_spacing.x = 4.0;
+            let small = |s: &str| egui::RichText::new(s).font(regular(11.5)).color(MUTED);
+            let link = |s: &str| egui::RichText::new(s).font(regular(11.5)).color(ACCENT);
+            ui.label(small(concat!("Open Recovr v", env!("CARGO_PKG_VERSION"))));
+            ui.label(small("·"));
+            ui.hyperlink_to(link("GitHub"), "https://github.com/jlerouge/open-recovr")
+                .on_hover_text(t!("Code source, nouvelles versions, signaler un problème"));
+            if let Some(path) = sys::log_file().filter(|p| p.exists()) {
+                ui.label(small("·"));
+                if ui
+                    .link(link(t!("Journal")))
+                    .on_hover_text(t!("Le journal de la dernière recherche, à joindre si vous signalez un problème."))
+                    .clicked()
+                {
+                    sys::open_path(&path);
+                }
+            }
         });
     }
 
@@ -2133,6 +2199,14 @@ impl App {
     fn journal(&mut self, ui: &mut egui::Ui) {
         let light = Color32::from_rgb(229, 231, 235);
         let dim = Color32::from_rgb(156, 163, 175);
+        // a grip on the top edge, which can be dragged to make the journal taller or shorter
+        let top = ui.max_rect().top() - 4.0;
+        let cx = ui.max_rect().center().x;
+        ui.painter().rect_filled(
+            Rect::from_center_size(pos2(cx, top), vec2(44.0, 4.0)),
+            CornerRadius::same(2),
+            Color32::from_rgb(75, 85, 99),
+        );
         ui.horizontal(|ui| {
             ui.label(egui::RichText::new(t!("Journal de la recherche")).font(bold(14.0)).color(light));
             ui.label(egui::RichText::new(plural(self.log.len(), t!("ligne"), t!("lignes"))).font(regular(12.5)).color(dim));
@@ -2145,6 +2219,16 @@ impl App {
                 if ui.link(link(t!("Copier tout"))).clicked() {
                     ui.ctx().copy_text(self.log.join("\n"));
                 }
+                if let Some(path) = sys::log_file().filter(|p| p.exists()) {
+                    ui.add_space(8.0);
+                    if ui
+                        .link(link(t!("Ouvrir le fichier")))
+                        .on_hover_text(t!("Le journal de la dernière recherche, à joindre si vous signalez un problème."))
+                        .clicked()
+                    {
+                        sys::open_path(&path);
+                    }
+                }
             });
         });
         ui.add_space(4.0);
@@ -2156,6 +2240,8 @@ impl App {
                 .font(FontId::monospace(12.0))
                 .color(dim),
             );
+            // a panel keeps the size it's dragged to only if it's filled
+            ui.take_available_space();
             return;
         }
         let row_h = 17.0;

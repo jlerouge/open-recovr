@@ -342,6 +342,11 @@ pub fn settings_file() -> Option<PathBuf> {
     base.map(|b| b.join("Open Recovr").join("reglages.txt"))
 }
 
+/// The journal of the last search, kept next to the settings, to send along with a bug report.
+pub fn log_file() -> Option<PathBuf> {
+    settings_file().map(|p| p.with_file_name("journal.txt"))
+}
+
 /// Fonts for the interface: the system's own when they can be found.
 pub fn ui_fonts() -> (Vec<PathBuf>, Vec<PathBuf>) {
     if cfg!(windows) {
