@@ -1,0 +1,597 @@
+# Nederlands. Each French line from the code is followed by "= its translation".
+# {} are filled in order, {0} {1}… by position. \n is a line break.
+# Machine-drafted: a review by a native speaker is welcome.
+
+(dossier effacé)
+= (verwijderde map)
+(fichier vide)
+= (leeg bestand)
+,
+= ,
+Afficher la fenêtre
+= Venster tonen
+Analyse :
+= Scan:
+Analyse approfondie
+= Diepe scan
+Analyse approfondie du disque…
+= Diepe scan van de schijf…
+Analyse complète du disque…
+= Volledige scan van de schijf…
+Analyse de l'espace libre du disque…
+= Vrije ruimte van de schijf scannen…
+Analyse rapide
+= Snelle scan
+Analyse rapide : lecture de la liste des fichiers…
+= Snelle scan: bestandslijst lezen…
+Analyse rapide : quelques minutes, noms d'origine.
+= Snelle scan: een paar minuten, oorspronkelijke namen.
+Analyse rapide : {} fichier(s) gardé(s), {} fichier(s) système ignoré(s), {} hors des critères
+= Snelle scan: {} bestand(en) behouden, {} systeembestand(en) genegeerd, {} buiten de criteria
+Analyse rapide impossible : {}
+= Snelle scan niet mogelijk: {}
+Annuler
+= Annuleren
+Aperçu
+= Voorbeeld
+Archives
+= Archieven
+Arrêter
+= Stoppen
+Arrêter et quitter
+= Stoppen en afsluiten
+Arrêter la recherche
+= Zoeken stoppen
+Aucun disque trouvé.
+= Geen schijf gevonden.
+Aucun fichier coché
+= Geen bestand aangevinkt
+Aucun fichier ne correspond à ces filtres.
+= Geen bestand past bij deze filters.
+Aucun fichier retrouvé sur ce disque
+= Geen bestand gevonden op deze schijf
+Aucun format coché dans une catégorie : tous ses formats sont cherchés.
+= Geen formaat aangevinkt in een categorie: al haar formaten worden gezocht.
+Autres
+= Overig
+Bonnes
+= Goed
+CD / DVD
+= cd / dvd
+Calcul du temps restant…
+= Resterende tijd berekenen…
+Carte CompactFlash
+= CompactFlash-kaart
+Carte SD
+= SD-kaart
+Carte microSD
+= microSD-kaart
+Ce disque ne se laisse pas lire. Vérifiez qu'il est bien branché (ou le disque bien inséré).
+= Deze schijf kan niet worden gelezen. Controleer of hij is aangesloten (of de schijf is ingevoerd).
+Ce son ne peut pas être lu ici : essayez « Ouvrir ».
+= Dit geluid kan hier niet worden afgespeeld: probeer "Openen".
+Chargement de l'aperçu…
+= Voorbeeld laden…
+Chercher aussi sur tout le disque…
+= Ook de hele schijf doorzoeken…
+Choisir un autre endroit
+= Een andere plek kiezen
+Choisissez d'abord Photos, Documents… pour préciser le format.
+= Kies eerst Foto's, Documenten… om een formaat te kiezen.
+Choisissez le disque, la carte mémoire ou la clé USB.
+= Kies de schijf, de geheugenkaart of de usb-stick.
+Choisissez un disque, cliquez sur « Rechercher », puis cochez ce que vous voulez retrouver.
+= Kies een schijf, klik op "Zoeken" en vink aan wat u terug wilt.
+Cliquez pour trier
+= Klik om te sorteren
+Cliquez sur l'icône pour revenir. Clic droit : arrêter et quitter.
+= Klik op het pictogram om terug te komen. Rechtsklik: stoppen en afsluiten.
+Cliquez sur un fichier pour le voir ici.
+= Klik op een bestand om het hier te zien.
+Clé USB
+= Usb-stick
+Coche tous les fichiers affichés dans la liste.
+= Vinkt alle bestanden in de lijst aan.
+Cocher pour la récupération
+= Aanvinken om te herstellen
+Cocher tout ce qui est affiché
+= Alles wat getoond wordt aanvinken
+Cochez ce que vous voulez récupérer
+= Vink aan wat u wilt herstellen
+Coché pour la récupération
+= Aangevinkt om te herstellen
+Code source
+= Broncode
+Complète
+= Volledig
+Conseil : enregistrez-les sur un autre disque (une clé USB par exemple).
+= Tip: sla ze op een andere schijf op (bijvoorbeeld een usb-stick).
+Continuer en arrière-plan
+= Doorgaan op de achtergrond
+Continuer quand même
+= Toch doorgaan
+Copier tout
+= Alles kopiëren
+Corbeille
+= Prullenbak
+Corbeille : {} élément(s) retenu(s)
+= Prullenbak: {} item(s) behouden
+Corbeille vidée · {}
+= Geleegde prullenbak · {}
+Corbeille · {}
+= Prullenbak · {}
+Date
+= Datum
+Disque dur
+= Harde schijf
+Disque externe USB
+= Externe usb-schijf
+Disque local ({})
+= Lokale schijf ({})
+Disque {} ({}, {})
+= Schijf {} ({}, {})
+Documents
+= Documenten
+Décoche tous les fichiers, même ceux masqués par les filtres.
+= Vinkt alle bestanden uit, ook die door de filters verborgen zijn.
+Effacer
+= Wissen
+Environ {} h {} restantes
+= Nog ongeveer {} u {}
+Environ {} min restantes
+= Nog ongeveer {} min
+Espace libre du disque
+= Vrije ruimte van de schijf
+Essayez un autre disque, ou une clé USB si les fichiers y étaient.
+= Probeer een andere schijf, of een usb-stick als de bestanden daarop stonden.
+Excellentes
+= Uitstekend
+Faibles
+= Klein
+Fichiers récupérés {}
+= Herstelde bestanden {}
+Format :
+= Formaat:
+Formats :
+= Formaten:
+Impossible de lire ce disque en profondeur. Relancez l'application en {}.
+= Deze schijf kan niet grondig worden gelezen. Start de toepassing opnieuw als {}.
+JPEG, PNG, HEIC, photos d'appareil (RAW), Photoshop…
+= JPEG, PNG, HEIC, camerafoto's (RAW), Photoshop…
+Je cherche :
+= Ik zoek:
+Journal de la recherche
+= Zoeklogboek
+Jusqu'où chercher ?
+= Hoe ver zoeken?
+La recherche rapide n'a regardé que la corbeille. Passez en recherche approfondie pour lire tout le disque.
+= De snelle zoekopdracht heeft alleen in de Prullenbak gekeken. Schakel over naar diep zoeken om de hele schijf te lezen.
+La recherche s'est arrêtée : plus assez de place sur le disque de travail.
+= Het zoeken is gestopt: niet genoeg ruimte meer op de werkschijf.
+Langue de l'interface
+= Taal van de interface
+Le système
+= Het systeem
+Les fichiers apparaîtront ici dès qu'ils sont trouvés.
+= Bestanden verschijnen hier zodra ze gevonden zijn.
+Mode expert
+= Expertmodus
+Moins d'une minute restante
+= Nog minder dan een minuut
+Musique
+= Muziek
+Même disque que les fichiers perdus
+= Dezelfde schijf als de verloren bestanden
+Ne montre que les fichiers dont le nom ou le dossier contient ces lettres.
+= Toont alleen bestanden waarvan de naam of map deze letters bevat.
+Ne plus me le proposer au démarrage
+= Niet meer aanbieden bij het starten
+Ne regarde que dans la corbeille. Quelques secondes, aucune autorisation demandée. Si la corbeille a été vidée, les fichiers ne seront pas retrouvés.
+= Kijkt alleen in de Prullenbak. Een paar seconden, geen toestemming nodig. Als de Prullenbak is geleegd, worden de bestanden niet gevonden.
+Nom
+= Naam
+On ne peut pas enregistrer sur ce disque : choisissez un autre dossier.
+= Op deze schijf kan niet worden opgeslagen: kies een andere map.
+Open Recovr continue en arrière-plan
+= Open Recovr gaat door op de achtergrond
+Open Recovr — récupération de fichiers
+= Open Recovr — bestandsherstel
+Ouvre le fichier dans le programme habituel, sans le récupérer.
+= Opent het bestand in het gebruikelijke programma, zonder het te herstellen.
+Ouvrir
+= Openen
+Ouvrir le dossier
+= Map openen
+Où enregistrer les fichiers récupérés ?
+= Waar de herstelde bestanden opslaan?
+Où étaient vos fichiers ?
+= Waar stonden uw bestanden?
+Pas d'aperçu pour ce fichier
+= Geen voorbeeld voor dit bestand
+Pas de recherche possible
+= Zoeken niet mogelijk
+Pas trouvé ? Lancer l'analyse complète
+= Niet gevonden? Start de volledige scan
+Passer en recherche approfondie
+= Overschakelen naar diep zoeken
+PhotoRec indisponible : recherche intégrée à la place
+= PhotoRec niet beschikbaar: ingebouwde zoekfunctie in de plaats
+PhotoRec n'a pas pu démarrer
+= PhotoRec kon niet starten
+Photos
+= Foto's
+Plus de {}
+= Meer dan {}
+Préciser
+= Verfijnen
+Préparation de l'analyse approfondie…
+= Diepe scan voorbereiden…
+Préparation…
+= Voorbereiden…
+Range la fenêtre près de l'horloge : la recherche continue et l'icône indique où elle en est. Fermer la fenêtre pendant la recherche fait la même chose.
+= Zet het venster bij de klok weg: het zoeken gaat door en het pictogram toont hoe ver het is. Het venster sluiten tijdens het zoeken doet hetzelfde.
+Rapide
+= Snel
+Recherche approfondie (conseillée)
+= Diep zoeken (aanbevolen)
+Recherche approfondie : tout le disque est lu.
+= Diep zoeken: de hele schijf wordt gelezen.
+Recherche approfondie activée
+= Diep zoeken aan
+Recherche arrêtée : {} fichier(s), {}
+= Zoeken gestopt: {} bestand(en), {}
+Recherche dans la corbeille…
+= Prullenbak doorzoeken…
+Recherche en cours…
+= Bezig met zoeken…
+Recherche rapide (maintenant)
+= Snel zoeken (nu)
+Recherche rapide : seule la corbeille est fouillée.
+= Snel zoeken: alleen de Prullenbak wordt doorzocht.
+Recherche terminée : {}
+= Zoeken klaar: {}
+Recherche terminée : {} fichier(s), {}
+= Zoeken klaar: {} bestand(en), {}
+Recherche {} % · {} · {}
+= Zoeken {} % · {} · {}
+Rechercher les fichiers perdus
+= Verloren bestanden zoeken
+Rechercher un nom…
+= Een naam zoeken…
+Relancer la recherche
+= Opnieuw zoeken
+Rester en rapide
+= Snel blijven
+Retrouvez vos fichiers effacés, simplement.
+= Haal uw verwijderde bestanden terug, eenvoudig.
+Retrouvé dans l'espace libre · {}
+= Gevonden in vrije ruimte · {}
+Retrouvé par l'analyse approfondie
+= Gevonden door de diepe scan
+Rien n'est modifié sur le disque.
+= Er wordt niets op de schijf gewijzigd.
+Récupération : {} / {} fichiers
+= Herstellen: {} / {} bestanden
+Récupération terminée
+= Herstel klaar
+Récupération… {} / {}
+= Herstellen… {} / {}
+Récupérer ce fichier
+= Dit bestand herstellen
+Récupérer la sélection
+= Selectie herstellen
+Réduit la fenêtre : la recherche continue.
+= Minimaliseert het venster: het zoeken gaat door.
+SSD
+= SSD
+SSD NVMe
+= NVMe-SSD
+SSD SATA
+= SATA-SSD
+Supprimé le
+= Verwijderd op
+Système de fichiers : {}
+= Bestandssysteem: {}
+Taille
+= Grootte
+Taille :
+= Grootte:
+Textes et notes
+= Teksten en notities
+Tous
+= Alle
+Tous les types de fichiers que l'analyse sait reconnaître.
+= Elk soort bestand dat de scan kan herkennen.
+Tout
+= Alles
+Tout cocher
+= Alles aanvinken
+Tout décocher
+= Alles uitvinken
+Toutes
+= Elke
+Toutes tailles
+= Elke grootte
+Trouvé dans
+= Gevonden in
+Type
+= Type
+Téléphone
+= Telefoon
+Un téléphone ne se fouille pas ainsi
+= Een telefoon kan zo niet worden doorzocht
+Branché en USB, il ne montre que ses fichiers présents, et sa mémoire est chiffrée : les fichiers effacés ne peuvent pas être lus depuis l'ordinateur.
+= Via usb aangesloten toont hij alleen de bestanden die hij nog heeft, en zijn geheugen is versleuteld: verwijderde bestanden kunnen niet vanaf de computer worden gelezen.
+Regardez plutôt dans la corbeille de l'appli Galerie ou Photos (30 jours), dans Google Photos ou iCloud. Si le téléphone a une carte microSD, mettez-la dans un lecteur de cartes.
+= Kijk liever in de prullenbak van de app Galerij of Foto's (30 dagen), in Google Foto's of iCloud. Heeft de telefoon een microSD-kaart, stop die dan in een kaartlezer.
+Vidéos
+= Video's
+Vos fichiers ne sont peut-être pas perdus
+= Uw bestanden zijn misschien niet verloren
+Word, Excel, PowerPoint, PDF, OpenOffice, textes, notes, code source…
+= Word, Excel, PowerPoint, PDF, OpenOffice, teksten, notities, broncode…
+administrateur
+= beheerder
+archive
+= archief
+ce n'est pas un disque NTFS
+= het is geen NTFS-schijf
+document
+= document
+dossier
+= map
+début du disque illisible
+= begin van de schijf onleesbaar
+déjà trouvé par l'analyse rapide : {}
+= al gevonden door de snelle scan: {}
+fichier
+= bestand
+fichier coché
+= bestand aangevinkt
+fichier déjà sur le disque
+= bestand staat al op de schijf
+fichier récupéré
+= bestand hersteld
+fichier trouvé
+= bestand gevonden
+fichiers cochés
+= bestanden aangevinkt
+fichiers récupérés
+= bestanden hersteld
+fichiers trouvés
+= bestanden gevonden
+gardé
+= behouden
+gardé {} ({})
+= behouden {} ({})
+inconnue
+= onbekend
+lecture du disque refusée ({})
+= lezen van de schijf geweigerd ({})
+lecture interrompue
+= lezen onderbroken
+ligne
+= regel
+lignes
+= regels
+o Ko Mo Go To
+= B KB MB GB TB
+photo
+= foto
+sans extension
+= geen extensie
+son
+= geluid
+superutilisateur (root)
+= superuser (root)
+table des fichiers illisible
+= bestandstabel onleesbaar
+trouvé {} ({}) à l'octet {}
+= gevonden {} ({}) op byte {}
+video
+= video
+zone illisible à l'octet {} ({}) : ignorée
+= onleesbaar gebied op byte {} ({}): overgeslagen
+{0}/{1}/{2}
+= {0}-{1}-{2}
+{} dossiers, {} fichiers effacés dans la table
+= {} mappen, {} verwijderde bestanden in de tabel
+{} libres
+= {} vrij
+{} libres sur {}
+= {} vrij van {}
+{} n'a pas donné l'autorisation : la recherche reste rapide.
+= {} heeft geen toestemming gegeven: het zoeken blijft snel.
+{} · {} impossible(s) à lire
+= {} · {} onleesbaar
+{} — c'est fait !
+= {} — klaar!
+{}. Cliquez pour voir les fichiers.
+= {}. Klik om de bestanden te zien.
+Affiche le journal de la recherche (avec les lignes de PhotoRec) et les premiers octets des fichiers qui n'ont pas d'aperçu.
+= Toont het zoeklogboek (met de regels van PhotoRec) en de eerste bytes van bestanden zonder voorbeeld.
+Analyse rapide : table NTFS de {} ({} entrées, blocs de {} o)
+= Snelle scan: NTFS-tabel van {} ({} items, blokken van {} B)
+Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter les petits fichiers sans intérêt.
+= Kies een precies formaat (JPG, Word…) of een minimale grootte, om kleine oninteressante bestanden weg te laten.
+Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
+= Hier opslaan kan andere bestanden overschrijven die nog te herstellen zijn. Kies liever een usb-stick of een andere schijf.
+Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Doet de snelle scan en leest daarna de hele schijf met PhotoRec: vindt ook oudere bestanden, vaak zonder hun naam. Kan meer dan een uur duren.
+La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
+= Diep zoeken gebruikt PhotoRec 7.2 © Christophe Grenier, verspreid onder de GNU GPL-licentie (www.cgsecurity.org). Het herkent honderden bestandstypen.
+Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
+= Het logboek vult zich tijdens het zoeken: elke stap, en bij diep zoeken de regels van PhotoRec.
+Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
+= Leest de bestandstabel van de schijf: een paar minuten, en bestanden behouden hun naam en map. Vindt wat onlangs is verwijderd, ook na het legen van de Prullenbak.
+Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
+= Leest de hele schijf met PhotoRec om ook oudere bestanden te vinden.
+Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
+= Leest de hele schijf om ook bestanden te vinden die lang geleden of na het legen van de Prullenbak zijn verwijderd. Duurt langer: van een paar minuten tot meer dan een uur, afhankelijk van de schijf. {} vraagt u de toepassing toe te staan ({}).
+Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
+= Voorlopig wordt alleen de Prullenbak doorzocht. Diep zoeken leest de hele schijf en vindt ook bestanden die lang geleden zijn verwijderd.
+Écouter
+= Luisteren
+écarté
+= overgeslagen
+écarté {} ({}) : hors des critères
+= overgeslagen {} ({}): buiten de criteria
+
+1 doublon masqué · Afficher
+= 1 duplicaat verborgen · Tonen
+{} doublons masqués · Afficher
+= {} duplicaten verborgen · Tonen
+Masquer les doublons
+= Duplicaten verbergen
+Les mêmes fichiers retrouvés plusieurs fois : une seule copie est montrée.
+= Hetzelfde bestand meerdere keren gevonden: er wordt maar één kopie getoond.
+Choisir une image disque
+= Een schijfkopie kiezen
++ Ouvrir une image disque…
+= + Een schijfkopie openen…
+Fichier .img ou .dd
+= .img- of .dd-bestand
+Un fichier .img ou .dd copié depuis un disque abîmé (avec ddrescue, par exemple). Le disque d'origine n'est plus sollicité.
+= Een .img- of .dd-bestand gekopieerd van een beschadigde schijf (bijvoorbeeld met ddrescue). De oorspronkelijke schijf wordt niet meer belast.
+Image disque
+= Schijfkopie
+Tous les fichiers
+= Alle bestanden
+Lue sans toucher au disque d'origine
+= Gelezen zonder de oorspronkelijke schijf aan te raken
+Doublon de
+= Duplicaat van
+Infos
+= Details
+État
+= Staat
+Intact
+= Intact
+Endommagé
+= Beschadigd
+Vide
+= Leeg
+intact, vérifié de bout en bout
+= intact, van begin tot eind gecontroleerd
+endommagé : {}
+= beschadigd: {}
+vide, que des zéros
+= leeg, alleen nullen
+vérification…
+= controleren…
+la fin de l'image manque
+= het einde van de afbeelding ontbreekt
+l'image ne se décode pas
+= de afbeelding kan niet worden gedecodeerd
+l'image est mélangée avec une autre
+= de afbeelding is vermengd met een andere
+le sommaire de l'archive manque
+= de inhoudsopgave van het archief ontbreekt
+une partie du contenu est abîmée
+= een deel van de inhoud is beschadigd
+la fin du document manque
+= het einde van het document ontbreekt
+le fichier est coupé avant la fin
+= het bestand is voor het einde afgebroken
+l'index de la vidéo manque
+= de index van de video ontbreekt
+les images de la vidéo manquent
+= de beelden van de video ontbreken
+Code source, nouvelles versions, signaler un problème
+= Broncode, nieuwe versies, een probleem melden
+Journal
+= Logboek
+Le journal de la dernière recherche, à joindre si vous signalez un problème.
+= Het logboek van de laatste zoekopdracht, om bij te voegen als u een probleem meldt.
+Ouvrir le fichier
+= Bestand openen
+Thème de couleurs
+= Kleurthema
+Passer en thème clair
+= Naar het lichte thema
+Passer en thème sombre
+= Naar het donkere thema
+Clair
+= Licht
+Sombre
+= Donker
+Apparence
+= Uiterlijk
+C'est la dernière version.
+= Dit is de nieuwste versie.
+Impossible de joindre GitHub.
+= GitHub is niet bereikbaar.
+Installer la version {}
+= Versie {} installeren
+Journal de la dernière recherche
+= Logboek van de laatste zoekopdracht
+La mise à jour attendra la fin de la recherche et de la récupération.
+= De update wacht tot het zoeken en herstellen klaar zijn.
+La mise à jour n'a pas pu se faire.
+= De update kon niet worden uitgevoerd.
+La version {} est disponible.
+= Versie {} is beschikbaar.
+Logiciel libre sous licence MIT. Pas de compte, pas de télémétrie.
+= Vrije software onder de MIT-licentie. Geen account, geen telemetrie.
+Menu
+= Menu
+Mises à jour
+= Updates
+Open Recovr demande à GitHub le numéro de la dernière version. Rien d'autre n'est envoyé.
+= Open Recovr vraagt GitHub om het nummer van de nieuwste versie. Verder wordt er niets verstuurd.
+Ouvre la page de téléchargement de la nouvelle version.
+= Opent de downloadpagina van de nieuwe versie.
+Paramètres
+= Instellingen
+Proposer la recherche approfondie au démarrage
+= Diep zoeken aanbieden bij het starten
+Recherche
+= Zoeken
+Recherche des mises à jour…
+= Zoeken naar updates…
+Rechercher les mises à jour
+= Naar updates zoeken
+Rechercher les mises à jour au démarrage
+= Bij het starten naar updates zoeken
+Rechercher maintenant
+= Nu zoeken
+Redémarrage…
+= Herstarten…
+Retour
+= Terug
+Sans les droits d'administrateur, seule la corbeille est fouillée : Open Recovr propose alors de les demander.
+= Zonder beheerdersrechten wordt alleen de Prullenbak doorzocht: Open Recovr biedt dan aan ze te vragen.
+Site du projet (GitHub)
+= Projectwebsite (GitHub)
+Télécharge et installe la nouvelle version, puis relance Open Recovr.
+= Downloadt en installeert de nieuwe versie en herstart dan Open Recovr.
+Téléchargement de la version {}…
+= Versie {} downloaden…
+Téléchargement de la version {}… {} %
+= Versie {} downloaden… {} %
+{} — cliquez pour ouvrir la page de téléchargement.
+= {} — klik om de downloadpagina te openen.
+À propos
+= Over
+→ v{} : mettre à jour
+= → v{}: bijwerken
+Afficher
+= Tonen
+Aide
+= Hulp
+Ce rapport aide quelqu'un à comprendre un problème avec Open Recovr. Open Recovr ne l'envoie pas : c'est vous qui décidez de le transmettre.\n\nIl contient :\n- systeme.txt : la version d'Open Recovr, le système et la liste des disques (nom, type, taille) ;\n- reglages.txt : vos réglages ;\n- journal.txt : le journal de la dernière recherche, s'il y en a une.\n\nAucun de vos fichiers n'y est. Votre nom d'utilisateur, le nom de l'ordinateur, votre dossier personnel et les adresses e-mail sont remplacés par <user>, <computer>, ~ et <e-mail>.\n\nCe ne sont que des fichiers texte : ouvrez-les pour vérifier ce qu'ils disent avant de les transmettre.
+= Dit rapport helpt iemand een probleem met Open Recovr te begrijpen. Open Recovr verstuurt het niet: u beslist zelf of u het doorgeeft.\n\nHet bevat:\n- systeme.txt: de versie van Open Recovr, het systeem en de lijst met schijven (naam, type, grootte);\n- reglages.txt: uw instellingen;\n- journal.txt: het logboek van de laatste zoekopdracht, als die er is.\n\nGeen van uw bestanden zit erin. Uw gebruikersnaam, de naam van de computer, uw persoonlijke map en e-mailadressen zijn vervangen door <user>, <computer>, ~ en <e-mail>.\n\nHet zijn gewone tekstbestanden: open ze om te controleren wat erin staat voordat u ze doorgeeft.
+En cas de problème, préparez un rapport et joignez-le à votre mail ou à un signalement sur GitHub. Il contient le journal de la dernière recherche, vos réglages et la liste des disques. Votre nom, celui de l'ordinateur et vos dossiers personnels sont masqués, et aucun de vos fichiers n'y est. Open Recovr n'envoie rien : c'est un zip de fichiers texte, que vous pouvez relire avant de le transmettre.
+= Als er iets misgaat, maak dan een rapport en voeg het bij uw e-mail of bij een melding op GitHub. Het bevat het logboek van de laatste zoekopdracht, uw instellingen en de lijst met schijven. Uw naam, die van de computer en uw persoonlijke mappen zijn gemaskeerd, en geen van uw bestanden zit erin. Open Recovr verstuurt niets: het is een zip met tekstbestanden die u kunt nalezen voordat u hem doorgeeft.
+Enregistre un fichier à joindre à un mail ou à un signalement : le journal, les réglages et la liste des disques, sans vos fichiers ni votre nom. Rien n'est envoyé.
+= Slaat een bestand op om bij een e-mail of melding te voegen: het logboek, de instellingen en de lijst met schijven, zonder uw bestanden of uw naam. Er wordt niets verstuurd.
+Enregistré : {}
+= Opgeslagen: {}
+Le rapport n'a pas pu être enregistré : {}
+= Het rapport kon niet worden opgeslagen: {}
+Où enregistrer le rapport ?
+= Waar het rapport opslaan?
+Préparer un rapport…
+= Rapport maken…
+Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
+= Rapport opgeslagen: {}. Open het om het na te lezen voordat u het doorgeeft.

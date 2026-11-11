@@ -1,0 +1,598 @@
+# Українська. Each French line from the code is followed by "= its translation".
+# {} are filled in order, {0} {1}… by position. \n is a line break.
+# Plurals: "fichiers trouvés" and the like give "few|many" (2–4, 22–24… | 5–20, 25…).
+# Machine-drafted: a review by a native speaker is welcome.
+
+(dossier effacé)
+= (видалена папка)
+(fichier vide)
+= (порожній файл)
+,
+= ,
+Afficher la fenêtre
+= Показати вікно
+Analyse :
+= Сканування:
+Analyse approfondie
+= Глибоке сканування
+Analyse approfondie du disque…
+= Глибоке сканування диска…
+Analyse complète du disque…
+= Повне сканування диска…
+Analyse de l'espace libre du disque…
+= Сканування вільного місця на диску…
+Analyse rapide
+= Швидке сканування
+Analyse rapide : lecture de la liste des fichiers…
+= Швидке сканування: читання списку файлів…
+Analyse rapide : quelques minutes, noms d'origine.
+= Швидке сканування: кілька хвилин, оригінальні назви.
+Analyse rapide : {} fichier(s) gardé(s), {} fichier(s) système ignoré(s), {} hors des critères
+= Швидке сканування: збережено файлів: {}, пропущено системних файлів: {}, поза критеріями: {}
+Analyse rapide impossible : {}
+= Швидке сканування неможливе: {}
+Annuler
+= Скасувати
+Aperçu
+= Перегляд
+Archives
+= Архіви
+Arrêter
+= Зупинити
+Arrêter et quitter
+= Зупинити й вийти
+Arrêter la recherche
+= Зупинити пошук
+Aucun disque trouvé.
+= Жодного диска не знайдено.
+Aucun fichier coché
+= Жодного файлу не позначено
+Aucun fichier ne correspond à ces filtres.
+= Жоден файл не відповідає цим фільтрам.
+Aucun fichier retrouvé sur ce disque
+= На цьому диску не знайдено жодного файлу
+Aucun format coché dans une catégorie : tous ses formats sont cherchés.
+= У категорії не позначено жодного формату: шукаються всі її формати.
+Autres
+= Інше
+Bonnes
+= Хороші
+CD / DVD
+= CD / DVD
+Calcul du temps restant…
+= Обчислення часу, що залишився…
+Carte CompactFlash
+= Картка CompactFlash
+Carte SD
+= Картка SD
+Carte microSD
+= Картка microSD
+Ce disque ne se laisse pas lire. Vérifiez qu'il est bien branché (ou le disque bien inséré).
+= Цей диск не вдається прочитати. Перевірте, чи він підключений (або чи вставлено диск).
+Ce son ne peut pas être lu ici : essayez « Ouvrir ».
+= Цей звук не можна відтворити тут: спробуйте «Відкрити».
+Chargement de l'aperçu…
+= Завантаження перегляду…
+Chercher aussi sur tout le disque…
+= Шукати також на всьому диску…
+Choisir un autre endroit
+= Вибрати інше місце
+Choisissez d'abord Photos, Documents… pour préciser le format.
+= Спершу виберіть Фото, Документи…, щоб уточнити формат.
+Choisissez le disque, la carte mémoire ou la clé USB.
+= Виберіть диск, картку пам'яті або флешку.
+Choisissez un disque, cliquez sur « Rechercher », puis cochez ce que vous voulez retrouver.
+= Виберіть диск, натисніть «Шукати», а потім позначте те, що хочете повернути.
+Cliquez pour trier
+= Натисніть, щоб відсортувати
+Cliquez sur l'icône pour revenir. Clic droit : arrêter et quitter.
+= Натисніть значок, щоб повернутися. Правий клік: зупинити й вийти.
+Cliquez sur un fichier pour le voir ici.
+= Натисніть файл, щоб побачити його тут.
+Clé USB
+= Флешка
+Coche tous les fichiers affichés dans la liste.
+= Позначає всі файли, показані у списку.
+Cocher pour la récupération
+= Позначити для відновлення
+Cocher tout ce qui est affiché
+= Позначити все показане
+Cochez ce que vous voulez récupérer
+= Позначте те, що хочете відновити
+Coché pour la récupération
+= Позначено для відновлення
+Code source
+= Вихідний код
+Complète
+= Повне
+Conseil : enregistrez-les sur un autre disque (une clé USB par exemple).
+= Порада: збережіть їх на інший диск (наприклад, на флешку).
+Continuer en arrière-plan
+= Продовжити у фоні
+Continuer quand même
+= Усе одно продовжити
+Copier tout
+= Копіювати все
+Corbeille
+= Кошик
+Corbeille : {} élément(s) retenu(s)
+= Кошик: збережено елементів: {}
+Corbeille vidée · {}
+= Очищений кошик · {}
+Corbeille · {}
+= Кошик · {}
+Date
+= Дата
+Disque dur
+= Жорсткий диск
+Disque externe USB
+= Зовнішній USB-диск
+Disque local ({})
+= Локальний диск ({})
+Disque {} ({}, {})
+= Диск {} ({}, {})
+Documents
+= Документи
+Décoche tous les fichiers, même ceux masqués par les filtres.
+= Знімає позначку з усіх файлів, навіть прихованих фільтрами.
+Effacer
+= Очистити
+Environ {} h {} restantes
+= Залишилося близько {} год {}
+Environ {} min restantes
+= Залишилося близько {} хв
+Espace libre du disque
+= Вільне місце на диску
+Essayez un autre disque, ou une clé USB si les fichiers y étaient.
+= Спробуйте інший диск або флешку, якщо файли були там.
+Excellentes
+= Відмінні
+Faibles
+= Слабкі
+Fichiers récupérés {}
+= Відновлені файли {}
+Format :
+= Формат:
+Formats :
+= Формати:
+Impossible de lire ce disque en profondeur. Relancez l'application en {}.
+= Не вдається глибоко прочитати цей диск. Перезапустіть програму як {}.
+JPEG, PNG, HEIC, photos d'appareil (RAW), Photoshop…
+= JPEG, PNG, HEIC, фото з камери (RAW), Photoshop…
+Je cherche :
+= Я шукаю:
+Journal de la recherche
+= Журнал пошуку
+Jusqu'où chercher ?
+= Наскільки глибоко шукати?
+La recherche rapide n'a regardé que la corbeille. Passez en recherche approfondie pour lire tout le disque.
+= Швидкий пошук переглянув лише Кошик. Перейдіть до глибокого пошуку, щоб прочитати весь диск.
+La recherche s'est arrêtée : plus assez de place sur le disque de travail.
+= Пошук зупинився: на робочому диску замало місця.
+Langue de l'interface
+= Мова інтерфейсу
+Le système
+= Система
+Les fichiers apparaîtront ici dès qu'ils sont trouvés.
+= Файли з'являться тут, щойно їх буде знайдено.
+Mode expert
+= Режим експерта
+Moins d'une minute restante
+= Залишилося менше хвилини
+Musique
+= Музика
+Même disque que les fichiers perdus
+= Той самий диск, що й утрачені файли
+Ne montre que les fichiers dont le nom ou le dossier contient ces lettres.
+= Показує лише файли, назва або папка яких містить ці літери.
+Ne plus me le proposer au démarrage
+= Більше не пропонувати під час запуску
+Ne regarde que dans la corbeille. Quelques secondes, aucune autorisation demandée. Si la corbeille a été vidée, les fichiers ne seront pas retrouvés.
+= Дивиться лише в Кошику. Кілька секунд, без запиту дозволів. Якщо Кошик очищено, файли не буде знайдено.
+Nom
+= Назва
+On ne peut pas enregistrer sur ce disque : choisissez un autre dossier.
+= На цей диск не можна зберігати: виберіть іншу папку.
+Open Recovr continue en arrière-plan
+= Open Recovr продовжує працювати у фоні
+Open Recovr — récupération de fichiers
+= Open Recovr — відновлення файлів
+Ouvre le fichier dans le programme habituel, sans le récupérer.
+= Відкриває файл у звичній програмі, не відновлюючи його.
+Ouvrir
+= Відкрити
+Ouvrir le dossier
+= Відкрити папку
+Où enregistrer les fichiers récupérés ?
+= Куди зберегти відновлені файли?
+Où étaient vos fichiers ?
+= Де були ваші файли?
+Pas d'aperçu pour ce fichier
+= Немає перегляду для цього файлу
+Pas de recherche possible
+= Пошук неможливий
+Pas trouvé ? Lancer l'analyse complète
+= Не знайшли? Запустіть повне сканування
+Passer en recherche approfondie
+= Перейти до глибокого пошуку
+PhotoRec indisponible : recherche intégrée à la place
+= PhotoRec недоступний: натомість вбудований пошук
+PhotoRec n'a pas pu démarrer
+= Не вдалося запустити PhotoRec
+Photos
+= Фото
+Plus de {}
+= Понад {}
+Préciser
+= Уточнити
+Préparation de l'analyse approfondie…
+= Підготовка глибокого сканування…
+Préparation…
+= Підготовка…
+Range la fenêtre près de l'horloge : la recherche continue et l'icône indique où elle en est. Fermer la fenêtre pendant la recherche fait la même chose.
+= Ховає вікно біля годинника: пошук триває, а значок показує прогрес. Закриття вікна під час пошуку робить те саме.
+Rapide
+= Швидке
+Recherche approfondie (conseillée)
+= Глибокий пошук (рекомендовано)
+Recherche approfondie : tout le disque est lu.
+= Глибокий пошук: читається весь диск.
+Recherche approfondie activée
+= Глибокий пошук увімкнено
+Recherche arrêtée : {} fichier(s), {}
+= Пошук зупинено: файлів: {}, {}
+Recherche dans la corbeille…
+= Пошук у Кошику…
+Recherche en cours…
+= Триває пошук…
+Recherche rapide (maintenant)
+= Швидкий пошук (зараз)
+Recherche rapide : seule la corbeille est fouillée.
+= Швидкий пошук: перевіряється лише Кошик.
+Recherche terminée : {}
+= Пошук завершено: {}
+Recherche terminée : {} fichier(s), {}
+= Пошук завершено: файлів: {}, {}
+Recherche {} % · {} · {}
+= Пошук {} % · {} · {}
+Rechercher les fichiers perdus
+= Шукати втрачені файли
+Rechercher un nom…
+= Шукати назву…
+Relancer la recherche
+= Шукати знову
+Rester en rapide
+= Залишитися на швидкому
+Retrouvez vos fichiers effacés, simplement.
+= Поверніть видалені файли — просто.
+Retrouvé dans l'espace libre · {}
+= Знайдено у вільному місці · {}
+Retrouvé par l'analyse approfondie
+= Знайдено глибоким скануванням
+Rien n'est modifié sur le disque.
+= На диску нічого не змінюється.
+Récupération : {} / {} fichiers
+= Відновлення: {} / {} файлів
+Récupération terminée
+= Відновлення завершено
+Récupération… {} / {}
+= Відновлення… {} / {}
+Récupérer ce fichier
+= Відновити цей файл
+Récupérer la sélection
+= Відновити вибране
+Réduit la fenêtre : la recherche continue.
+= Згортає вікно: пошук триває.
+SSD
+= SSD
+SSD NVMe
+= SSD NVMe
+SSD SATA
+= SSD SATA
+Supprimé le
+= Видалено
+Système de fichiers : {}
+= Файлова система: {}
+Taille
+= Розмір
+Taille :
+= Розмір:
+Textes et notes
+= Тексти й нотатки
+Tous
+= Усі
+Tous les types de fichiers que l'analyse sait reconnaître.
+= Усі типи файлів, які сканування вміє розпізнавати.
+Tout
+= Усе
+Tout cocher
+= Позначити все
+Tout décocher
+= Зняти всі позначки
+Toutes
+= Будь-які
+Toutes tailles
+= Будь-який розмір
+Trouvé dans
+= Знайдено в
+Type
+= Тип
+Téléphone
+= Телефон
+Un téléphone ne se fouille pas ainsi
+= Телефон не можна так перевірити
+Branché en USB, il ne montre que ses fichiers présents, et sa mémoire est chiffrée : les fichiers effacés ne peuvent pas être lus depuis l'ordinateur.
+= Підключений через USB, він показує лише наявні файли, а його пам'ять зашифрована: видалені файли не можна прочитати з комп'ютера.
+Regardez plutôt dans la corbeille de l'appli Galerie ou Photos (30 jours), dans Google Photos ou iCloud. Si le téléphone a une carte microSD, mettez-la dans un lecteur de cartes.
+= Краще перегляньте кошик застосунку Галерея або Фото (30 днів), Google Фото чи iCloud. Якщо в телефоні є картка microSD, вставте її в кардридер.
+Vidéos
+= Відео
+Vos fichiers ne sont peut-être pas perdus
+= Можливо, ваші файли не втрачено
+Word, Excel, PowerPoint, PDF, OpenOffice, textes, notes, code source…
+= Word, Excel, PowerPoint, PDF, OpenOffice, тексти, нотатки, вихідний код…
+administrateur
+= адміністратор
+archive
+= архів
+ce n'est pas un disque NTFS
+= це не диск NTFS
+document
+= документ
+dossier
+= папка
+début du disque illisible
+= початок диска не читається
+déjà trouvé par l'analyse rapide : {}
+= уже знайдено швидким скануванням: {}
+fichier
+= файл
+fichier coché
+= файл позначено
+fichier déjà sur le disque
+= файл уже є на диску
+fichier récupéré
+= файл відновлено
+fichier trouvé
+= файл знайдено
+fichiers cochés
+= файли позначено|файлів позначено
+fichiers récupérés
+= файли відновлено|файлів відновлено
+fichiers trouvés
+= файли знайдено|файлів знайдено
+gardé
+= збережено
+gardé {} ({})
+= збережено {} ({})
+inconnue
+= невідома
+lecture du disque refusée ({})
+= читання диска відхилено ({})
+lecture interrompue
+= читання перервано
+ligne
+= рядок
+lignes
+= рядки|рядків
+o Ko Mo Go To
+= Б КБ МБ ГБ ТБ
+photo
+= фото
+sans extension
+= без розширення
+son
+= звук
+superutilisateur (root)
+= суперкористувач (root)
+table des fichiers illisible
+= таблиця файлів не читається
+trouvé {} ({}) à l'octet {}
+= знайдено {} ({}) на байті {}
+video
+= відео
+zone illisible à l'octet {} ({}) : ignorée
+= нечитабельна ділянка на байті {} ({}): пропущено
+{0}/{1}/{2}
+= {0}.{1}.{2}
+{} dossiers, {} fichiers effacés dans la table
+= папок: {}, видалених файлів у таблиці: {}
+{} libres
+= вільно: {}
+{} libres sur {}
+= вільно: {} з {}
+{} n'a pas donné l'autorisation : la recherche reste rapide.
+= {} не надала дозволу: пошук залишається швидким.
+{} · {} impossible(s) à lire
+= {} · не читаються: {}
+{} — c'est fait !
+= {} — готово!
+{}. Cliquez pour voir les fichiers.
+= {}. Натисніть, щоб побачити файли.
+Affiche le journal de la recherche (avec les lignes de PhotoRec) et les premiers octets des fichiers qui n'ont pas d'aperçu.
+= Показує журнал пошуку (з рядками PhotoRec) і перші байти файлів без перегляду.
+Analyse rapide : table NTFS de {} ({} entrées, blocs de {} o)
+= Швидке сканування: таблиця NTFS {} (записів: {}, блоки по {} Б)
+Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter les petits fichiers sans intérêt.
+= Виберіть конкретний формат (JPG, Word…) або мінімальний розмір, щоб відкинути дрібні непотрібні файли.
+Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
+= Збереження тут може перезаписати інші файли, які ще можна відновити. Краще виберіть флешку або інший диск.
+Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Виконує швидке сканування, а потім читає весь диск за допомогою PhotoRec: знаходить також старіші файли, часто без назви. Може тривати понад годину.
+La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
+= Глибокий пошук використовує PhotoRec 7.2 © Christophe Grenier, що поширюється за ліцензією GNU GPL (www.cgsecurity.org). Він розпізнає сотні типів файлів.
+Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
+= Журнал заповнюється під час пошуку: кожен крок, а під час глибокого пошуку — рядки PhotoRec.
+Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
+= Читає таблицю файлів диска: кілька хвилин, і файли зберігають назву та папку. Знаходить нещодавно видалене, навіть після очищення Кошика.
+Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
+= Читає весь диск за допомогою PhotoRec, щоб знайти також старіші файли.
+Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
+= Читає весь диск, щоб знайти також файли, видалені давно або після очищення Кошика. Довше: від кількох хвилин до понад години залежно від диска. {} попросить дозволити програму ({}).
+Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
+= Поки що перевіряється лише Кошик. Глибокий пошук читає весь диск і знаходить також давно видалені файли.
+Écouter
+= Слухати
+écarté
+= відкинуто
+écarté {} ({}) : hors des critères
+= відкинуто {} ({}): поза критеріями
+
+1 doublon masqué · Afficher
+= 1 дублікат приховано · Показати
+{} doublons masqués · Afficher
+= Приховано дублікатів: {} · Показати
+Masquer les doublons
+= Приховати дублікати
+Les mêmes fichiers retrouvés plusieurs fois : une seule copie est montrée.
+= Той самий файл знайдено кілька разів: показано лише одну копію.
+Choisir une image disque
+= Вибрати образ диска
++ Ouvrir une image disque…
+= + Відкрити образ диска…
+Fichier .img ou .dd
+= Файл .img або .dd
+Un fichier .img ou .dd copié depuis un disque abîmé (avec ddrescue, par exemple). Le disque d'origine n'est plus sollicité.
+= Файл .img або .dd, скопійований з пошкодженого диска (наприклад, за допомогою ddrescue). Оригінальний диск більше не навантажується.
+Image disque
+= Образ диска
+Tous les fichiers
+= Усі файли
+Lue sans toucher au disque d'origine
+= Прочитано, не торкаючись оригінального диска
+Doublon de
+= Дублікат
+Infos
+= Подробиці
+État
+= Стан
+Intact
+= Цілий
+Endommagé
+= Пошкоджений
+Vide
+= Порожній
+intact, vérifié de bout en bout
+= цілий, перевірено від початку до кінця
+endommagé : {}
+= пошкоджений: {}
+vide, que des zéros
+= порожній, лише нулі
+vérification…
+= перевірка…
+la fin de l'image manque
+= бракує кінця зображення
+l'image ne se décode pas
+= зображення не декодується
+l'image est mélangée avec une autre
+= зображення змішане з іншим
+le sommaire de l'archive manque
+= бракує змісту архіву
+une partie du contenu est abîmée
+= частину вмісту пошкоджено
+la fin du document manque
+= бракує кінця документа
+le fichier est coupé avant la fin
+= файл обрізано до кінця
+l'index de la vidéo manque
+= бракує індексу відео
+les images de la vidéo manquent
+= бракує кадрів відео
+Code source, nouvelles versions, signaler un problème
+= Вихідний код, нові версії, повідомити про проблему
+Journal
+= Журнал
+Le journal de la dernière recherche, à joindre si vous signalez un problème.
+= Журнал останнього пошуку, щоб додати його, якщо повідомляєте про проблему.
+Ouvrir le fichier
+= Відкрити файл
+Thème de couleurs
+= Колірна тема
+Passer en thème clair
+= Перейти на світлу тему
+Passer en thème sombre
+= Перейти на темну тему
+Clair
+= Світла
+Sombre
+= Темна
+Apparence
+= Вигляд
+C'est la dernière version.
+= Це найновіша версія.
+Impossible de joindre GitHub.
+= Не вдалося зв'язатися з GitHub.
+Installer la version {}
+= Установити версію {}
+Journal de la dernière recherche
+= Журнал останнього пошуку
+La mise à jour attendra la fin de la recherche et de la récupération.
+= Оновлення зачекає на завершення пошуку й відновлення.
+La mise à jour n'a pas pu se faire.
+= Не вдалося виконати оновлення.
+La version {} est disponible.
+= Доступна версія {}.
+Logiciel libre sous licence MIT. Pas de compte, pas de télémétrie.
+= Вільне програмне забезпечення за ліцензією MIT. Без облікового запису, без телеметрії.
+Menu
+= Меню
+Mises à jour
+= Оновлення
+Open Recovr demande à GitHub le numéro de la dernière version. Rien d'autre n'est envoyé.
+= Open Recovr запитує в GitHub номер найновішої версії. Більше нічого не надсилається.
+Ouvre la page de téléchargement de la nouvelle version.
+= Відкриває сторінку завантаження нової версії.
+Paramètres
+= Налаштування
+Proposer la recherche approfondie au démarrage
+= Пропонувати глибокий пошук під час запуску
+Recherche
+= Пошук
+Recherche des mises à jour…
+= Перевірка оновлень…
+Rechercher les mises à jour
+= Перевірити оновлення
+Rechercher les mises à jour au démarrage
+= Перевіряти оновлення під час запуску
+Rechercher maintenant
+= Перевірити зараз
+Redémarrage…
+= Перезапуск…
+Retour
+= Назад
+Sans les droits d'administrateur, seule la corbeille est fouillée : Open Recovr propose alors de les demander.
+= Без прав адміністратора перевіряється лише Кошик: тоді Open Recovr пропонує їх запитати.
+Site du projet (GitHub)
+= Сайт проєкту (GitHub)
+Télécharge et installe la nouvelle version, puis relance Open Recovr.
+= Завантажує й установлює нову версію, а потім перезапускає Open Recovr.
+Téléchargement de la version {}…
+= Завантаження версії {}…
+Téléchargement de la version {}… {} %
+= Завантаження версії {}… {} %
+{} — cliquez pour ouvrir la page de téléchargement.
+= {} — натисніть, щоб відкрити сторінку завантаження.
+À propos
+= Про програму
+→ v{} : mettre à jour
+= → v{}: оновити
+Afficher
+= Показати
+Aide
+= Довідка
+Ce rapport aide quelqu'un à comprendre un problème avec Open Recovr. Open Recovr ne l'envoie pas : c'est vous qui décidez de le transmettre.\n\nIl contient :\n- systeme.txt : la version d'Open Recovr, le système et la liste des disques (nom, type, taille) ;\n- reglages.txt : vos réglages ;\n- journal.txt : le journal de la dernière recherche, s'il y en a une.\n\nAucun de vos fichiers n'y est. Votre nom d'utilisateur, le nom de l'ordinateur, votre dossier personnel et les adresses e-mail sont remplacés par <user>, <computer>, ~ et <e-mail>.\n\nCe ne sont que des fichiers texte : ouvrez-les pour vérifier ce qu'ils disent avant de les transmettre.
+= Цей звіт допомагає комусь зрозуміти проблему з Open Recovr. Open Recovr його не надсилає: ви самі вирішуєте, чи передавати його.\n\nВін містить:\n- systeme.txt: версію Open Recovr, систему та список дисків (назва, тип, розмір);\n- reglages.txt: ваші налаштування;\n- journal.txt: журнал останнього пошуку, якщо він був.\n\nЖодного вашого файлу в ньому немає. Ваше ім'я користувача, назву комп'ютера, вашу особисту папку та адреси e-mail замінено на <user>, <computer>, ~ і <e-mail>.\n\nЦе лише текстові файли: відкрийте їх, щоб перевірити вміст, перш ніж передавати.
+En cas de problème, préparez un rapport et joignez-le à votre mail ou à un signalement sur GitHub. Il contient le journal de la dernière recherche, vos réglages et la liste des disques. Votre nom, celui de l'ordinateur et vos dossiers personnels sont masqués, et aucun de vos fichiers n'y est. Open Recovr n'envoie rien : c'est un zip de fichiers texte, que vous pouvez relire avant de le transmettre.
+= Якщо щось пішло не так, підготуйте звіт і додайте його до листа або до повідомлення на GitHub. Він містить журнал останнього пошуку, ваші налаштування та список дисків. Ваше ім'я, назву комп'ютера й особисті папки приховано, і жодного вашого файлу в ньому немає. Open Recovr нічого не надсилає: це zip із текстовими файлами, які можна переглянути перед передаванням.
+Enregistre un fichier à joindre à un mail ou à un signalement : le journal, les réglages et la liste des disques, sans vos fichiers ni votre nom. Rien n'est envoyé.
+= Зберігає файл, щоб додати його до листа або повідомлення: журнал, налаштування та список дисків, без ваших файлів та імені. Нічого не надсилається.
+Enregistré : {}
+= Збережено: {}
+Le rapport n'a pas pu être enregistré : {}
+= Не вдалося зберегти звіт: {}
+Où enregistrer le rapport ?
+= Куди зберегти звіт?
+Préparer un rapport…
+= Підготувати звіт…
+Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
+= Звіт збережено: {}. Відкрийте його, щоб переглянути перед передаванням.

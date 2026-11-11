@@ -259,6 +259,48 @@ fn chip_sized(
     enabled: bool,
     small: bool,
 ) -> egui::Response {
+    chip_with(ui, icon.map(Lead::Icon), label, on, color, enabled, small)
+}
+
+/// What a chip shows before its label.
+enum Lead {
+    Icon(Icon),
+    /// a language's two-letter code, in a small tag
+    Badge(&'static str),
+}
+
+/// A language's code ("fr" → "FR") in a small outlined tag, its left side at `left`
+/// and centred on it vertically. Returns its width.
+fn lang_badge(p: &egui::Painter, left: egui::Pos2, code: &str, color: Color32) -> f32 {
+    let galley = p.layout_no_wrap(code.to_uppercase(), bold(10.5), color);
+    let r = Rect::from_min_size(pos2(left.x, left.y - 9.0), vec2(galley.size().x + 10.0, 18.0));
+    p.rect_stroke(r, CornerRadius::same(5), Stroke::new(1.0, color), StrokeKind::Inside);
+    p.galley(pos2(r.left() + 5.0, r.center().y - galley.size().y / 2.0), galley, color);
+    r.width()
+}
+
+/// A line of the language menu: the code's tag, then the language's own name.
+fn lang_row(ui: &mut egui::Ui, l: &i18n::Lang, on: bool) -> egui::Response {
+    let (r, resp) = ui.allocate_exact_size(vec2(ui.available_width(), 28.0), Sense::click());
+    let fill = if on {
+        pal().accent
+    } else if resp.hovered() {
+        pal().hover
+    } else {
+        Color32::TRANSPARENT
+    };
+    let fg = if on { theme::ink_on(pal().accent) } else { pal().text };
+    let p = ui.painter();
+    p.rect_filled(r, CornerRadius::same(6), fill);
+    let w = lang_badge(p, pos2(r.left() + 8.0, r.center().y), l.code, if on { fg } else { pal().muted });
+    p.text(pos2(r.left() + 16.0 + w, r.center().y), Align2::LEFT_CENTER, l.name, regular(15.0), fg);
+    if resp.hovered() {
+        ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+    }
+    resp
+}
+
+fn chip_with(ui: &mut egui::Ui, lead: Option<Lead>, label: String, on: bool, color: Color32, enabled: bool, small: bool) -> egui::Response {
     let fg = if on {
         theme::ink_on(color)
     } else if enabled {
@@ -268,7 +310,11 @@ fn chip_sized(
     };
     let (fs, pad) = if small { (13.0, 11.0) } else { (14.0, 16.0) };
     let galley = ui.painter().layout_no_wrap(label, bold(fs), fg);
-    let iw = if icon.is_some() { 22.0 } else { 0.0 };
+    let iw = match &lead {
+        Some(Lead::Icon(_)) => 22.0,
+        Some(Lead::Badge(code)) => ui.painter().layout_no_wrap(code.to_uppercase(), bold(10.5), fg).size().x + 16.0,
+        None => 0.0,
+    };
     let sense = if enabled { Sense::click() } else { Sense::hover() };
     let (r, resp) = ui.allocate_exact_size(galley.size() + vec2(if small { 22.0 } else { 28.0 } + iw, pad), sense);
     let hovered = enabled && resp.hovered();
@@ -281,8 +327,17 @@ fn chip_sized(
     };
     let stroke = if on { Stroke::NONE } else { Stroke::new(1.0, pal().border) };
     ui.painter().rect(r, CornerRadius::same(255), fill, stroke, StrokeKind::Inside);
-    if let Some(icon) = icon {
-        icons::draw(ui.painter(), icon, pos2(r.left() + 22.0, r.center().y), 16.0, if on { fg } else { color });
+    match lead {
+        Some(Lead::Icon(icon)) => icons::draw(ui.painter(), icon, pos2(r.left() + 22.0, r.center().y), 16.0, if on { fg } else { color }),
+        Some(Lead::Badge(code)) => {
+            lang_badge(
+                ui.painter(),
+                pos2(r.left() + if small { 9.0 } else { 12.0 }, r.center().y),
+                code,
+                if on { fg } else { pal().muted },
+            );
+        }
+        None => {}
     }
     let x = r.left() + if small { 11.0 } else { 14.0 } + iw;
     ui.painter().galley(pos2(x, r.center().y - galley.size().y / 2.0), galley, fg);
@@ -1392,7 +1447,7 @@ impl App {
                 ui.horizontal_wrapped(|ui| {
                     let current = i18n::current();
                     for (i, l) in i18n::LANGS.iter().enumerate() {
-                        if chip(ui, None, l.name.into(), i == current, pal().accent, true).clicked() {
+                        if chip_with(ui, Some(Lead::Badge(l.code)), l.name.into(), i == current, pal().accent, true, false).clicked() {
                             self.set_language(&ctx, l.code);
                         }
                     }
@@ -1537,10 +1592,9 @@ impl App {
         let resp = chip.union(globe).on_hover_text(t!("Langue de l'interface"));
         let mut chosen: Option<&'static str> = None;
         egui::Popup::menu(&resp).show(|ui| {
-            ui.set_min_width(150.0);
+            ui.set_min_width(190.0);
             for l in i18n::LANGS {
-                let on = l.code == current.code;
-                if ui.selectable_label(on, egui::RichText::new(l.name).font(regular(15.0))).clicked() {
+                if lang_row(ui, l, l.code == current.code).clicked() {
                     chosen = Some(l.code);
                 }
             }

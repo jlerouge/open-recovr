@@ -30,6 +30,11 @@ pub const LANGS: &[Lang] = &[
     Lang { code: "en", name: "English", source: include_str!("../lang/en.txt") },
     Lang { code: "es", name: "Español", source: include_str!("../lang/es.txt") },
     Lang { code: "de", name: "Deutsch", source: include_str!("../lang/de.txt") },
+    Lang { code: "it", name: "Italiano", source: include_str!("../lang/it.txt") },
+    Lang { code: "pt", name: "Português (Brasil)", source: include_str!("../lang/pt.txt") },
+    Lang { code: "nl", name: "Nederlands", source: include_str!("../lang/nl.txt") },
+    Lang { code: "pl", name: "Polski", source: include_str!("../lang/pl.txt") },
+    Lang { code: "uk", name: "Українська", source: include_str!("../lang/uk.txt") },
 ];
 
 static CURRENT: AtomicUsize = AtomicUsize::new(0);
@@ -126,10 +131,29 @@ pub fn system_language() -> &'static str {
 }
 
 /// `one` or `many` (both already translated), by the rule of the chosen language
-/// (in French, 0 and 1 are singular).
+/// (in French and Brazilian Portuguese, 0 and 1 are singular). Polish and Ukrainian have a
+/// third form, after 2, 3, 4, 22…: their `many` is written `few|many` ("pliki|plików").
 pub fn plural<'a>(n: u64, one: &'a str, many: &'a str) -> &'a str {
-    let single = if current() == 0 { n <= 1 } else { n == 1 };
-    if single { one } else { many }
+    plural_in(LANGS[current()].code, n, one, many)
+}
+
+fn plural_in<'a>(code: &str, n: u64, one: &'a str, many: &'a str) -> &'a str {
+    let (few, many) = many.split_once('|').unwrap_or((many, many));
+    let few_ok = (2..=4).contains(&(n % 10)) && !(12..=14).contains(&(n % 100));
+    match code {
+        "fr" | "pt" => {
+            if n <= 1 {
+                one
+            } else {
+                many
+            }
+        }
+        "uk" if n % 10 == 1 && n % 100 != 11 => one,
+        "uk" | "pl" if few_ok => few,
+        "uk" => many,
+        _ if n == 1 => one,
+        _ => many,
+    }
 }
 
 #[cfg(test)]
@@ -248,6 +272,20 @@ mod tests {
             }
         }
         assert!(problems.is_empty(), "{} problems:\n{}", problems.len(), problems.join("\n"));
+    }
+
+    #[test]
+    fn plural_forms() {
+        let p = |code, n| plural_in(code, n, "1", "few|many");
+        assert_eq!([p("fr", 0), p("fr", 1), p("fr", 2)], ["1", "1", "many"]);
+        assert_eq!([p("en", 0), p("en", 1), p("en", 2)], ["many", "1", "many"]);
+        assert_eq!(
+            [p("pl", 1), p("pl", 3), p("pl", 5), p("pl", 12), p("pl", 21), p("pl", 22)],
+            ["1", "few", "many", "many", "many", "few"]
+        );
+        assert_eq!([p("uk", 1), p("uk", 4), p("uk", 11), p("uk", 21), p("uk", 25)], ["1", "few", "many", "1", "many"]);
+        // no `|`: the one plural form serves both
+        assert_eq!(plural_in("pl", 3, "plik", "pliki"), "pliki");
     }
 
     #[test]

@@ -1,0 +1,597 @@
+# Português (Brasil). Each French line from the code is followed by "= its translation".
+# {} are filled in order, {0} {1}… by position. \n is a line break.
+# Machine-drafted: a review by a native speaker is welcome.
+
+(dossier effacé)
+= (pasta apagada)
+(fichier vide)
+= (arquivo vazio)
+,
+= ,
+Afficher la fenêtre
+= Mostrar a janela
+Analyse :
+= Análise:
+Analyse approfondie
+= Análise profunda
+Analyse approfondie du disque…
+= Análise profunda do disco…
+Analyse complète du disque…
+= Análise completa do disco…
+Analyse de l'espace libre du disque…
+= Analisando o espaço livre do disco…
+Analyse rapide
+= Análise rápida
+Analyse rapide : lecture de la liste des fichiers…
+= Análise rápida: lendo a lista de arquivos…
+Analyse rapide : quelques minutes, noms d'origine.
+= Análise rápida: alguns minutos, nomes originais.
+Analyse rapide : {} fichier(s) gardé(s), {} fichier(s) système ignoré(s), {} hors des critères
+= Análise rápida: {} arquivo(s) mantido(s), {} arquivo(s) do sistema ignorado(s), {} fora dos critérios
+Analyse rapide impossible : {}
+= Análise rápida impossível: {}
+Annuler
+= Cancelar
+Aperçu
+= Visualização
+Archives
+= Arquivos compactados
+Arrêter
+= Parar
+Arrêter et quitter
+= Parar e sair
+Arrêter la recherche
+= Parar a busca
+Aucun disque trouvé.
+= Nenhum disco encontrado.
+Aucun fichier coché
+= Nenhum arquivo marcado
+Aucun fichier ne correspond à ces filtres.
+= Nenhum arquivo corresponde a esses filtros.
+Aucun fichier retrouvé sur ce disque
+= Nenhum arquivo encontrado neste disco
+Aucun format coché dans une catégorie : tous ses formats sont cherchés.
+= Nenhum formato marcado em uma categoria: todos os seus formatos são buscados.
+Autres
+= Outros
+Bonnes
+= Boas
+CD / DVD
+= CD / DVD
+Calcul du temps restant…
+= Calculando o tempo restante…
+Carte CompactFlash
+= Cartão CompactFlash
+Carte SD
+= Cartão SD
+Carte microSD
+= Cartão microSD
+Ce disque ne se laisse pas lire. Vérifiez qu'il est bien branché (ou le disque bien inséré).
+= Não é possível ler este disco. Verifique se ele está conectado (ou se o disco está inserido).
+Ce son ne peut pas être lu ici : essayez « Ouvrir ».
+= Este som não pode ser tocado aqui: tente "Abrir".
+Chargement de l'aperçu…
+= Carregando a visualização…
+Chercher aussi sur tout le disque…
+= Buscar também no disco inteiro…
+Choisir un autre endroit
+= Escolher outro local
+Choisissez d'abord Photos, Documents… pour préciser le format.
+= Primeiro escolha Fotos, Documentos… para indicar o formato.
+Choisissez le disque, la carte mémoire ou la clé USB.
+= Escolha o disco, o cartão de memória ou o pen drive.
+Choisissez un disque, cliquez sur « Rechercher », puis cochez ce que vous voulez retrouver.
+= Escolha um disco, clique em "Buscar" e marque o que você quer recuperar.
+Cliquez pour trier
+= Clique para ordenar
+Cliquez sur l'icône pour revenir. Clic droit : arrêter et quitter.
+= Clique no ícone para voltar. Botão direito: parar e sair.
+Cliquez sur un fichier pour le voir ici.
+= Clique em um arquivo para vê-lo aqui.
+Clé USB
+= Pen drive
+Coche tous les fichiers affichés dans la liste.
+= Marca todos os arquivos mostrados na lista.
+Cocher pour la récupération
+= Marcar para recuperar
+Cocher tout ce qui est affiché
+= Marcar tudo o que está visível
+Cochez ce que vous voulez récupérer
+= Marque o que você quer recuperar
+Coché pour la récupération
+= Marcado para recuperar
+Code source
+= Código-fonte
+Complète
+= Completa
+Conseil : enregistrez-les sur un autre disque (une clé USB par exemple).
+= Dica: salve-os em outro disco (um pen drive, por exemplo).
+Continuer en arrière-plan
+= Continuar em segundo plano
+Continuer quand même
+= Continuar mesmo assim
+Copier tout
+= Copiar tudo
+Corbeille
+= Lixeira
+Corbeille : {} élément(s) retenu(s)
+= Lixeira: {} item(ns) mantido(s)
+Corbeille vidée · {}
+= Lixeira esvaziada · {}
+Corbeille · {}
+= Lixeira · {}
+Date
+= Data
+Disque dur
+= Disco rígido
+Disque externe USB
+= Disco externo USB
+Disque local ({})
+= Disco local ({})
+Disque {} ({}, {})
+= Disco {} ({}, {})
+Documents
+= Documentos
+Décoche tous les fichiers, même ceux masqués par les filtres.
+= Desmarca todos os arquivos, mesmo os ocultos pelos filtros.
+Effacer
+= Limpar
+Environ {} h {} restantes
+= Cerca de {} h {} restantes
+Environ {} min restantes
+= Cerca de {} min restantes
+Espace libre du disque
+= Espaço livre do disco
+Essayez un autre disque, ou une clé USB si les fichiers y étaient.
+= Tente outro disco, ou um pen drive se os arquivos estavam nele.
+Excellentes
+= Excelentes
+Faibles
+= Baixas
+Fichiers récupérés {}
+= Arquivos recuperados {}
+Format :
+= Formato:
+Formats :
+= Formatos:
+Impossible de lire ce disque en profondeur. Relancez l'application en {}.
+= Não é possível ler este disco a fundo. Abra o aplicativo novamente como {}.
+JPEG, PNG, HEIC, photos d'appareil (RAW), Photoshop…
+= JPEG, PNG, HEIC, fotos de câmera (RAW), Photoshop…
+Je cherche :
+= Estou buscando:
+Journal de la recherche
+= Registro da busca
+Jusqu'où chercher ?
+= Até onde buscar?
+La recherche rapide n'a regardé que la corbeille. Passez en recherche approfondie pour lire tout le disque.
+= A busca rápida só olhou a Lixeira. Mude para a busca profunda para ler o disco inteiro.
+La recherche s'est arrêtée : plus assez de place sur le disque de travail.
+= A busca parou: não há mais espaço suficiente no disco de trabalho.
+Langue de l'interface
+= Idioma da interface
+Le système
+= O sistema
+Les fichiers apparaîtront ici dès qu'ils sont trouvés.
+= Os arquivos aparecerão aqui assim que forem encontrados.
+Mode expert
+= Modo avançado
+Moins d'une minute restante
+= Menos de um minuto restante
+Musique
+= Música
+Même disque que les fichiers perdus
+= Mesmo disco dos arquivos perdidos
+Ne montre que les fichiers dont le nom ou le dossier contient ces lettres.
+= Mostra só os arquivos cujo nome ou pasta contém estas letras.
+Ne plus me le proposer au démarrage
+= Não oferecer mais ao iniciar
+Ne regarde que dans la corbeille. Quelques secondes, aucune autorisation demandée. Si la corbeille a été vidée, les fichiers ne seront pas retrouvés.
+= Olha só na Lixeira. Alguns segundos, nenhuma permissão pedida. Se a Lixeira foi esvaziada, os arquivos não serão encontrados.
+Nom
+= Nome
+On ne peut pas enregistrer sur ce disque : choisissez un autre dossier.
+= Não é possível salvar neste disco: escolha outra pasta.
+Open Recovr continue en arrière-plan
+= O Open Recovr continua em segundo plano
+Open Recovr — récupération de fichiers
+= Open Recovr — recuperação de arquivos
+Ouvre le fichier dans le programme habituel, sans le récupérer.
+= Abre o arquivo no programa de costume, sem recuperá-lo.
+Ouvrir
+= Abrir
+Ouvrir le dossier
+= Abrir a pasta
+Où enregistrer les fichiers récupérés ?
+= Onde salvar os arquivos recuperados?
+Où étaient vos fichiers ?
+= Onde estavam seus arquivos?
+Pas d'aperçu pour ce fichier
+= Sem visualização para este arquivo
+Pas de recherche possible
+= Busca impossível
+Pas trouvé ? Lancer l'analyse complète
+= Não encontrou? Fazer a análise completa
+Passer en recherche approfondie
+= Mudar para a busca profunda
+PhotoRec indisponible : recherche intégrée à la place
+= PhotoRec indisponível: busca integrada no lugar
+PhotoRec n'a pas pu démarrer
+= O PhotoRec não pôde iniciar
+Photos
+= Fotos
+Plus de {}
+= Mais de {}
+Préciser
+= Refinar
+Préparation de l'analyse approfondie…
+= Preparando a análise profunda…
+Préparation…
+= Preparando…
+Range la fenêtre près de l'horloge : la recherche continue et l'icône indique où elle en est. Fermer la fenêtre pendant la recherche fait la même chose.
+= Guarda a janela perto do relógio: a busca continua e o ícone mostra o andamento. Fechar a janela durante a busca faz o mesmo.
+Rapide
+= Rápida
+Recherche approfondie (conseillée)
+= Busca profunda (recomendada)
+Recherche approfondie : tout le disque est lu.
+= Busca profunda: o disco inteiro é lido.
+Recherche approfondie activée
+= Busca profunda ativada
+Recherche arrêtée : {} fichier(s), {}
+= Busca parada: {} arquivo(s), {}
+Recherche dans la corbeille…
+= Buscando na Lixeira…
+Recherche en cours…
+= Buscando…
+Recherche rapide (maintenant)
+= Busca rápida (agora)
+Recherche rapide : seule la corbeille est fouillée.
+= Busca rápida: só a Lixeira é vasculhada.
+Recherche terminée : {}
+= Busca concluída: {}
+Recherche terminée : {} fichier(s), {}
+= Busca concluída: {} arquivo(s), {}
+Recherche {} % · {} · {}
+= Buscando {} % · {} · {}
+Rechercher les fichiers perdus
+= Buscar os arquivos perdidos
+Rechercher un nom…
+= Buscar um nome…
+Relancer la recherche
+= Buscar de novo
+Rester en rapide
+= Continuar na rápida
+Retrouvez vos fichiers effacés, simplement.
+= Recupere seus arquivos apagados, de forma simples.
+Retrouvé dans l'espace libre · {}
+= Encontrado no espaço livre · {}
+Retrouvé par l'analyse approfondie
+= Encontrado pela análise profunda
+Rien n'est modifié sur le disque.
+= Nada é alterado no disco.
+Récupération : {} / {} fichiers
+= Recuperando: {} / {} arquivos
+Récupération terminée
+= Recuperação concluída
+Récupération… {} / {}
+= Recuperando… {} / {}
+Récupérer ce fichier
+= Recuperar este arquivo
+Récupérer la sélection
+= Recuperar a seleção
+Réduit la fenêtre : la recherche continue.
+= Minimiza a janela: a busca continua.
+SSD
+= SSD
+SSD NVMe
+= SSD NVMe
+SSD SATA
+= SSD SATA
+Supprimé le
+= Apagado em
+Système de fichiers : {}
+= Sistema de arquivos: {}
+Taille
+= Tamanho
+Taille :
+= Tamanho:
+Textes et notes
+= Textos e notas
+Tous
+= Todos
+Tous les types de fichiers que l'analyse sait reconnaître.
+= Todos os tipos de arquivo que a análise sabe reconhecer.
+Tout
+= Tudo
+Tout cocher
+= Marcar tudo
+Tout décocher
+= Desmarcar tudo
+Toutes
+= Qualquer
+Toutes tailles
+= Qualquer tamanho
+Trouvé dans
+= Encontrado em
+Type
+= Tipo
+Téléphone
+= Celular
+Un téléphone ne se fouille pas ainsi
+= Um celular não pode ser vasculhado assim
+Branché en USB, il ne montre que ses fichiers présents, et sa mémoire est chiffrée : les fichiers effacés ne peuvent pas être lus depuis l'ordinateur.
+= Conectado por USB, ele só mostra os arquivos que ainda tem, e sua memória é criptografada: os arquivos apagados não podem ser lidos pelo computador.
+Regardez plutôt dans la corbeille de l'appli Galerie ou Photos (30 jours), dans Google Photos ou iCloud. Si le téléphone a une carte microSD, mettez-la dans un lecteur de cartes.
+= Procure na lixeira do app Galeria ou Fotos (30 dias), no Google Fotos ou no iCloud. Se o celular tiver um cartão microSD, coloque-o em um leitor de cartões.
+Vidéos
+= Vídeos
+Vos fichiers ne sont peut-être pas perdus
+= Seus arquivos talvez não estejam perdidos
+Word, Excel, PowerPoint, PDF, OpenOffice, textes, notes, code source…
+= Word, Excel, PowerPoint, PDF, OpenOffice, textos, notas, código-fonte…
+administrateur
+= administrador
+archive
+= arquivo compactado
+ce n'est pas un disque NTFS
+= não é um disco NTFS
+document
+= documento
+dossier
+= pasta
+début du disque illisible
+= início do disco ilegível
+déjà trouvé par l'analyse rapide : {}
+= já encontrado pela análise rápida: {}
+fichier
+= arquivo
+fichier coché
+= arquivo marcado
+fichier déjà sur le disque
+= arquivo já no disco
+fichier récupéré
+= arquivo recuperado
+fichier trouvé
+= arquivo encontrado
+fichiers cochés
+= arquivos marcados
+fichiers récupérés
+= arquivos recuperados
+fichiers trouvés
+= arquivos encontrados
+gardé
+= mantido
+gardé {} ({})
+= mantido {} ({})
+inconnue
+= desconhecida
+lecture du disque refusée ({})
+= leitura do disco recusada ({})
+lecture interrompue
+= leitura interrompida
+ligne
+= linha
+lignes
+= linhas
+o Ko Mo Go To
+= B KB MB GB TB
+photo
+= foto
+sans extension
+= sem extensão
+son
+= som
+superutilisateur (root)
+= superusuário (root)
+table des fichiers illisible
+= tabela de arquivos ilegível
+trouvé {} ({}) à l'octet {}
+= encontrado {} ({}) no byte {}
+video
+= vídeo
+zone illisible à l'octet {} ({}) : ignorée
+= área ilegível no byte {} ({}): ignorada
+{0}/{1}/{2}
+= {0}/{1}/{2}
+{} dossiers, {} fichiers effacés dans la table
+= {} pastas, {} arquivos apagados na tabela
+{} libres
+= {} livres
+{} libres sur {}
+= {} livres de {}
+{} n'a pas donné l'autorisation : la recherche reste rapide.
+= {} não deu a permissão: a busca continua rápida.
+{} · {} impossible(s) à lire
+= {} · {} ilegível(is)
+{} — c'est fait !
+= {} — pronto!
+{}. Cliquez pour voir les fichiers.
+= {}. Clique para ver os arquivos.
+Affiche le journal de la recherche (avec les lignes de PhotoRec) et les premiers octets des fichiers qui n'ont pas d'aperçu.
+= Mostra o registro da busca (com as linhas do PhotoRec) e os primeiros bytes dos arquivos sem visualização.
+Analyse rapide : table NTFS de {} ({} entrées, blocs de {} o)
+= Análise rápida: tabela NTFS de {} ({} entradas, blocos de {} B)
+Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter les petits fichiers sans intérêt.
+= Escolher um formato preciso (JPG, Word…) ou um tamanho mínimo, para deixar de fora os arquivos pequenos sem interesse.
+Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
+= Salvar aqui pode sobrescrever outros arquivos ainda recuperáveis. É melhor escolher um pen drive ou outro disco.
+Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Faz a análise rápida e depois lê o disco inteiro com o PhotoRec: encontra também arquivos mais antigos, muitas vezes sem o nome. Pode levar mais de uma hora.
+La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
+= A busca profunda usa o PhotoRec 7.2 © Christophe Grenier, distribuído sob a licença GNU GPL (www.cgsecurity.org). Ele reconhece centenas de tipos de arquivo.
+Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
+= O registro é preenchido durante a busca: cada etapa e, na busca profunda, as linhas do PhotoRec.
+Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
+= Lê a tabela de arquivos do disco: alguns minutos, e os arquivos mantêm nome e pasta. Encontra o que foi apagado recentemente, mesmo depois de esvaziar a Lixeira.
+Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
+= Lê o disco inteiro com o PhotoRec para encontrar também os arquivos mais antigos.
+Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
+= Lê o disco inteiro para encontrar também arquivos apagados há muito tempo ou depois de esvaziar a Lixeira. Mais demorado: de alguns minutos a mais de uma hora, conforme o disco. {} vai pedir que você autorize o aplicativo ({}).
+Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
+= Por enquanto só a Lixeira é vasculhada. A busca profunda lê o disco inteiro e encontra também arquivos apagados há muito tempo.
+Écouter
+= Ouvir
+écarté
+= descartado
+écarté {} ({}) : hors des critères
+= descartado {} ({}): fora dos critérios
+
+1 doublon masqué · Afficher
+= 1 duplicata oculta · Mostrar
+{} doublons masqués · Afficher
+= {} duplicatas ocultas · Mostrar
+Masquer les doublons
+= Ocultar duplicatas
+Les mêmes fichiers retrouvés plusieurs fois : une seule copie est montrée.
+= O mesmo arquivo encontrado várias vezes: só uma cópia é mostrada.
+Choisir une image disque
+= Escolher uma imagem de disco
++ Ouvrir une image disque…
+= + Abrir uma imagem de disco…
+Fichier .img ou .dd
+= Arquivo .img ou .dd
+Un fichier .img ou .dd copié depuis un disque abîmé (avec ddrescue, par exemple). Le disque d'origine n'est plus sollicité.
+= Um arquivo .img ou .dd copiado de um disco danificado (com o ddrescue, por exemplo). O disco original não é mais usado.
+Image disque
+= Imagem de disco
+Tous les fichiers
+= Todos os arquivos
+Lue sans toucher au disque d'origine
+= Lida sem tocar no disco original
+Doublon de
+= Duplicata de
+Infos
+= Detalhes
+État
+= Estado
+Intact
+= Intacto
+Endommagé
+= Danificado
+Vide
+= Vazio
+intact, vérifié de bout en bout
+= intacto, verificado do início ao fim
+endommagé : {}
+= danificado: {}
+vide, que des zéros
+= vazio, só zeros
+vérification…
+= verificando…
+la fin de l'image manque
+= falta o fim da imagem
+l'image ne se décode pas
+= a imagem não pode ser decodificada
+l'image est mélangée avec une autre
+= a imagem está misturada com outra
+le sommaire de l'archive manque
+= falta o índice do arquivo compactado
+une partie du contenu est abîmée
+= parte do conteúdo está danificada
+la fin du document manque
+= falta o fim do documento
+le fichier est coupé avant la fin
+= o arquivo está cortado antes do fim
+l'index de la vidéo manque
+= falta o índice do vídeo
+les images de la vidéo manquent
+= faltam os quadros do vídeo
+Code source, nouvelles versions, signaler un problème
+= Código-fonte, novas versões, relatar um problema
+Journal
+= Registro
+Le journal de la dernière recherche, à joindre si vous signalez un problème.
+= O registro da última busca, para anexar se você relatar um problema.
+Ouvrir le fichier
+= Abrir o arquivo
+Thème de couleurs
+= Tema de cores
+Passer en thème clair
+= Mudar para o tema claro
+Passer en thème sombre
+= Mudar para o tema escuro
+Clair
+= Claro
+Sombre
+= Escuro
+Apparence
+= Aparência
+C'est la dernière version.
+= Esta é a versão mais recente.
+Impossible de joindre GitHub.
+= Não foi possível acessar o GitHub.
+Installer la version {}
+= Instalar a versão {}
+Journal de la dernière recherche
+= Registro da última busca
+La mise à jour attendra la fin de la recherche et de la récupération.
+= A atualização vai esperar o fim da busca e da recuperação.
+La mise à jour n'a pas pu se faire.
+= Não foi possível fazer a atualização.
+La version {} est disponible.
+= A versão {} está disponível.
+Logiciel libre sous licence MIT. Pas de compte, pas de télémétrie.
+= Software livre sob a licença MIT. Sem conta, sem telemetria.
+Menu
+= Menu
+Mises à jour
+= Atualizações
+Open Recovr demande à GitHub le numéro de la dernière version. Rien d'autre n'est envoyé.
+= O Open Recovr pergunta ao GitHub o número da versão mais recente. Nada mais é enviado.
+Ouvre la page de téléchargement de la nouvelle version.
+= Abre a página de download da nova versão.
+Paramètres
+= Configurações
+Proposer la recherche approfondie au démarrage
+= Oferecer a busca profunda ao iniciar
+Recherche
+= Busca
+Recherche des mises à jour…
+= Procurando atualizações…
+Rechercher les mises à jour
+= Procurar atualizações
+Rechercher les mises à jour au démarrage
+= Procurar atualizações ao iniciar
+Rechercher maintenant
+= Procurar agora
+Redémarrage…
+= Reiniciando…
+Retour
+= Voltar
+Sans les droits d'administrateur, seule la corbeille est fouillée : Open Recovr propose alors de les demander.
+= Sem direitos de administrador, só a Lixeira é vasculhada: o Open Recovr então oferece pedi-los.
+Site du projet (GitHub)
+= Site do projeto (GitHub)
+Télécharge et installe la nouvelle version, puis relance Open Recovr.
+= Baixa e instala a nova versão e depois reinicia o Open Recovr.
+Téléchargement de la version {}…
+= Baixando a versão {}…
+Téléchargement de la version {}… {} %
+= Baixando a versão {}… {} %
+{} — cliquez pour ouvrir la page de téléchargement.
+= {} — clique para abrir a página de download.
+À propos
+= Sobre
+→ v{} : mettre à jour
+= → v{}: atualizar
+Afficher
+= Mostrar
+Aide
+= Ajuda
+Ce rapport aide quelqu'un à comprendre un problème avec Open Recovr. Open Recovr ne l'envoie pas : c'est vous qui décidez de le transmettre.\n\nIl contient :\n- systeme.txt : la version d'Open Recovr, le système et la liste des disques (nom, type, taille) ;\n- reglages.txt : vos réglages ;\n- journal.txt : le journal de la dernière recherche, s'il y en a une.\n\nAucun de vos fichiers n'y est. Votre nom d'utilisateur, le nom de l'ordinateur, votre dossier personnel et les adresses e-mail sont remplacés par <user>, <computer>, ~ et <e-mail>.\n\nCe ne sont que des fichiers texte : ouvrez-les pour vérifier ce qu'ils disent avant de les transmettre.
+= Este relatório ajuda alguém a entender um problema com o Open Recovr. O Open Recovr não o envia: é você quem decide repassá-lo.\n\nEle contém:\n- systeme.txt: a versão do Open Recovr, o sistema e a lista de discos (nome, tipo, tamanho);\n- reglages.txt: suas configurações;\n- journal.txt: o registro da última busca, se houver uma.\n\nNenhum dos seus arquivos está nele. Seu nome de usuário, o nome do computador, sua pasta pessoal e os endereços de e-mail são substituídos por <user>, <computer>, ~ e <e-mail>.\n\nSão só arquivos de texto: abra-os para conferir o que dizem antes de repassá-los.
+En cas de problème, préparez un rapport et joignez-le à votre mail ou à un signalement sur GitHub. Il contient le journal de la dernière recherche, vos réglages et la liste des disques. Votre nom, celui de l'ordinateur et vos dossiers personnels sont masqués, et aucun de vos fichiers n'y est. Open Recovr n'envoie rien : c'est un zip de fichiers texte, que vous pouvez relire avant de le transmettre.
+= Se algo der errado, prepare um relatório e anexe-o ao seu e-mail ou a um relato no GitHub. Ele contém o registro da última busca, suas configurações e a lista de discos. Seu nome, o do computador e suas pastas pessoais são ocultados, e nenhum dos seus arquivos está nele. O Open Recovr não envia nada: é um zip de arquivos de texto que você pode ler antes de repassar.
+Enregistre un fichier à joindre à un mail ou à un signalement : le journal, les réglages et la liste des disques, sans vos fichiers ni votre nom. Rien n'est envoyé.
+= Salva um arquivo para anexar a um e-mail ou a um relato: o registro, as configurações e a lista de discos, sem seus arquivos nem seu nome. Nada é enviado.
+Enregistré : {}
+= Salvo: {}
+Le rapport n'a pas pu être enregistré : {}
+= Não foi possível salvar o relatório: {}
+Où enregistrer le rapport ?
+= Onde salvar o relatório?
+Préparer un rapport…
+= Preparar um relatório…
+Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
+= Relatório salvo: {}. Abra-o para relê-lo antes de repassá-lo.

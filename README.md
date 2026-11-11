@@ -41,6 +41,11 @@ Open Recovr puts a friendly, single-screen interface on top of PhotoRec, the pro
 | [![](docs/screenshots/en-4-results.png)](docs/screenshots/en-4-results.png) | [![](docs/screenshots/en-5-selected.png)](docs/screenshots/en-5-selected.png) | [![](docs/screenshots/en-6-recovered.png)](docs/screenshots/en-6-recovered.png) |
 | Filter by type, format, size or name. | Each file shows its chances of recovery. | Copied to another drive of your choice. |
 
+| Settings | Dark theme | Expert mode |
+|:---:|:---:|:---:|
+| [![](docs/screenshots/en-8-settings.png)](docs/screenshots/en-8-settings.png) | [![](docs/screenshots/en-9-dark.png)](docs/screenshots/en-9-dark.png) | [![](docs/screenshots/en-7-expert.png)](docs/screenshots/en-7-expert.png) |
+| Language, colour theme, updates, report. | Light, dark and 8 other themes. | The search log, for the curious. |
+
 The full walkthrough is in the **[user guide](docs/user-guide.md)**.
 
 > [!WARNING]
@@ -61,7 +66,10 @@ The full walkthrough is in the **[user guide](docs/user-guide.md)**.
 - 💾 **Every kind of drive.** Hard disks, SATA and NVMe SSDs, SD / microSD / CompactFlash cards, USB sticks, external disks, CD/DVD.
 - 🕒 **Runs in the background.** The window can hide next to the clock during a long search.
 - 🛠️ **Expert mode.** The full search log and PhotoRec's output, for the curious and for bug reports.
-- 🌍 **4 languages:** English, French, Spanish, German.
+- 🎨 **Colour themes.** Light and dark in one click, plus Nord, Catppuccin, Tokyo Night, Solarized, Monokai and Gruvbox.
+- 🔄 **Safe updates.** When a new version is out, one click downloads it, checks its signature and installs it.
+- 🩺 **Help report.** *Prepare a report…* saves a zip (system, drives, last search log) to send to someone who helps you, with personal names masked. Open Recovr never sends it itself.
+- 🌍 **9 languages:** English, French, Spanish, German, Italian, Brazilian Portuguese, Dutch, Polish, Ukrainian.
 - 🔒 **Read-only.** Nothing is ever written to the drive being searched. No account, no telemetry, no internet needed: the only connection is an update check (just the latest version number, asked of GitHub), which can be turned off in Settings.
 
 A phone plugged in over USB cannot be searched. It only shows the files it still has, and its memory is encrypted. Open Recovr explains where to look instead: the Gallery or Photos app's bin, Google Photos, iCloud, or the microSD card.
@@ -115,13 +123,15 @@ On Linux, also install `libxkbcommon-dev`, `libwayland-dev` and the `libxcb-*-de
 
 | Option | Effect |
 |---|---|
-| `--lang en` | interface language: `en`, `fr`, `es`, `de` |
+| `--lang en` | interface language: `en`, `fr`, `es`, `de`, `it`, `pt`, `nl`, `pl`, `uk` |
+| `--theme sombre` | colour theme for this run: `clair`, `sombre`, `nord`, `tokyo-night`… |
+| `--image disk.img` | search a disk image file instead of a drive |
 | `--disk D` | drive to select: a letter (`D`) or a mount point (`/media/usb`) |
 | `--search` | start the search right away |
 | `--expert` | show the search log for this run |
 | `--show file.jpg` | list this file as found, to try its preview |
 | `--screenshot out.png` | draw the window off-screen, save it as an image, then quit |
-| `--scene name` | with `--screenshot`, the moment to draw: `home`, `scanning`, `selected`, `recovered` |
+| `--scene name` | with `--screenshot`, the moment to draw: `home`, `scanning`, `selected`, `recovered`, `settings` |
 | `--bench [folder]` | measure each search method on a disk image built for the purpose |
 
 </details>

@@ -40,6 +40,11 @@ Open Recovr met une interface simple, en un seul écran, au-dessus de PhotoRec, 
 | [![](docs/screenshots/fr-4-results.png)](docs/screenshots/fr-4-results.png) | [![](docs/screenshots/fr-5-selected.png)](docs/screenshots/fr-5-selected.png) | [![](docs/screenshots/fr-6-recovered.png)](docs/screenshots/fr-6-recovered.png) |
 | Filtres par type, format, taille ou nom. | Chaque fichier affiche ses chances de récupération. | Copie vers le disque de votre choix. |
 
+| Paramètres | Thème sombre | Mode expert |
+|:---:|:---:|:---:|
+| [![](docs/screenshots/fr-8-settings.png)](docs/screenshots/fr-8-settings.png) | [![](docs/screenshots/fr-9-dark.png)](docs/screenshots/fr-9-dark.png) | [![](docs/screenshots/fr-7-expert.png)](docs/screenshots/fr-7-expert.png) |
+| Langue, thème de couleurs, mises à jour, rapport. | Clair, sombre et 8 autres thèmes. | Le journal de la recherche, pour les curieux. |
+
 Le pas-à-pas complet se trouve dans le **[guide d'utilisation](docs/user-guide.md)** (en anglais).
 
 > [!WARNING]
@@ -52,11 +57,18 @@ Le pas-à-pas complet se trouve dans le **[guide d'utilisation](docs/user-guide.
 - 🧲 **Analyse complète.** Tout le disque est lu par PhotoRec, qui reconnaît **des centaines de types de fichiers**, même après un formatage ou sur une carte FAT/exFAT. Sans PhotoRec, un moteur intégré prend le relais pour les formats courants.
 - 💿 **Supports abîmés.** Les zones illisibles (CD/DVD rayés, cartes usées) sont sautées au lieu de tout bloquer.
 - 🖼️ **Aperçu avant de récupérer.** Photos, vidéos, sons, PDF, textes et documents Word.
+- 🏷️ **Des noms et des dates qui parlent.** Un fichier qui n'avait qu'un numéro reçoit un nom tiré de son contenu : `photo_2024-07-14_18-22-05.jpg` d'après la date EXIF, le titre d'un document Word ou PDF, l'artiste et le titre d'un MP3.
+- ✅ **Vérifié avant de récupérer.** Chaque fichier retrouvé est lu de bout en bout : **Intact**, **Abîmé** (avec la raison : coupé, mélangé à un autre fichier, index manquant…) ou **Vide**.
+- 👯 **Doublons masqués.** Un même fichier retrouvé plusieurs fois n'est affiché qu'une fois.
+- 📀 **Images disque.** Ouvre une copie `.img` / `.dd` d'un disque fatigué (faite avec ddrescue, par exemple) pour ne pas toucher à l'original. Sans droits administrateur.
 - 🗂️ **Tri et filtres** par type (photos, vidéos, musique, documents, archives), format, taille et nom.
 - 💾 **Tous les supports.** Disques durs, SSD SATA et NVMe, cartes SD, microSD et CompactFlash, clés USB, disques externes, CD/DVD.
 - 🕒 **En arrière-plan.** La fenêtre peut se ranger près de l'horloge pendant une longue recherche.
 - 🛠️ **Mode expert.** Le journal complet de la recherche et les lignes de PhotoRec.
-- 🌍 **4 langues :** français, anglais, espagnol, allemand.
+- 🎨 **Thèmes de couleurs.** Clair ou sombre en un clic, et aussi Nord, Catppuccin, Tokyo Night, Solarized, Monokai et Gruvbox.
+- 🔄 **Mises à jour sûres.** Quand une nouvelle version sort, un clic la télécharge, vérifie sa signature et l'installe.
+- 🩺 **Rapport d'aide.** *Préparer un rapport…* enregistre un zip (système, disques, journal de la dernière recherche) à envoyer à la personne qui vous aide, avec les noms personnels masqués. Open Recovr ne l'envoie jamais lui-même.
+- 🌍 **9 langues :** français, anglais, espagnol, allemand, italien, portugais du Brésil, néerlandais, polonais, ukrainien.
 - 🔒 **Lecture seule.** Rien n'est jamais écrit sur le disque fouillé. Pas de compte, pas de télémétrie, pas besoin d'Internet : la seule connexion est la recherche de mises à jour (le numéro de la dernière version, demandé à GitHub), désactivable dans les Paramètres.
 
 Un téléphone branché en USB ne peut pas être fouillé : il ne montre que les fichiers encore présents, et sa mémoire est chiffrée. L'application explique où chercher à la place : la corbeille de l'appli Galerie ou Photos, Google Photos, iCloud ou la carte microSD.
@@ -103,7 +115,7 @@ Le programme se trouve dans `target/release/`. Sous Windows, récupérez PhotoRe
 powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1
 ```
 
-Les options en ligne de commande (`--lang`, `--disk`, `--search`, `--expert`, `--screenshot`, `--scene`, `--bench`) sont décrites dans le [README anglais](README.md#build-from-source).
+Les options en ligne de commande (`--lang`, `--theme`, `--disk`, `--image`, `--search`, `--expert`, `--screenshot`, `--scene`, `--bench`) sont décrites dans le [README anglais](README.md#build-from-source).
 
 ## Documentation
 

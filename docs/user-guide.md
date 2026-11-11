@@ -1,6 +1,6 @@
 # User guide
 
-This guide walks through a recovery from start to finish. The screenshots are in English. The app also speaks French, Spanish and German: use the language button at the top right.
+This guide walks through a recovery from start to finish. The screenshots are in English. The app also speaks French, Spanish, German, Italian, Brazilian Portuguese, Dutch, Polish and Ukrainian: use the language button at the top right.
 
 - [Before you start](#before-you-start)
 - [1. Quick or deep search](#1-quick-or-deep-search)

@@ -40,6 +40,11 @@ Open Recovr pone una interfaz amable, de una sola pantalla, sobre PhotoRec, un m
 | [![](docs/screenshots/es-4-results.png)](docs/screenshots/es-4-results.png) | [![](docs/screenshots/es-5-selected.png)](docs/screenshots/es-5-selected.png) | [![](docs/screenshots/es-6-recovered.png)](docs/screenshots/es-6-recovered.png) |
 | Filtros por tipo, formato, tamaño o nombre. | Cada archivo muestra sus posibilidades de recuperación. | Se copian en la unidad que elijas. |
 
+| Ajustes | Tema oscuro | Modo experto |
+|:---:|:---:|:---:|
+| [![](docs/screenshots/es-8-settings.png)](docs/screenshots/es-8-settings.png) | [![](docs/screenshots/es-9-dark.png)](docs/screenshots/es-9-dark.png) | [![](docs/screenshots/es-7-expert.png)](docs/screenshots/es-7-expert.png) |
+| Idioma, tema de colores, actualizaciones, informe. | Claro, oscuro y otros 8 temas. | El registro de la búsqueda, para curiosos. |
+
 La guía paso a paso completa está en la **[guía de uso](docs/user-guide.md)** (en inglés).
 
 > [!WARNING]
@@ -52,12 +57,21 @@ La guía paso a paso completa está en la **[guía de uso](docs/user-guide.md)**
 - 🧲 **Análisis completo.** PhotoRec lee toda la unidad y reconoce **cientos de tipos de archivo**, incluso tras un formateo o en tarjetas FAT/exFAT. Sin PhotoRec, un motor integrado se encarga de los formatos más comunes.
 - 💿 **Soportes dañados.** Las zonas ilegibles (CD/DVD rayados, tarjetas gastadas) se saltan en lugar de bloquear la búsqueda.
 - 🖼️ **Vista previa antes de recuperar.** Fotos, vídeos, sonidos, PDF, textos y documentos Word.
+- 🏷️ **Nombres y fechas con sentido.** Un archivo que solo tenía un número recibe un nombre sacado de su contenido: `photo_2024-07-14_18-22-05.jpg` a partir de la fecha EXIF, el título de un documento Word o PDF, el artista y la canción de un MP3.
+- ✅ **Comprobado antes de recuperar.** Cada archivo encontrado se lee de principio a fin: **Intacto**, **Dañado** (con el motivo: cortado, mezclado con otro archivo, índice ausente…) o **Vacío**.
+- 👯 **Duplicados ocultos.** Un mismo archivo encontrado varias veces se muestra una sola vez.
+- 📀 **Imágenes de disco.** Abre una copia `.img` / `.dd` de una unidad que falla (hecha con ddrescue, por ejemplo), para no tocar el original. Sin permisos de administrador.
 - 🗂️ **Orden y filtros** por tipo (fotos, vídeos, música, documentos, archivos comprimidos), formato, tamaño y nombre.
 - 💾 **Todo tipo de unidades.** Discos duros, SSD SATA y NVMe, tarjetas SD, microSD y CompactFlash, memorias USB, discos externos y CD/DVD.
 - 🕒 **En segundo plano.** La ventana puede ocultarse junto al reloj durante una búsqueda larga.
 - 🛠️ **Modo experto.** El registro completo de la búsqueda y la salida de PhotoRec.
-- 🌍 **4 idiomas:** español, inglés, francés y alemán.
+- 🎨 **Temas de colores.** Claro u oscuro con un clic, y también Nord, Catppuccin, Tokyo Night, Solarized, Monokai y Gruvbox.
+- 🔄 **Actualizaciones seguras.** Cuando sale una versión nueva, un clic la descarga, comprueba su firma y la instala.
+- 🩺 **Informe de ayuda.** *Preparar un informe…* guarda un zip (sistema, unidades, registro de la última búsqueda) para enviarlo a quien te ayuda, con los nombres personales ocultos. Open Recovr nunca lo envía por sí mismo.
+- 🌍 **9 idiomas:** español, inglés, francés, alemán, italiano, portugués de Brasil, neerlandés, polaco y ucraniano.
 - 🔒 **Solo lectura.** Nunca se escribe nada en la unidad analizada. Sin cuenta, sin telemetría y sin necesidad de Internet: la única conexión es la búsqueda de actualizaciones (el número de la última versión, pedido a GitHub), que se puede desactivar en Ajustes.
+
+Un teléfono conectado por USB no se puede analizar: solo muestra los archivos que aún tiene, y su memoria está cifrada. Open Recovr explica dónde buscar en su lugar: la papelera de la app Galería o Fotos, Google Fotos, iCloud o la tarjeta microSD.
 
 ## Descargar
 
@@ -77,8 +91,11 @@ Leer la propia unidad (análisis rápido y completo) requiere permisos de admini
 |---|:---:|:---:|:---:|
 | Compilado en CI | ✅ | ✅ | ✅ |
 | Probado en un equipo real | ✅ | ⚠️ todavía no | ⚠️ todavía no |
+| Papelera | ✅ | ✅ papelera freedesktop | ✅ `.Trash` |
+| Tabla de archivos NTFS (análisis rápido) | ✅ | ✅ volúmenes NTFS | ✅ volúmenes NTFS |
 | Análisis completo (PhotoRec) | ✅ incluido | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
 | Miniaturas de vídeo / PDF, sonido | ✅ | ❌ | ❌ |
+| Icono junto al reloj | ✅ | ❌ | ❌ |
 
 **Windows es la plataforma principal y probada.** Las versiones para Linux y macOS compilan, pero nadie las ha probado aún en un equipo real. Los comentarios y las correcciones son bienvenidos: consulta [CONTRIBUTING.md](CONTRIBUTING.md).
 

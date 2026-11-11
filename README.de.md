@@ -40,6 +40,11 @@ Open Recovr setzt eine freundliche Oberfläche mit nur einem Bildschirm auf Phot
 | [![](docs/screenshots/de-4-results.png)](docs/screenshots/de-4-results.png) | [![](docs/screenshots/de-5-selected.png)](docs/screenshots/de-5-selected.png) | [![](docs/screenshots/de-6-recovered.png)](docs/screenshots/de-6-recovered.png) |
 | Filter nach Typ, Format, Größe oder Name. | Jede Datei zeigt ihre Chancen auf Wiederherstellung. | Kopie auf ein Laufwerk Ihrer Wahl. |
 
+| Einstellungen | Dunkles Design | Expertenmodus |
+|:---:|:---:|:---:|
+| [![](docs/screenshots/de-8-settings.png)](docs/screenshots/de-8-settings.png) | [![](docs/screenshots/de-9-dark.png)](docs/screenshots/de-9-dark.png) | [![](docs/screenshots/de-7-expert.png)](docs/screenshots/de-7-expert.png) |
+| Sprache, Farbdesign, Updates, Bericht. | Hell, dunkel und 8 weitere Designs. | Das Suchprotokoll, für Neugierige. |
+
 Die vollständige Anleitung finden Sie im **[Benutzerhandbuch](docs/user-guide.md)** (auf Englisch).
 
 > [!WARNING]
@@ -52,12 +57,21 @@ Die vollständige Anleitung finden Sie im **[Benutzerhandbuch](docs/user-guide.m
 - 🧲 **Vollständige Analyse.** PhotoRec liest das ganze Laufwerk und erkennt **Hunderte von Dateitypen**, auch nach einer Formatierung oder auf FAT/exFAT-Karten. Ohne PhotoRec übernimmt eine eingebaute Engine die gängigen Formate.
 - 💿 **Beschädigte Datenträger.** Unlesbare Bereiche (zerkratzte CD/DVD, abgenutzte Karten) werden übersprungen, statt die Suche zu blockieren.
 - 🖼️ **Vorschau vor der Wiederherstellung.** Fotos, Videos, Töne, PDFs, Texte und Word-Dokumente.
+- 🏷️ **Namen und Daten, die etwas sagen.** Eine Datei, die nur eine Nummer hatte, bekommt einen Namen aus ihrem Inhalt: `photo_2024-07-14_18-22-05.jpg` aus dem EXIF-Datum, den Titel eines Word- oder PDF-Dokuments, Künstler und Titel einer MP3.
+- ✅ **Vor der Wiederherstellung geprüft.** Jede gefundene Datei wird vollständig gelesen: **Intakt**, **Beschädigt** (mit Grund: abgeschnitten, mit einer anderen Datei vermischt, Index fehlt…) oder **Leer**.
+- 👯 **Duplikate ausgeblendet.** Dieselbe Datei, mehrfach gefunden, wird nur einmal angezeigt.
+- 📀 **Datenträgerabbilder.** Öffnet eine `.img`-/`.dd`-Kopie eines defekten Laufwerks (z. B. mit ddrescue erstellt), damit das Original unberührt bleibt. Ohne Administratorrechte.
 - 🗂️ **Sortieren und filtern** nach Typ (Fotos, Videos, Musik, Dokumente, Archive), Format, Größe und Name.
 - 💾 **Alle Laufwerke.** Festplatten, SATA- und NVMe-SSDs, SD-, microSD- und CompactFlash-Karten, USB-Sticks, externe Festplatten und CD/DVD.
 - 🕒 **Im Hintergrund.** Das Fenster kann sich während einer langen Suche neben der Uhr verstecken.
 - 🛠️ **Expertenmodus.** Das vollständige Suchprotokoll und die Ausgabe von PhotoRec.
-- 🌍 **4 Sprachen:** Deutsch, Englisch, Französisch und Spanisch.
+- 🎨 **Farbdesigns.** Hell oder dunkel mit einem Klick, dazu Nord, Catppuccin, Tokyo Night, Solarized, Monokai und Gruvbox.
+- 🔄 **Sichere Updates.** Ist eine neue Version verfügbar, lädt ein Klick sie herunter, prüft ihre Signatur und installiert sie.
+- 🩺 **Hilfebericht.** *Bericht erstellen…* speichert eine Zip-Datei (System, Laufwerke, Protokoll der letzten Suche) für die Person, die Ihnen hilft, mit unkenntlich gemachten persönlichen Namen. Open Recovr verschickt sie nie selbst.
+- 🌍 **9 Sprachen:** Deutsch, Englisch, Französisch, Spanisch, Italienisch, brasilianisches Portugiesisch, Niederländisch, Polnisch und Ukrainisch.
 - 🔒 **Nur lesend.** Auf das durchsuchte Laufwerk wird nie etwas geschrieben. Kein Konto, keine Telemetrie, kein Internet nötig: Die einzige Verbindung ist die Suche nach Updates (nur die Nummer der neuesten Version, bei GitHub abgefragt), abschaltbar in den Einstellungen.
+
+Ein per USB angeschlossenes Telefon kann nicht durchsucht werden: Es zeigt nur die Dateien, die es noch hat, und sein Speicher ist verschlüsselt. Open Recovr erklärt, wo Sie stattdessen suchen können: im Papierkorb der Galerie- oder Fotos-App, in Google Fotos, iCloud oder auf der microSD-Karte.
 
 ## Herunterladen
 
@@ -77,8 +91,11 @@ Das Laufwerk selbst zu lesen (schnelle und vollständige Analyse) erfordert Admi
 |---|:---:|:---:|:---:|
 | In der CI gebaut | ✅ | ✅ | ✅ |
 | Auf echter Hardware getestet | ✅ | ⚠️ noch nicht | ⚠️ noch nicht |
+| Papierkorb | ✅ | ✅ freedesktop-Papierkorb | ✅ `.Trash` |
+| NTFS-Dateitabelle (schnelle Analyse) | ✅ | ✅ NTFS-Volumes | ✅ NTFS-Volumes |
 | Vollständige Analyse (PhotoRec) | ✅ enthalten | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
 | Video-/PDF-Vorschaubilder, Ton | ✅ | ❌ | ❌ |
+| Symbol neben der Uhr | ✅ | ❌ | ❌ |
 
 **Windows ist die wichtigste und getestete Plattform.** Die Versionen für Linux und macOS lassen sich bauen, wurden aber noch auf keiner echten Hardware getestet. Rückmeldungen und Korrekturen sind sehr willkommen, siehe [CONTRIBUTING.md](CONTRIBUTING.md).
 
