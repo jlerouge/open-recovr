@@ -96,12 +96,28 @@ This regenerates the 7 phases in the 4 languages. The quick search lists what is
 
 For the maintainer. Open Recovr only installs an update whose `SHA256SUMS.txt` is signed with the key in [`keys/open-recovr.pub`](keys/README.md), and the secret half of that key stays off GitHub. So a release takes one step by hand:
 
-1. Set the version in `Cargo.toml`, move the `Unreleased` part of `CHANGELOG.md` under it, commit, then tag and push: `git tag v0.3.0 && git push origin main v0.3.0`.
-2. The release workflow builds everything and makes a **draft** release. Nobody sees it yet, and the updater ignores it.
-3. Download `SHA256SUMS.txt` from the draft, then run `./scripts/sign-release.ps1 -Tag v0.3.0`. It checks that GitHub's tag points to your commit and that the checksums are this version's, then signs them (minisign asks for the key's password).
-4. Attach the `SHA256SUMS.txt.minisig` it writes to the draft, and publish.
+You need [minisign](https://jedisct1.github.io/minisign/) (`winget install jedisct1.minisign`) and the secret key, kept as [keys/README.md](keys/README.md) says.
 
-A release published without its `.minisig` is not dangerous: Open Recovr refuses to install it and says why. Add the file and the update goes through.
+1. **Version.** Set the version in `Cargo.toml` and move the `Unreleased` part of `CHANGELOG.md` under it. Commit, then tag and push: `git tag v0.3.0 && git push origin main v0.3.0`.
+2. **Draft.** The release workflow builds everything and makes a **draft** release; it appears only once every build is done, Windows being the slowest. Nobody sees the draft yet, and the updater ignores it. Until it is published, its address is `…/releases/tag/untagged-…`, not `…/tag/v0.3.0`; you find it at the top of the Releases page.
+3. **Try it.** From the draft's *Assets*, download `SHA256SUMS.txt` and the `…-setup.exe` into your Downloads folder. Check that the setup's SHA-256 is the one in `SHA256SUMS.txt`, then install it: Windows SmartScreen warns about an unknown publisher, so choose *More info*, then *Run anyway*. No administrator rights should be asked. The app starts with the new version in its footer and has a Start menu entry. Uninstalling it works.
+4. **Sign.** From the repository folder, run:
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\scripts\sign-release.ps1 -Tag v0.3.0
+   ```
+
+   It checks three things:
+   - GitHub's tag points to your commit;
+   - `~\Downloads\SHA256SUMS.txt` is this version's;
+   - the signature checks out.
+
+   It signs in between. minisign asks for the key's password, and nothing shows while you type it. The script writes `SHA256SUMS.txt.minisig` next to the checksums, and should end with "Signature and comment signature verified" and `Trusted comment: open-recovr v0.3.0`.
+5. **Attach and publish.** On the draft, click the pencil icon. Drop `SHA256SUMS.txt.minisig` onto *Attach binaries*, then click *Publish release*.
+6. **Check.** Download both files again from `…/releases/latest/download/` and run `minisign -V -p keys/open-recovr.pub -m SHA256SUMS.txt`.
+7. **Try the update.** A debug build can pretend to be older. Copy `target/debug/open-recovr.exe` (from `cargo build`) into an empty folder, then run it with `--pretend-version 0.2.9`. The footer offers the new version. One click downloads it, checks it, installs it over the copy and relaunches it.
+
+A release published without its `.minisig` is not dangerous: Open Recovr refuses to install it and says why. Add the file and the update goes through. Versions before 0.3.0 have no updater: their users download the new version by hand once.
 
 ## Use of AI tools
 
