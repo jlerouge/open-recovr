@@ -13,6 +13,7 @@ mod ntfs;
 mod photorec;
 mod preview;
 mod report;
+mod score;
 mod sys;
 mod theme;
 mod update;
@@ -96,6 +97,20 @@ fn main() -> eframe::Result {
             // measures each way of searching on a disk image built for the purpose
             "--bench" => {
                 bench::run(&args.next().map(PathBuf::from).unwrap_or_else(|| std::env::temp_dir().join("open-recovr-bench")));
+                return Ok(());
+            }
+            // the built-in carver over a whole image, files written out (for the benchmark)
+            "--carve" => {
+                let (image, out) = (args.next().unwrap_or_default(), args.next().unwrap_or_default());
+                score::carve_image(std::path::Path::new(&image), std::path::Path::new(&out));
+                return Ok(());
+            }
+            // scores what any engine recovered against the files really on the disk
+            "--bench-score" => {
+                let (truth, dir) = (args.next().unwrap_or_default(), args.next().unwrap_or_default());
+                let image = args.next().filter(|s| !s.is_empty());
+                let label = args.next().unwrap_or_else(|| dir.clone());
+                score::score(std::path::Path::new(&truth), std::path::Path::new(&dir), image.as_deref().map(std::path::Path::new), &label);
                 return Ok(());
             }
             "--photorec-test" => {

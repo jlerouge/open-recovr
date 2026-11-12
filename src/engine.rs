@@ -47,15 +47,15 @@ impl Category {
     pub fn from_ext(ext: &str) -> Category {
         match ext.to_ascii_lowercase().as_str() {
             "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp" | "heic" | "heif" | "tif" | "tiff" | "raw" | "cr2" | "cr3" | "crw" | "nef"
-            | "dng" | "arw" | "orf" | "raf" | "rw2" | "x3f" | "mrw" | "psd" => Category::Photos,
+            | "dng" | "arw" | "orf" | "raf" | "rw2" | "x3f" | "mrw" | "pef" | "psd" | "pcx" | "svg" => Category::Photos,
             "mp4" | "mov" | "avi" | "mkv" | "wmv" | "asf" | "3gp" | "m4v" | "mts" | "m2ts" | "webm" | "mpg" | "mpeg" | "flv" | "wtv" => {
                 Category::Videos
             }
             "mp3" | "wav" | "m4a" | "flac" | "ogg" | "opus" | "wma" | "aac" | "aif" | "aiff" | "mid" | "au" | "ape" => Category::Music,
             "pdf" | "doc" | "docx" | "xls" | "xlsx" | "ppt" | "pptx" | "odt" | "ods" | "odp" | "odg" | "txt" | "rtf" | "csv" | "md"
-            | "epub" | "one" | "wpd" | "ps" | "pub" | "msg" | "eml" | "xml" | "html" | "htm" | "json" | "yaml" | "yml" | "ini" | "tex"
-            | "c" | "h" | "cpp" | "hpp" | "cc" | "cs" | "java" | "kt" | "py" | "js" | "ts" | "rs" | "go" | "php" | "rb" | "pl" | "sh"
-            | "ps1" | "bat" | "sql" | "css" | "swift" | "lua" => Category::Documents,
+            | "epub" | "one" | "wpd" | "ps" | "pub" | "msg" | "eml" | "vsd" | "xml" | "html" | "htm" | "json" | "yaml" | "yml" | "ini"
+            | "tex" | "c" | "h" | "cpp" | "hpp" | "cc" | "cs" | "java" | "kt" | "py" | "js" | "ts" | "rs" | "go" | "php" | "rb" | "pl"
+            | "sh" | "ps1" | "bat" | "sql" | "css" | "swift" | "lua" => Category::Documents,
             "zip" | "rar" | "7z" | "tar" | "gz" | "bz2" | "xz" | "cab" => Category::Archives,
             _ => Category::Other,
         }
@@ -64,7 +64,9 @@ impl Category {
     /// The PhotoRec family names that cover this kind of file (checked against PhotoRec 7.2).
     pub fn families(self) -> &'static [&'static str] {
         match self {
-            Category::Photos => &["jpg", "png", "gif", "bmp", "tif", "psd", "raw", "crw", "orf", "raf", "rw2", "x3f", "mrw", "riff", "mov"],
+            Category::Photos => {
+                &["jpg", "png", "gif", "bmp", "tif", "psd", "pcx", "raw", "crw", "orf", "raf", "rw2", "x3f", "mrw", "riff", "mov"]
+            }
             Category::Videos => &["mov", "mkv", "riff", "mpg", "asf", "flv", "m2ts", "wtv"],
             Category::Music => &["mp3", "flac", "ogg", "riff", "aif", "mid", "au", "ape", "asf", "mov"],
             Category::Documents => &["doc", "zip", "pdf", "txt", "xml", "one", "wpd", "ps"],
@@ -105,13 +107,15 @@ pub const FORMATS: &[Format] = &[
     fmt(
         "RAW",
         Category::Photos,
-        &["cr2", "cr3", "crw", "nef", "dng", "arw", "orf", "raf", "rw2", "x3f", "mrw", "raw"],
+        &["cr2", "cr3", "crw", "nef", "dng", "arw", "orf", "raf", "rw2", "x3f", "mrw", "pef", "raw"],
         &["tif", "raw", "crw", "orf", "raf", "rw2", "x3f", "mrw"],
     ),
     fmt("GIF", Category::Photos, &["gif"], &["gif"]),
     fmt("BMP", Category::Photos, &["bmp"], &["bmp"]),
     fmt("TIFF", Category::Photos, &["tif", "tiff"], &["tif"]),
     fmt("WEBP", Category::Photos, &["webp"], &["riff"]),
+    fmt("PCX", Category::Photos, &["pcx"], &["pcx"]),
+    fmt("SVG", Category::Photos, &["svg"], &["xml"]),
     fmt("Photoshop", Category::Photos, &["psd"], &["psd"]),
     fmt("MP4 / MOV", Category::Videos, &["mp4", "mov", "m4v", "3gp"], &["mov"]),
     fmt("AVI", Category::Videos, &["avi"], &["riff"]),
@@ -488,7 +492,8 @@ pub(crate) fn deep_scan(
     const CHUNK: usize = 8 << 20;
     let mut buf = vec![0u8; CHUNK];
     let mut pos = 0u64;
-    let mut skip_until = 0u64;
+    // files already found that cover the position: a header inside one is still looked at
+    let mut open = carve::Open::default();
     let mut counts = std::collections::HashMap::<&str, usize>::new();
     let mut last_report = std::time::Instant::now();
     let eta = Eta::new(0.0);
@@ -527,12 +532,12 @@ pub(crate) fn deep_scan(
         let mut off = 0usize;
         while off + 16 <= got {
             let abs = pos + off as u64;
-            if abs >= skip_until
-                && !in_use(abs)
+            if !in_use(abs)
                 && let Some(kind) = carve::detect(&buf[off..got.min(off + 512)])
+                && open.allows(abs, kind)
                 && let Some((len, ext)) = carve::measure(&mut vol, abs, kind)
             {
-                skip_until = abs + len;
+                open.push(kind, abs + len);
                 let cat = Category::from_ext(ext);
                 if !wanted.accepts(ext, cat, len, false) {
                     off += step;
