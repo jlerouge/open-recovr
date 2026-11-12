@@ -4,11 +4,12 @@ All notable changes to Open Recovr are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
-## Unreleased
+## 0.3.1
 
 - Five new interface languages: Italian, Brazilian Portuguese, Dutch, Polish and Ukrainian. They were drafted by machine; corrections by native speakers are very welcome (see CONTRIBUTING.md). Polish and Ukrainian get their own plural forms.
 - Each language shows a two-letter badge (FR, EN, IT…) in the language menu and in Settings.
 - The README screenshots are regenerated, with the settings page and the dark theme; `scripts/screenshots.sh` takes the theme as a second argument (light by default) and `--scene settings` draws the settings page.
+- The README and the user guide exist in all 9 languages, each linking to the others.
 
 ## 0.3.0
 
