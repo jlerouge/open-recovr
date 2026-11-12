@@ -9,7 +9,7 @@
 Ein einziger Bildschirm, kein Assistent: Laufwerk wählen, suchen, ankreuzen, was zurück soll.<br>
 Frei und kostenlos, angetrieben von [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec).
 
-[English](README.md) · [Français](README.fr.md) · [Español](README.es.md) · **Deutsch**
+[English](README.md) · [Français](README.fr.md) · [Español](README.es.md) · **Deutsch** · [Italiano](README.it.md) · [Português (Brasil)](README.pt.md) · [Nederlands](README.nl.md) · [Polski](README.pl.md) · [Українська](README.uk.md)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/jlerouge/open-recovr/ci.yml?branch=main&label=tests&logo=github)](https://github.com/jlerouge/open-recovr/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/github/v/release/jlerouge/open-recovr?include_prereleases&sort=semver&label=version)](https://github.com/jlerouge/open-recovr/releases/latest)
@@ -17,6 +17,7 @@ Frei und kostenlos, angetrieben von [PhotoRec](https://www.cgsecurity.org/wiki/P
 [![Lizenz: MIT](https://img.shields.io/badge/lizenz-MIT-blue.svg)](LICENSE)
 [![Rust 1.95+](https://img.shields.io/badge/rust-1.95%2B-orange?logo=rust)](https://www.rust-lang.org)
 [![Systeme](https://img.shields.io/badge/system-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](#unterstützte-systeme)
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
 
 <img src="docs/screenshots/de-4-results.png" alt="Open Recovr zeigt auf Laufwerk C: gefundene gelöschte Dateien mit der Vorschau eines Fotos" width="820">
 
@@ -45,7 +46,7 @@ Open Recovr setzt eine freundliche Oberfläche mit nur einem Bildschirm auf Phot
 | [![](docs/screenshots/de-8-settings.png)](docs/screenshots/de-8-settings.png) | [![](docs/screenshots/de-9-dark.png)](docs/screenshots/de-9-dark.png) | [![](docs/screenshots/de-7-expert.png)](docs/screenshots/de-7-expert.png) |
 | Sprache, Farbdesign, Updates, Bericht. | Hell, dunkel und 8 weitere Designs. | Das Suchprotokoll, für Neugierige. |
 
-Die vollständige Anleitung finden Sie im **[Benutzerhandbuch](docs/user-guide.md)** (auf Englisch).
+Die vollständige Anleitung finden Sie im **[Benutzerhandbuch](docs/user-guide.de.md)**.
 
 > [!WARNING]
 > **Speichern Sie wiederhergestellte Dateien nie auf dem Laufwerk, von dem sie stammen.** Sie könnten Dateien überschreiben, die noch auf ihre Wiederherstellung warten. Ein USB-Stick oder eine andere Festplatte ist ideal. Open Recovr warnt Sie, wenn Sie es versuchen.

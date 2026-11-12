@@ -9,7 +9,7 @@
 Un seul écran, pas d'assistant : on choisit le disque, on lance la recherche, on coche ce qu'on veut récupérer.<br>
 Libre et gratuit, propulsé par [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec).
 
-[English](README.md) · **Français** · [Español](README.es.md) · [Deutsch](README.de.md)
+[English](README.md) · **Français** · [Español](README.es.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português (Brasil)](README.pt.md) · [Nederlands](README.nl.md) · [Polski](README.pl.md) · [Українська](README.uk.md)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/jlerouge/open-recovr/ci.yml?branch=main&label=tests&logo=github)](https://github.com/jlerouge/open-recovr/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/github/v/release/jlerouge/open-recovr?include_prereleases&sort=semver&label=version)](https://github.com/jlerouge/open-recovr/releases/latest)
@@ -17,6 +17,7 @@ Libre et gratuit, propulsé par [PhotoRec](https://www.cgsecurity.org/wiki/Photo
 [![Licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 [![Rust 1.95+](https://img.shields.io/badge/rust-1.95%2B-orange?logo=rust)](https://www.rust-lang.org)
 [![Systèmes](https://img.shields.io/badge/syst%C3%A8me-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](#systèmes-pris-en-charge)
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
 
 <img src="docs/screenshots/fr-4-results.png" alt="Open Recovr affichant les fichiers effacés retrouvés sur le disque C:, avec l'aperçu d'une photo" width="820">
 
@@ -45,7 +46,7 @@ Open Recovr met une interface simple, en un seul écran, au-dessus de PhotoRec, 
 | [![](docs/screenshots/fr-8-settings.png)](docs/screenshots/fr-8-settings.png) | [![](docs/screenshots/fr-9-dark.png)](docs/screenshots/fr-9-dark.png) | [![](docs/screenshots/fr-7-expert.png)](docs/screenshots/fr-7-expert.png) |
 | Langue, thème de couleurs, mises à jour, rapport. | Clair, sombre et 8 autres thèmes. | Le journal de la recherche, pour les curieux. |
 
-Le pas-à-pas complet se trouve dans le **[guide d'utilisation](docs/user-guide.md)** (en anglais).
+Le pas-à-pas complet se trouve dans le **[guide d'utilisation](docs/user-guide.fr.md)**.
 
 > [!WARNING]
 > **N'enregistrez jamais les fichiers retrouvés sur le disque d'où ils viennent.** Vous pourriez écraser ceux qui attendent encore d'être récupérés. Une clé USB ou un autre disque fait très bien l'affaire. Open Recovr vous prévient si vous essayez.
@@ -119,7 +120,7 @@ Les options en ligne de commande (`--lang`, `--theme`, `--disk`, `--image`, `--s
 
 ## Documentation
 
-- 📖 [Guide d'utilisation](docs/user-guide.md) : chaque étape, avec conseils et FAQ (en anglais)
+- 📖 [Guide d'utilisation](docs/user-guide.fr.md) : chaque étape, avec conseils et FAQ
 - 🏗️ [Architecture](docs/architecture.md) : organisation du code et fonctionnement de chaque recherche (en anglais)
 - 🤝 [Contribuer](CONTRIBUTING.md) : compiler, tester, traduire. Les contributions assistées par IA sont acceptées.
 - 📝 [Changements](CHANGELOG.md)

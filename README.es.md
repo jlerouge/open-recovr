@@ -9,7 +9,7 @@
 Una sola pantalla, sin asistente: elige la unidad, busca y marca lo que quieres recuperar.<br>
 Libre y gratuito, con [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) como motor.
 
-[English](README.md) · [Français](README.fr.md) · **Español** · [Deutsch](README.de.md)
+[English](README.md) · [Français](README.fr.md) · **Español** · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português (Brasil)](README.pt.md) · [Nederlands](README.nl.md) · [Polski](README.pl.md) · [Українська](README.uk.md)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/jlerouge/open-recovr/ci.yml?branch=main&label=tests&logo=github)](https://github.com/jlerouge/open-recovr/actions/workflows/ci.yml)
 [![Versión](https://img.shields.io/github/v/release/jlerouge/open-recovr?include_prereleases&sort=semver&label=versi%C3%B3n)](https://github.com/jlerouge/open-recovr/releases/latest)
@@ -17,6 +17,7 @@ Libre y gratuito, con [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) como 
 [![Licencia MIT](https://img.shields.io/badge/licencia-MIT-blue.svg)](LICENSE)
 [![Rust 1.95+](https://img.shields.io/badge/rust-1.95%2B-orange?logo=rust)](https://www.rust-lang.org)
 [![Sistemas](https://img.shields.io/badge/sistema-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](#sistemas-compatibles)
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
 
 <img src="docs/screenshots/es-4-results.png" alt="Open Recovr mostrando los archivos borrados encontrados en la unidad C:, con la vista previa de una foto" width="820">
 
@@ -45,7 +46,7 @@ Open Recovr pone una interfaz amable, de una sola pantalla, sobre PhotoRec, un m
 | [![](docs/screenshots/es-8-settings.png)](docs/screenshots/es-8-settings.png) | [![](docs/screenshots/es-9-dark.png)](docs/screenshots/es-9-dark.png) | [![](docs/screenshots/es-7-expert.png)](docs/screenshots/es-7-expert.png) |
 | Idioma, tema de colores, actualizaciones, informe. | Claro, oscuro y otros 8 temas. | El registro de la búsqueda, para curiosos. |
 
-La guía paso a paso completa está en la **[guía de uso](docs/user-guide.md)** (en inglés).
+La guía paso a paso completa está en la **[guía de uso](docs/user-guide.es.md)**.
 
 > [!WARNING]
 > **Nunca guardes los archivos recuperados en la unidad de la que provienen.** Podrías sobrescribir los que aún esperan ser recuperados. Una memoria USB u otro disco es perfecto. Open Recovr te avisa si lo intentas.

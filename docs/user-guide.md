@@ -1,6 +1,8 @@
 # User guide
 
-This guide walks through a recovery from start to finish. The screenshots are in English. The app also speaks French, Spanish, German, Italian, Brazilian Portuguese, Dutch, Polish and Ukrainian: use the language button at the top right.
+**English** · [Français](user-guide.fr.md) · [Español](user-guide.es.md) · [Deutsch](user-guide.de.md) · [Italiano](user-guide.it.md) · [Português (Brasil)](user-guide.pt.md) · [Nederlands](user-guide.nl.md) · [Polski](user-guide.pl.md) · [Українська](user-guide.uk.md)
+
+This guide walks through a recovery from start to finish. The app speaks English, French, Spanish, German, Italian, Brazilian Portuguese, Dutch, Polish and Ukrainian: use the language button at the top right.
 
 - [Before you start](#before-you-start)
 - [1. Quick or deep search](#1-quick-or-deep-search)
@@ -9,7 +11,10 @@ This guide walks through a recovery from start to finish. The screenshots are in
 - [4. Browse the results](#4-browse-the-results)
 - [5. Tick what you want back](#5-tick-what-you-want-back)
 - [6. Recover](#6-recover)
+- [Disk images](#disk-images)
+- [Settings, themes and updates](#settings-themes-and-updates)
 - [Expert mode](#expert-mode)
+- [Asking someone for help](#asking-someone-for-help)
 - [FAQ](#faq)
 
 ## Before you start
@@ -44,9 +49,9 @@ In deep-search mode, NTFS drives (most Windows disks) offer two kinds of analysi
 | Analysis | What it reads | Time | Names kept? |
 |---|---|---|---|
 | **Quick** | The drive's file table (MFT) | A few minutes | ✅ name and folder |
-| **Full** | The file table, then the whole drive with PhotoRec | From minutes to over an hour | Partly: files found by PhotoRec get a generic name |
+| **Full** | The file table, then the whole drive with PhotoRec | From minutes to over an hour | Partly (see below) |
 
-Start with **Quick**. If your file isn't there, click **Not found? Run the full analysis**.
+Start with **Quick**. If your file isn't there, click **Not found? Run the full scan**.
 
 On other file systems (FAT32 and exFAT memory cards, ext4, APFS…), the deep search goes straight to the full analysis.
 
@@ -70,15 +75,19 @@ Unreadable areas, such as a scratched CD or a worn card, are skipped. The search
 - The **tabs** at the top (*All*, *Photos*, *Documents*…) show how many files of each kind were found.
 - **Format** and **Size** filter further. The search box filters by name.
 - Click a column title to **sort** by type, name, date or size.
-- Click a file to **preview** it on the right. Photos, videos, sounds, PDFs, text and Word documents can be previewed. **Open** opens it in its usual program, from a temporary copy.
+- Click a file to **preview** it on the right, with its details. Photos, videos, sounds, PDFs, text and Word documents can be previewed. **Open** opens it in its usual program, from a temporary copy.
 
-The **Chances** column tells you how likely the file is to come back intact:
+Each file found is read from end to end, and the **Condition** column gives the result:
 
-| Chances | Meaning |
+| Condition | Meaning |
 |---|---|
-| **Excellent** | The file is in the Recycle Bin, or its contents are stored inside the file table. It will come back as it was. |
-| **Good** | Its contents were found and look untouched. |
-| **Low** | Part of the space it used has been reused, or looks blank. The file may come back damaged. |
+| **Intact** | The file was checked from start to end and is whole. It will come back as it was. |
+| **Damaged** | Part of it is missing or wrong. The details say why: cut short, mixed with another file, missing index… It may still partly open. |
+| **Empty** | The space it used holds only zeros. There is nothing left to recover. |
+
+The same file is often found several times (in the bin and on the drive, for example). The copies are hidden behind a *duplicates hidden · Show* link.
+
+Files found by PhotoRec have no name of their own. Open Recovr gives them one from their contents when it can: `photo_2024-07-14_18-22-05.jpg` from the date a photo was taken, the title of a Word or PDF document, the artist and song of an MP3.
 
 ## 5. Tick what you want back
 
@@ -96,11 +105,31 @@ The files are copied into a new folder named *Recovered files* followed by the d
 
 Nothing is ever written to the drive being searched. The files are only read from it.
 
+## Disk images
+
+A failing drive (clicking, very slow, full of read errors) can give up for good while it is being searched. It is safer to copy it once, sector by sector, with a tool such as [ddrescue](https://www.gnu.org/software/ddrescue/), and then search the copy.
+
+The **Disk image** card next to the drives opens such a copy (`.img`, `.dd`, `.raw`…). The search then works as on a drive, without administrator rights, and the original is left alone.
+
+## Settings, themes and updates
+
+![The settings page](screenshots/en-8-settings.png)
+
+The menu at the top right (☰) holds everything that isn't needed to get files back:
+
+- **Settings**: the language, the colour theme, expert mode, whether to offer the deep search at start, updates, and information about the app.
+- **Colour theme**: light, dark, Nord, Catppuccin, Tokyo Night, Solarized, Monokai or Gruvbox. The sun/moon button next to the language switches between light and dark in one click.
+- **Check for updates**, **Prepare a report…** and the project's page on GitHub.
+
+When a new version is out, the bottom bar shows **→ v…: update**. One click downloads it, checks that it is signed with the project's key, installs it and restarts Open Recovr. If a search or a recovery is running, the update waits for it to end.
+
 ## Expert mode
 
 ![Expert mode with the search log](screenshots/en-7-expert.png)
 
-The **Expert mode** button at the top shows the search log: the drive and file system, each phase, and PhotoRec's own lines. **Copy all** copies the log, which is useful for a bug report.
+**Expert mode**, in the menu at the top right, shows the search log under the list: the drive and file system, each phase, and PhotoRec's own lines. **Copy all** copies the log, which is useful for a bug report. Drag the top edge of the log to make it taller.
+
+Each search is also written to `journal.txt` next to the settings (`%APPDATA%\Open Recovr` on Windows). The **Log** link at the bottom opens it.
 
 ## Asking someone for help
 
@@ -112,7 +141,10 @@ In the menu at the top right (☰), **Prepare a report…** saves a zip you can 
 Make sure the right drive is selected and the type filter isn't hiding it (*All*). Then try the deep search, and on NTFS the full analysis. If the drive has been heavily used since the deletion, the file may have been overwritten. No software can bring it back then.
 
 **The recovered files have names like `f1234567.jpg`.**
-Those files were found by PhotoRec, which recognises a file by its content, not by the file table, so their original name is unknown. Sort by date or size, and use the preview to find yours.
+Those files were found by PhotoRec, which recognises a file by its content, not by the file table, so their original name is unknown. When the file itself says nothing about its date or title, the number stays. Sort by date or size, and use the preview to find yours.
+
+**A file is marked Damaged. Is it worth recovering?**
+Often, yes. A damaged photo may show only its top half, a damaged video may play until the damaged part. Recover it and try it: it costs nothing, and the drive is never changed.
 
 **Can it recover files from my phone?**
 Not over USB. A phone only shares the files it still has, and its memory is encrypted. Look in the bin of the Gallery or Photos app (deleted photos are usually kept for 30 days), in Google Photos or iCloud, or put the phone's microSD card in a card reader and search that.
@@ -127,7 +159,7 @@ Often, yes, with the full analysis. A quick format leaves the contents in place.
 It reads the drive sector by sector, below the file system, and the operating system reserves that for administrators. Open Recovr only reads; it never writes to that drive.
 
 **Is it safe? Does it send my data anywhere?**
-Open Recovr works offline. It has no account and no telemetry. Its only connection is the update check: at startup it asks GitHub for the number of the latest release, and sends nothing else. Untick "Check for updates at startup" in Settings (the menu at the top right) to turn it off; the menu can still check on request. An update is installed only if it is signed with the project's key, which never goes to GitHub: a fake version put there by someone else is refused. The code is open: see for yourself.
+Open Recovr works offline. It has no account and no telemetry. Its only connection is the update check: at startup it asks GitHub for the number of the latest release, and sends nothing else. Untick "Check for updates at startup" in Settings to turn it off; the menu can still check on request. An update is installed only if it is signed with the project's key, which never goes to GitHub: a fake version put there by someone else is refused. The code is open: see for yourself.
 
 **Linux / macOS: the deep search says PhotoRec isn't available.**
 Install it: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) or `brew install testdisk` (macOS). Open Recovr then finds `photorec` on its own. Without it, a simpler built-in engine searches for the most common formats.

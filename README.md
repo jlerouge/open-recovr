@@ -9,7 +9,7 @@
 One screen, no wizard: pick the drive, search, tick what you want back.<br>
 Free and open source, powered by [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec).
 
-**English** · [Français](README.fr.md) · [Español](README.es.md) · [Deutsch](README.de.md)
+**English** · [Français](README.fr.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português (Brasil)](README.pt.md) · [Nederlands](README.nl.md) · [Polski](README.pl.md) · [Українська](README.uk.md)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/jlerouge/open-recovr/ci.yml?branch=main&label=tests&logo=github)](https://github.com/jlerouge/open-recovr/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/jlerouge/open-recovr?include_prereleases&sort=semver)](https://github.com/jlerouge/open-recovr/releases/latest)
@@ -18,6 +18,7 @@ Free and open source, powered by [PhotoRec](https://www.cgsecurity.org/wiki/Phot
 [![Rust 1.95+](https://img.shields.io/badge/rust-1.95%2B-orange?logo=rust)](https://www.rust-lang.org)
 [![Platforms](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey)](#platform-support)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Stand With Ukraine](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/badges/StandWithUkraine.svg)](https://stand-with-ukraine.pp.ua)
 
 <img src="docs/screenshots/en-4-results.png" alt="Open Recovr showing deleted files found on drive C:, with a photo preview" width="820">
 
