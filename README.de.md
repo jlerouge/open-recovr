@@ -48,12 +48,28 @@ Open Recovr setzt eine freundliche Oberfläche mit nur einem Bildschirm auf Phot
 
 Die vollständige Anleitung finden Sie im **[Benutzerhandbuch](docs/user-guide.de.md)**.
 
+## Wohin verschwinden gelöschte Dateien?
+
+Eine Datei zu löschen, vernichtet sie nicht. Das System vergisst nur, wo sie liegt, und markiert ihren Platz als frei. Der Inhalt bleibt auf dem Laufwerk, bis etwas Neues darübergeschrieben wird. Jede Suche reicht eine Stufe tiefer:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-de-dark.svg">
+  <img src="docs/illustrations/deleted-file-de.svg" alt="Was mit einer gelöschten Datei passiert: 1. Im Papierkorb, gefunden von der Schnellsuche. 2. Papierkorb geleert, der Name steht noch im Inhaltsverzeichnis des Laufwerks, gefunden von der Tiefensuche. 3. Verzeichnis neu belegt, die Teile liegen noch auf dem Laufwerk, gefunden von der Tiefensuche dank PhotoRec. 4. Von einer neuen Datei überschrieben, zu spät." width="100%">
+</picture>
+
+In Schritt 3 sind nur noch die Bytes übrig. **File Carving** durchsucht das ganze Laufwerk nach den Signaturen, die Anfang und Ende jedes Dateityps markieren, und setzt die Dateien daraus wieder zusammen. Das ist der schwierige Teil, und ihn erledigt **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. Der ganze Verdienst gebührt Christophe Grenier, der es seit über zwanzig Jahren schreibt und pflegt. Open Recovr erfindet es nicht neu: Es fügt die Oberfläche hinzu, die Schritte 1 und 2 sowie die Prüfungen, Namen und Vorschauen für jede gefundene Datei.
+
+Je früher Sie suchen, desto mehr ist zu finden. Auf einer SSD wird freigegebener Platz oft kurz danach im Hintergrund gelöscht (TRIM): Die Schritte 1 und 2 helfen bei frisch gelöschten Dateien noch, die vollständige Analyse findet dort aber womöglich wenig.
+
 > [!WARNING]
 > **Speichern Sie wiederhergestellte Dateien nie auf dem Laufwerk, von dem sie stammen.** Sie könnten Dateien überschreiben, die noch auf ihre Wiederherstellung warten. Ein USB-Stick oder eine andere Festplatte ist ideal. Open Recovr warnt Sie, wenn Sie es versuchen.
 
+> [!CAUTION]
+> **Ein defektes Laufwerk (Klicken, sehr langsam, Lesefehler) kann mit jedem Lesen schlechter werden.** Benutzen Sie es nicht weiter und kopieren Sie es zuerst vollständig auf eine gesunde Festplatte, mit einem Werkzeug wie [ddrescue](https://www.gnu.org/software/ddrescue/). Öffnen Sie diese Kopie dann mit *Abbild öffnen…* und durchsuchen Sie sie so oft Sie wollen, ohne das Original anzurühren.
+
 ## Funktionen
 
-- 🗑️ **Sofortsuche** im Papierkorb, in Sekunden und ohne besondere Rechte.
+- 🗑️ **Schnellsuche** im Papierkorb, in Sekunden und ohne besondere Rechte.
 - 🔎 **Schnelle Analyse (NTFS).** Liest die Dateitabelle des Laufwerks (MFT), in der eine gelöschte Datei ihren Namen behält. Die Dateien kommen **mit Namen und Ordner** zurück, in wenigen Minuten, auch nach dem Leeren des Papierkorbs.
 - 🧲 **Vollständige Analyse.** PhotoRec liest das ganze Laufwerk und erkennt **Hunderte von Dateitypen**, auch nach einer Formatierung oder auf FAT/exFAT-Karten. Ohne PhotoRec übernimmt eine eingebaute Engine die gängigen Formate.
 - 💿 **Beschädigte Datenträger.** Unlesbare Bereiche (zerkratzte CD/DVD, abgenutzte Karten) werden übersprungen, statt die Suche zu blockieren.
@@ -84,7 +100,7 @@ Laden Sie die neueste Version unter **[Releases](https://github.com/jlerouge/ope
 | Linux (64 Bit) | `open-recovr-…-linux-x64.tar.gz` | Entpacken und `./open-recovr` starten. Für die vollständige Analyse: `sudo apt install testdisk`. |
 | macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Entpacken, dann Rechtsklick → *Öffnen* (die App ist nicht signiert). Danach `brew install testdisk`. |
 
-Das Laufwerk selbst zu lesen (schnelle und vollständige Analyse) erfordert Administratorrechte. Open Recovr fragt nur danach, wenn Sie zur gründlichen Suche wechseln; der Papierkorb wird auch ohne sie durchsucht.
+Das Laufwerk selbst zu lesen (schnelle und vollständige Analyse) erfordert Administratorrechte. Open Recovr fragt nur danach, wenn Sie zur Tiefensuche wechseln; der Papierkorb wird auch ohne sie durchsucht.
 
 ## Unterstützte Systeme
 

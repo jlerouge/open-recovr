@@ -44,16 +44,16 @@ You can switch later with the **Switch to deep search** button at the top. Tick 
 
 **I'm looking for:** narrows the search to *Photos*, *Videos*, *Music*, *Documents* or *Archives*. Fewer types make the search faster and the list shorter. **Refine** goes further: specific formats (only JPG, only DOCX…) and a minimum size.
 
-In deep-search mode, NTFS drives (most Windows disks) offer two kinds of analysis:
+In deep-search mode, NTFS drives (most Windows disks) offer two kinds of scan:
 
-| Analysis | What it reads | Time | Names kept? |
+| Scan | What it reads | Time | Names kept? |
 |---|---|---|---|
 | **Quick** | The drive's file table (MFT) | A few minutes | ✅ name and folder |
 | **Full** | The file table, then the whole drive with PhotoRec | From minutes to over an hour | Partly (see below) |
 
 Start with **Quick**. If your file isn't there, click **Not found? Run the full scan**.
 
-On other file systems (FAT32 and exFAT memory cards, ext4, APFS…), the deep search goes straight to the full analysis.
+On other file systems (FAT32 and exFAT memory cards, ext4, APFS…), the deep search goes straight to the full scan.
 
 ## 3. The search
 
@@ -138,7 +138,7 @@ In the menu at the top right (☰), **Prepare a report…** saves a zip you can 
 ## FAQ
 
 **My file isn't in the list. What now?**
-Make sure the right drive is selected and the type filter isn't hiding it (*All*). Then try the deep search, and on NTFS the full analysis. If the drive has been heavily used since the deletion, the file may have been overwritten. No software can bring it back then.
+Make sure the right drive is selected and the type filter isn't hiding it (*All*). Then try the deep search, and on NTFS the full scan. If the drive has been heavily used since the deletion, the file may have been overwritten. No software can bring it back then.
 
 **The recovered files have names like `f1234567.jpg`.**
 Those files were found by PhotoRec, which recognises a file by its content, not by the file table, so their original name is unknown. When the file itself says nothing about its date or title, the number stays. Sort by date or size, and use the preview to find yours.
@@ -153,7 +153,7 @@ Not over USB. A phone only shares the files it still has, and its memory is encr
 Partly. Most SSDs erase deleted blocks in the background (TRIM), so files deleted a while ago are often gone for good. The Recycle Bin and the file table still help for recent deletions. Act quickly.
 
 **Can I recover files from a formatted drive?**
-Often, yes, with the full analysis. A quick format leaves the contents in place. A full format (or "secure erase") overwrites them.
+Often, yes, with the full scan. A quick format leaves the contents in place. A full format (or "secure erase") overwrites them.
 
 **Why does the deep search need administrator rights?**
 It reads the drive sector by sector, below the file system, and the operating system reserves that for administrators. Open Recovr only reads; it never writes to that drive.

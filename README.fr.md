@@ -48,12 +48,28 @@ Open Recovr met une interface simple, en un seul écran, au-dessus de PhotoRec, 
 
 Le pas-à-pas complet se trouve dans le **[guide d'utilisation](docs/user-guide.fr.md)**.
 
+## Où vont les fichiers supprimés ?
+
+Supprimer un fichier ne l'efface pas. Le système oublie seulement où il se trouve et marque sa place comme libre. Le contenu reste sur le disque jusqu'à ce que quelque chose de nouveau soit écrit par-dessus. Chaque recherche descend d'un cran plus bas :
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-fr-dark.svg">
+  <img src="docs/illustrations/deleted-file-fr.svg" alt="Ce que devient un fichier supprimé : 1. Dans la corbeille, retrouvé par la recherche rapide. 2. Corbeille vidée, son nom est encore dans le sommaire du disque, retrouvé par la recherche approfondie. 3. Sommaire réutilisé, les morceaux sont encore sur le disque, retrouvés par la recherche approfondie grâce à PhotoRec. 4. Écrasé par un nouveau fichier, trop tard." width="100%">
+</picture>
+
+À l'étape 3, il ne reste que les octets. Le **file carving** parcourt tout le disque à la recherche des signatures qui marquent le début et la fin de chaque type de fichier, et reconstruit les fichiers à partir d'elles. C'est la partie difficile, et elle est faite par **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. Tout le mérite en revient à Christophe Grenier, qui l'écrit et le maintient depuis plus de vingt ans. Open Recovr ne le réinvente pas : il y ajoute l'interface, les étapes 1 et 2, et les vérifications, noms et aperçus appliqués à chaque fichier trouvé.
+
+Plus vous cherchez tôt, plus il y a à trouver. Sur un SSD, la place libérée est souvent effacée en arrière-plan peu après (TRIM) : les étapes 1 et 2 marchent encore pour les suppressions récentes, mais l'analyse complète risque de trouver peu de chose.
+
 > [!WARNING]
 > **N'enregistrez jamais les fichiers retrouvés sur le disque d'où ils viennent.** Vous pourriez écraser ceux qui attendent encore d'être récupérés. Une clé USB ou un autre disque fait très bien l'affaire. Open Recovr vous prévient si vous essayez.
 
+> [!CAUTION]
+> **Un disque qui flanche (cliquetis, grande lenteur, erreurs de lecture) peut s'abîmer un peu plus à chaque lecture.** Arrêtez de l'utiliser, et commencez par le copier en entier sur un disque sain avec un outil comme [ddrescue](https://www.gnu.org/software/ddrescue/). Ouvrez ensuite cette copie avec *Ouvrir une image disque…* et fouillez-la autant que vous voulez, sans toucher à l'original.
+
 ## Ce qu'il sait faire
 
-- 🗑️ **Recherche immédiate** dans la corbeille, en quelques secondes, sans droits particuliers.
+- 🗑️ **Recherche rapide** dans la corbeille, en quelques secondes, sans droits particuliers.
 - 🔎 **Analyse rapide (NTFS).** Lit la table des fichiers du disque (MFT). Un fichier effacé y garde son nom tant que la place n'est pas réutilisée. Les fichiers reviennent **avec leur nom et leur dossier**, en quelques minutes, même après avoir vidé la corbeille.
 - 🧲 **Analyse complète.** Tout le disque est lu par PhotoRec, qui reconnaît **des centaines de types de fichiers**, même après un formatage ou sur une carte FAT/exFAT. Sans PhotoRec, un moteur intégré prend le relais pour les formats courants.
 - 💿 **Supports abîmés.** Les zones illisibles (CD/DVD rayés, cartes usées) sont sautées au lieu de tout bloquer.

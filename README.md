@@ -49,14 +49,30 @@ Open Recovr puts a friendly, single-screen interface on top of PhotoRec, the pro
 
 The full walkthrough is in the **[user guide](docs/user-guide.md)**.
 
+## Where do deleted files go?
+
+Deleting a file does not erase it. The system only forgets where the file is and marks its space as free. The content stays on the disk until something new is written over it. Each kind of search reaches one step further down:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-en-dark.svg">
+  <img src="docs/illustrations/deleted-file-en.svg" alt="What happens to a deleted file: 1. In the Recycle Bin, found by the quick search. 2. Bin emptied, its name is still in the disk's table of contents, found by the deep search. 3. Table entry reused, the pieces are still on the disk, found by the deep search thanks to PhotoRec. 4. Overwritten by a new file, too late." width="100%">
+</picture>
+
+At step 3, only the bytes are left. **File carving** scans the whole disk for the signatures that mark the start and end of each file type, and rebuilds the files from them. This is the hard part, and it is done by **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. All credit goes to Christophe Grenier, who has written and maintained it for over twenty years. Open Recovr does not reinvent it: it adds the interface, steps 1 and 2, and the checks, names and previews applied to every file found.
+
+The sooner you search, the more there is to find. On an SSD, freed space is often erased in the background soon after (TRIM): steps 1 and 2 still work for recent deletions, but the full scan may find little.
+
 > [!WARNING]
 > **Never save recovered files on the drive they came from.** You could overwrite the files that are still waiting to be recovered. A USB stick or another disk is perfect. Open Recovr warns you if you try.
 
+> [!CAUTION]
+> **A failing drive (clicking, very slow, read errors) can get worse with every read.** Stop using it, and first copy it whole onto a healthy disk with a tool like [ddrescue](https://www.gnu.org/software/ddrescue/). Then open that copy with *Open a disk image…* and search it as often as you like, without touching the original.
+
 ## Features
 
-- 🗑️ **Instant search.** Searches the Recycle Bin / Trash in seconds, with no special rights.
-- 🔎 **Quick analysis (NTFS).** Reads the drive's file table (MFT), where a deleted file keeps its name until the entry is reused. Files come back with their **real names and folders**, in minutes, even after the bin was emptied.
-- 🧲 **Full analysis.** Reads the whole drive with PhotoRec, which recognises **hundreds of file types**, even on formatted drives and on FAT/exFAT cards. If PhotoRec is missing, a built-in engine recognises the common formats instead.
+- 🗑️ **Quick search.** Searches the Recycle Bin / Trash in seconds, with no special rights.
+- 🔎 **Quick scan (NTFS).** Reads the drive's file table (MFT), where a deleted file keeps its name until the entry is reused. Files come back with their **real names and folders**, in minutes, even after the bin was emptied.
+- 🧲 **Full scan.** Reads the whole drive with PhotoRec, which recognises **hundreds of file types**, even on formatted drives and on FAT/exFAT cards. If PhotoRec is missing, a built-in engine recognises the common formats instead.
 - 💿 **Damaged media.** Unreadable areas (scratched CD/DVD, worn SD card) are skipped instead of freezing the search.
 - 🖼️ **Preview before recovering.** Photos, videos, sounds, PDFs, text and Word documents.
 - 🏷️ **Names and dates that mean something.** Files that only had a number get one from what they say about themselves: `photo_2024-07-14_18-22-05.jpg` from the EXIF date, the title of a Word or PDF document, the artist and song of an MP3.
@@ -85,7 +101,7 @@ Get the latest version from **[Releases](https://github.com/jlerouge/open-recovr
 | Linux (64-bit) | `open-recovr-…-linux-x64.tar.gz` | Extract, then run `./open-recovr`. Install PhotoRec for the deep search: `sudo apt install testdisk`. |
 | macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Extract, then right-click → *Open* (the app is not signed). Install PhotoRec: `brew install testdisk`. |
 
-Reading the drive itself (quick and full analysis) needs administrator rights. Open Recovr asks for them only when you switch to the deep search; the Recycle Bin search works without them.
+Reading the drive itself (quick scan and full scan) needs administrator rights. Open Recovr asks for them only when you switch to the deep search; the Recycle Bin search works without them.
 
 ## Platform support
 
@@ -94,8 +110,8 @@ Reading the drive itself (quick and full analysis) needs administrator rights. O
 | Builds in CI | ✅ | ✅ | ✅ |
 | Tested on real hardware | ✅ | ⚠️ not yet | ⚠️ not yet |
 | Recycle Bin / Trash | ✅ | ✅ freedesktop Trash | ✅ `.Trash` |
-| NTFS file table (quick analysis) | ✅ | ✅ NTFS volumes | ✅ NTFS volumes |
-| Full analysis (PhotoRec) | ✅ bundled | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
+| NTFS file table (quick scan) | ✅ | ✅ NTFS volumes | ✅ NTFS volumes |
+| Full scan (PhotoRec) | ✅ bundled | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
 | Video / PDF thumbnails, sound preview | ✅ | ❌ | ❌ |
 | Icon next to the clock | ✅ | ❌ | ❌ |
 

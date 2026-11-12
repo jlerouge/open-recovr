@@ -51,12 +51,28 @@ O Open Recovr coloca uma interface amigável, de uma só tela, sobre o PhotoRec,
 
 O passo a passo completo está no **[guia de uso](docs/user-guide.pt.md)**.
 
+## Para onde vão os arquivos excluídos?
+
+Excluir um arquivo não o apaga. O sistema só esquece onde ele está e marca o espaço dele como livre. O conteúdo continua no disco até que algo novo seja gravado por cima. Cada busca desce um degrau:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-pt-dark.svg">
+  <img src="docs/illustrations/deleted-file-pt.svg" alt="O que acontece com um arquivo excluído: 1. Na Lixeira, a busca rápida o encontra. 2. Lixeira esvaziada, o nome ainda está no índice do disco, a busca profunda o encontra. 3. Índice reutilizado, os pedaços ainda estão no disco, a busca profunda os encontra graças ao PhotoRec. 4. Sobrescrito por um arquivo novo, tarde demais." width="100%">
+</picture>
+
+No passo 3 só restam os bytes. O **file carving** percorre o disco inteiro procurando as assinaturas que marcam o início e o fim de cada tipo de arquivo, e reconstrói os arquivos a partir delas. É a parte difícil, e quem faz é o **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. Todo o mérito é de Christophe Grenier, que o escreve e mantém há mais de vinte anos. O Open Recovr não o reinventa: acrescenta a interface, os passos 1 e 2, e as verificações, nomes e pré-visualizações de cada arquivo encontrado.
+
+Quanto antes você buscar, mais há para encontrar. Em um SSD, o espaço liberado costuma ser apagado em segundo plano pouco depois (TRIM): os passos 1 e 2 ainda funcionam para exclusões recentes, mas a análise completa pode encontrar pouco.
+
 > [!WARNING]
 > **Nunca salve os arquivos recuperados na unidade de onde eles vieram.** Você poderia sobrescrever os que ainda esperam para ser recuperados. Um pendrive ou outro disco é perfeito. O Open Recovr avisa se você tentar.
 
+> [!CAUTION]
+> **Uma unidade com defeito (estalos, muita lentidão, erros de leitura) pode piorar a cada leitura.** Pare de usá-la e copie-a primeiro inteira para um disco saudável com uma ferramenta como o [ddrescue](https://www.gnu.org/software/ddrescue/). Depois abra essa cópia com *Abrir uma imagem de disco…* e faça buscas nela quantas vezes quiser, sem tocar no original.
+
 ## Recursos
 
-- 🗑️ **Busca imediata** na Lixeira, em segundos e sem permissões especiais.
+- 🗑️ **Busca rápida** na Lixeira, em segundos e sem permissões especiais.
 - 🔎 **Análise rápida (NTFS).** Lê a tabela de arquivos da unidade (MFT), onde um arquivo excluído mantém o nome. Os arquivos voltam **com o nome e a pasta**, em minutos, mesmo depois de esvaziar a Lixeira.
 - 🧲 **Análise completa.** O PhotoRec lê a unidade inteira e reconhece **centenas de tipos de arquivo**, mesmo depois de uma formatação ou em cartões FAT/exFAT. Sem o PhotoRec, um mecanismo embutido cuida dos formatos mais comuns.
 - 💿 **Mídias danificadas.** As áreas ilegíveis (CD/DVD riscados, cartões gastos) são puladas em vez de travar a busca.

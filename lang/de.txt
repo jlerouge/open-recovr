@@ -12,23 +12,23 @@ Afficher la fenêtre
 Analyse :
 = Suche:
 Analyse approfondie
-= Tiefensuche
+= Tiefenanalyse
 Analyse approfondie du disque…
-= Tiefensuche auf dem Laufwerk…
+= Tiefenanalyse des Laufwerks…
 Analyse complète du disque…
-= Vollständige Suche auf dem Laufwerk…
+= Vollständige Analyse des Laufwerks…
 Analyse de l'espace libre du disque…
 = Freier Speicher wird durchsucht…
 Analyse rapide
-= Schnellsuche
+= Schnelle Analyse
 Analyse rapide : lecture de la liste des fichiers…
-= Schnellsuche: Dateiliste wird gelesen…
+= Schnelle Analyse: Dateiliste wird gelesen…
 Analyse rapide : quelques minutes, noms d'origine.
-= Schnellsuche: wenige Minuten, Originalnamen.
+= Schnelle Analyse: wenige Minuten, Originalnamen.
 Analyse rapide : {} fichier(s) gardé(s), {} fichier(s) système ignoré(s), {} hors des critères
-= Schnellsuche: {} Datei(en) behalten, {} Systemdatei(en) übersprungen, {} außerhalb der Kriterien
+= Schnelle Analyse: {} Datei(en) behalten, {} Systemdatei(en) übersprungen, {} außerhalb der Kriterien
 Analyse rapide impossible : {}
-= Schnellsuche nicht möglich: {}
+= Schnelle Analyse nicht möglich: {}
 Annuler
 = Abbrechen
 Aperçu
@@ -210,7 +210,7 @@ Pas d'aperçu pour ce fichier
 Pas de recherche possible
 = Keine Suche möglich
 Pas trouvé ? Lancer l'analyse complète
-= Nicht gefunden? Vollständige Suche starten
+= Nicht gefunden? Vollständige Analyse starten
 Passer en recherche approfondie
 = Zur Tiefensuche wechseln
 PhotoRec indisponible : recherche intégrée à la place
@@ -224,7 +224,7 @@ Plus de {}
 Préciser
 = Eingrenzen
 Préparation de l'analyse approfondie…
-= Tiefensuche wird vorbereitet…
+= Tiefenanalyse wird vorbereitet…
 Préparation…
 = Vorbereitung…
 Range la fenêtre près de l'horloge : la recherche continue et l'icône indique où elle en est. Fermer la fenêtre pendant la recherche fait la même chose.
@@ -266,7 +266,7 @@ Retrouvez vos fichiers effacés, simplement.
 Retrouvé dans l'espace libre · {}
 = Im freien Speicher gefunden · {}
 Retrouvé par l'analyse approfondie
-= Von der Tiefensuche gefunden
+= Von der Tiefenanalyse gefunden
 Rien n'est modifié sur le disque.
 = Auf dem Laufwerk wird nichts verändert.
 Récupération : {} / {} fichiers
@@ -342,7 +342,7 @@ dossier
 début du disque illisible
 = Anfang des Laufwerks unlesbar
 déjà trouvé par l'analyse rapide : {}
-= schon von der Schnellsuche gefunden: {}
+= schon von der schnellen Analyse gefunden: {}
 fichier
 = Datei
 fichier coché
@@ -410,13 +410,13 @@ zone illisible à l'octet {} ({}) : ignorée
 Affiche le journal de la recherche (avec les lignes de PhotoRec) et les premiers octets des fichiers qui n'ont pas d'aperçu.
 = Zeigt das Suchprotokoll (mit den Zeilen von PhotoRec) und die ersten Bytes der Dateien ohne Vorschau.
 Analyse rapide : table NTFS de {} ({} entrées, blocs de {} o)
-= Schnellsuche: NTFS-Tabelle von {} ({} Einträge, Blöcke zu {} B)
+= Schnelle Analyse: NTFS-Tabelle von {} ({} Einträge, Blöcke zu {} B)
 Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter les petits fichiers sans intérêt.
 = Ein bestimmtes Format (JPG, Word…) oder eine Mindestgröße wählen, um kleine unwichtige Dateien auszusortieren.
 Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
 = Hier zu speichern kann andere noch rettbare Dateien überschreiben. Wählen Sie besser einen USB-Stick oder ein anderes Laufwerk.
 Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
-= Führt die Schnellsuche aus und liest dann das ganze Laufwerk mit PhotoRec: findet auch ältere Dateien, oft ohne ihren Namen. Kann über eine Stunde dauern.
+= Führt die schnelle Analyse aus und liest dann das ganze Laufwerk mit PhotoRec: findet auch ältere Dateien, oft ohne ihren Namen. Kann über eine Stunde dauern.
 La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
 = Die Tiefensuche nutzt PhotoRec 7.2 © Christophe Grenier, verbreitet unter der GNU-GPL-Lizenz (www.cgsecurity.org). Es erkennt Hunderte von Dateitypen.
 Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.

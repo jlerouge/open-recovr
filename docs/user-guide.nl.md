@@ -47,16 +47,16 @@ U kunt later wisselen met de knop **Overschakelen naar diep zoeken** bovenaan. V
 
 **Ik zoek:** beperkt het zoeken tot *Foto's*, *Video's*, *Muziek*, *Documenten* of *Archieven*. Minder soorten maken het zoeken sneller en de lijst korter. **Verfijnen** gaat verder: bepaalde formaten (alleen JPG, alleen DOCX…) en een minimale grootte.
 
-Bij diep zoeken bieden NTFS-schijven (de meeste Windows-schijven) twee analyses:
+Bij diep zoeken bieden NTFS-schijven (de meeste Windows-schijven) twee scans:
 
-| Analyse | Wat ze leest | Duur | Namen behouden? |
+| Scan | Wat ze leest | Duur | Namen behouden? |
 |---|---|---|---|
 | **Snel** | De bestandstabel van de schijf (MFT) | Een paar minuten | ✅ naam en map |
 | **Volledig** | De bestandstabel, daarna de hele schijf met PhotoRec | Van minuten tot meer dan een uur | Deels (zie hieronder) |
 
 Begin met **Snel**. Staat uw bestand er niet bij, klik dan op **Niet gevonden? Start de volledige scan**.
 
-Op andere bestandssystemen (geheugenkaarten met FAT32 en exFAT, ext4, APFS…) gaat diep zoeken meteen naar de volledige analyse.
+Op andere bestandssystemen (geheugenkaarten met FAT32 en exFAT, ext4, APFS…) gaat diep zoeken meteen naar de volledige scan.
 
 ## 3. Het zoeken
 
@@ -141,7 +141,7 @@ In het menu rechtsboven (☰) slaat **Rapport maken…** een zip op die u kunt s
 ## Veelgestelde vragen
 
 **Mijn bestand staat niet in de lijst. Wat nu?**
-Controleer of de juiste schijf gekozen is en of het typefilter het niet verbergt (*Alles*). Probeer daarna diep zoeken en op NTFS de volledige analyse. Is de schijf na het verwijderen veel gebruikt, dan is het bestand misschien overschreven. Dan kan geen enkel programma het terughalen.
+Controleer of de juiste schijf gekozen is en of het typefilter het niet verbergt (*Alles*). Probeer daarna diep zoeken en op NTFS de volledige scan. Is de schijf na het verwijderen veel gebruikt, dan is het bestand misschien overschreven. Dan kan geen enkel programma het terughalen.
 
 **De herstelde bestanden heten `f1234567.jpg`.**
 Die bestanden zijn gevonden door PhotoRec, dat een bestand herkent aan de inhoud en niet via de bestandstabel: hun oorspronkelijke naam is onbekend. Als het bestand zelf niets zegt over de datum of de titel, blijft het nummer staan. Sorteer op datum of grootte en gebruik het voorbeeld om het uwe te vinden.
@@ -156,7 +156,7 @@ Niet via USB. Een telefoon deelt alleen de bestanden die hij nog heeft, en zijn 
 Deels. De meeste SSD's wissen verwijderde blokken op de achtergrond (TRIM): bestanden die al een tijd geleden verwijderd zijn, zijn vaak voorgoed weg. De Prullenbak en de bestandstabel helpen nog bij recent verwijderde bestanden. Wees er snel bij.
 
 **Kan ik bestanden van een geformatteerde schijf herstellen?**
-Vaak wel, met de volledige analyse. Snel formatteren laat de inhoud staan. Volledig formatteren (of „veilig wissen”) overschrijft hem.
+Vaak wel, met de volledige scan. Snel formatteren laat de inhoud staan. Volledig formatteren (of „veilig wissen”) overschrijft hem.
 
 **Waarom heeft diep zoeken beheerdersrechten nodig?**
 Het leest de schijf sector voor sector, onder het bestandssysteem, en het besturingssysteem houdt dat voor beheerders. Open Recovr leest alleen; het schrijft nooit naar die schijf.

@@ -1,6 +1,6 @@
 # PhotoRec for Windows
 
-Open Recovr's full analysis on Windows is done by **PhotoRec 7.2** (command-line version),
+Open Recovr's full scan on Windows is done by **PhotoRec 7.2** (command-line version),
 © Christophe GRENIER <grenier@cgsecurity.org>, released under the GNU General Public
 License v2 or later (see `testdisk-7.2/COPYING.txt` once fetched).
 

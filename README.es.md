@@ -48,12 +48,28 @@ Open Recovr pone una interfaz amable, de una sola pantalla, sobre PhotoRec, un m
 
 La guía paso a paso completa está en la **[guía de uso](docs/user-guide.es.md)**.
 
+## ¿Adónde van los archivos eliminados?
+
+Eliminar un archivo no lo borra. El sistema solo olvida dónde está y marca su espacio como libre. El contenido sigue en el disco hasta que algo nuevo se escribe encima. Cada búsqueda llega un escalón más abajo:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-es-dark.svg">
+  <img src="docs/illustrations/deleted-file-es.svg" alt="Qué pasa con un archivo eliminado: 1. En la papelera, lo encuentra la búsqueda rápida. 2. Papelera vaciada, su nombre sigue en el índice del disco, lo encuentra la búsqueda profunda. 3. Índice reutilizado, los trozos siguen en el disco, los encuentra la búsqueda profunda gracias a PhotoRec. 4. Sobrescrito por un archivo nuevo, demasiado tarde." width="100%">
+</picture>
+
+En el paso 3 solo quedan los bytes. El **file carving** recorre todo el disco buscando las firmas que marcan el inicio y el final de cada tipo de archivo, y reconstruye los archivos a partir de ellas. Es la parte difícil, y la hace **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. Todo el mérito es de Christophe Grenier, que lo escribe y mantiene desde hace más de veinte años. Open Recovr no lo reinventa: añade la interfaz, los pasos 1 y 2, y las comprobaciones, nombres y vistas previas de cada archivo encontrado.
+
+Cuanto antes busques, más hay por encontrar. En un SSD, el espacio liberado suele borrarse en segundo plano poco después (TRIM): los pasos 1 y 2 siguen funcionando para borrados recientes, pero el análisis completo puede encontrar poco.
+
 > [!WARNING]
 > **Nunca guardes los archivos recuperados en la unidad de la que provienen.** Podrías sobrescribir los que aún esperan ser recuperados. Una memoria USB u otro disco es perfecto. Open Recovr te avisa si lo intentas.
 
+> [!CAUTION]
+> **Una unidad que falla (chasquidos, mucha lentitud, errores de lectura) puede empeorar con cada lectura.** Deja de usarla y cópiala primero entera a un disco sano con una herramienta como [ddrescue](https://www.gnu.org/software/ddrescue/). Luego abre esa copia con *Abrir una imagen de disco…* y busca en ella cuantas veces quieras, sin tocar el original.
+
 ## Funciones
 
-- 🗑️ **Búsqueda inmediata** en la papelera, en segundos y sin permisos especiales.
+- 🗑️ **Búsqueda rápida** en la papelera, en segundos y sin permisos especiales.
 - 🔎 **Análisis rápido (NTFS).** Lee la tabla de archivos de la unidad (MFT), donde un archivo borrado conserva su nombre. Los archivos vuelven **con su nombre y su carpeta**, en minutos, incluso después de vaciar la papelera.
 - 🧲 **Análisis completo.** PhotoRec lee toda la unidad y reconoce **cientos de tipos de archivo**, incluso tras un formateo o en tarjetas FAT/exFAT. Sin PhotoRec, un motor integrado se encarga de los formatos más comunes.
 - 💿 **Soportes dañados.** Las zonas ilegibles (CD/DVD rayados, tarjetas gastadas) se saltan en lugar de bloquear la búsqueda.

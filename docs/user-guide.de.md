@@ -51,7 +51,7 @@ In der Tiefensuche bieten NTFS-Laufwerke (die meisten Windows-Festplatten) zwei 
 | **Schnell** | Die Dateitabelle des Laufwerks (MFT) | Ein paar Minuten | ✅ Name und Ordner |
 | **Vollständig** | Die Dateitabelle, dann das ganze Laufwerk mit PhotoRec | Von Minuten bis über eine Stunde | Teilweise (siehe unten) |
 
-Beginnen Sie mit **Schnell**. Ist Ihre Datei nicht dabei, klicken Sie auf **Nicht gefunden? Vollständige Suche starten**.
+Beginnen Sie mit **Schnell**. Ist Ihre Datei nicht dabei, klicken Sie auf **Nicht gefunden? Vollständige Analyse starten**.
 
 Auf anderen Dateisystemen (Speicherkarten mit FAT32 und exFAT, ext4, APFS…) geht die Tiefensuche direkt zur vollständigen Analyse über.
 

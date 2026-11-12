@@ -24,7 +24,7 @@ Open Recovr is a single Rust binary with an [egui](https://github.com/emilk/egui
 | `src/main.rs` | Reads the command-line options and opens the window. |
 | `src/app.rs` | The whole interface: drive cards, type chips, result table, preview panel, recover bar, dialogs, expert log. Also holds the `--screenshot` and `--scene` modes. |
 | `src/engine.rs` | Background work. `ScanJob` runs a search and fills a shared `ScanShared` (found files, phase, progress, ETA, log). `start_recovery` copies ticked files out. Also reads a found file back, whatever its origin. |
-| `src/ntfs.rs` | The quick analysis: parses the NTFS Master File Table straight from the raw volume. Deleted records keep their name, parent folder and data runs. |
+| `src/ntfs.rs` | The quick scan: parses the NTFS Master File Table straight from the raw volume. Deleted records keep their name, parent folder and data runs. |
 | `src/photorec.rs` | Drives PhotoRec as a separate process (see below). |
 | `src/carve.rs` | A small built-in carver used when PhotoRec is missing: recognises JPEG, PNG, GIF, BMP, WebP, PDF, ZIP/Office, MP4/MOV, AVI and WAV by their signature, and works out where each file ends. |
 | `src/preview.rs` | What the preview panel shows: decoded pictures, the first lines of text and Office files, or a system thumbnail for videos and PDFs. |
@@ -40,7 +40,7 @@ Open Recovr is a single Rust binary with an [egui](https://github.com/emilk/egui
 
 1. **Recycle Bin.** It always runs, with no rights needed. It reads `$Recycle.Bin` on Windows, and the freedesktop Trash or `.Trash`/`.Trashes` on Linux and macOS. Results have *Excellent* chances.
 2. **NTFS file table** (deep mode, NTFS only). `ntfs::scan` opens the raw volume and walks every MFT record that is marked deleted. It rebuilds the full path from the parent references and reads the data runs. Small files are stored inside the record itself (resident data). A file whose clusters have since been reused, or look blank, gets *Low* chances. System noise (`\Windows\`, `\AppData\Local\`…) is filtered out.
-3. **Whole drive** (deep mode, when the user asked for the full analysis or the drive isn't NTFS). `photorec::scan` runs PhotoRec. If no PhotoRec binary is found, `engine::deep_scan` uses the built-in carver over the drive's free space.
+3. **Whole drive** (deep mode, when the user asked for the full scan or the drive isn't NTFS). `photorec::scan` runs PhotoRec. If no PhotoRec binary is found, `engine::deep_scan` uses the built-in carver over the drive's free space.
 
 Each found file is a `Found` with an `Origin`, which tells how to read it back:
 

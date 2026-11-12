@@ -47,16 +47,16 @@ Później możesz to zmienić przyciskiem **Przejdź do głębokiego wyszukiwani
 
 **Szukam:** zawęża wyszukiwanie do *Zdjęć*, *Filmów*, *Muzyki*, *Dokumentów* lub *Archiwów*. Mniej typów to szybsze wyszukiwanie i krótsza lista. **Zawęź** idzie dalej: konkretne formaty (tylko JPG, tylko DOCX…) i minimalny rozmiar.
 
-W głębokim wyszukiwaniu dyski NTFS (większość dysków Windows) oferują dwie analizy:
+W głębokim wyszukiwaniu dyski NTFS (większość dysków Windows) oferują dwa rodzaje skanowania:
 
-| Analiza | Co czyta | Czas | Zachowuje nazwy? |
+| Skanowanie | Co czyta | Czas | Zachowuje nazwy? |
 |---|---|---|---|
 | **Szybkie** | Tablicę plików dysku (MFT) | Kilka minut | ✅ nazwa i folder |
 | **Pełne** | Tablicę plików, a potem cały dysk za pomocą PhotoRec | Od minut do ponad godziny | Częściowo (patrz niżej) |
 
 Zacznij od **Szybkie**. Jeśli Twojego pliku tam nie ma, kliknij **Nie znaleziono? Uruchom pełne skanowanie**.
 
-W innych systemach plików (karty pamięci FAT32 i exFAT, ext4, APFS…) głębokie wyszukiwanie od razu przechodzi do pełnej analizy.
+W innych systemach plików (karty pamięci FAT32 i exFAT, ext4, APFS…) głębokie wyszukiwanie od razu przechodzi do pełnego skanowania.
 
 ## 3. Wyszukiwanie
 
@@ -141,7 +141,7 @@ W menu w prawym górnym rogu (☰) **Przygotuj raport…** zapisuje plik zip, kt
 ## Najczęstsze pytania
 
 **Mojego pliku nie ma na liście. Co teraz?**
-Sprawdź, czy wybrano właściwy dysk i czy filtr typu go nie ukrywa (*Wszystko*). Potem spróbuj głębokiego wyszukiwania, a na NTFS pełnej analizy. Jeśli dysk był intensywnie używany od usunięcia, plik mógł zostać nadpisany. Wtedy żaden program go nie przywróci.
+Sprawdź, czy wybrano właściwy dysk i czy filtr typu go nie ukrywa (*Wszystko*). Potem spróbuj głębokiego wyszukiwania, a na NTFS pełnego skanowania. Jeśli dysk był intensywnie używany od usunięcia, plik mógł zostać nadpisany. Wtedy żaden program go nie przywróci.
 
 **Odzyskane pliki nazywają się `f1234567.jpg`.**
 Te pliki znalazł PhotoRec, który rozpoznaje plik po zawartości, a nie po tablicy plików: ich oryginalna nazwa jest nieznana. Gdy sam plik nic nie mówi o swojej dacie ani tytule, numer zostaje. Posortuj według daty lub rozmiaru i użyj podglądu, aby znaleźć swój.
@@ -156,7 +156,7 @@ Nie przez USB. Telefon udostępnia tylko pliki, które jeszcze ma, a jego pamię
 Częściowo. Większość dysków SSD kasuje usunięte bloki w tle (TRIM): pliki usunięte jakiś czas temu często przepadły na dobre. Kosz i tablica plików nadal pomagają przy niedawnych usunięciach. Działaj szybko.
 
 **Czy można odzyskać pliki ze sformatowanego dysku?**
-Często tak, za pomocą pełnej analizy. Szybkie formatowanie zostawia zawartość na miejscu. Pełne formatowanie (lub „bezpieczne wymazywanie”) ją nadpisuje.
+Często tak, za pomocą pełnego skanowania. Szybkie formatowanie zostawia zawartość na miejscu. Pełne formatowanie (lub „bezpieczne wymazywanie”) ją nadpisuje.
 
 **Dlaczego głębokie wyszukiwanie wymaga uprawnień administratora?**
 Czyta dysk sektor po sektorze, poniżej systemu plików, a system operacyjny zastrzega to dla administratorów. Open Recovr tylko czyta; nigdy nie zapisuje na tym dysku.
