@@ -21,6 +21,19 @@ pub enum Kind {
     Ole,
     Pcx,
     Markup,
+    Mkv,
+    Ts,
+    Mpeg,
+    Flac,
+    Ogg,
+    Aac,
+    Asf,
+    Flv,
+    Aiff,
+    Caf,
+    Raf,
+    Crw,
+    Psd,
 }
 
 impl Kind {
@@ -32,7 +45,12 @@ impl Kind {
             Kind::Bmp => 200 * MB,
             Kind::Pdf => 300 * MB,
             Kind::Zip => 1024 * MB,
-            Kind::Mp3 | Kind::M4a => 80 * MB,
+            Kind::M4a => 80 * MB,
+            Kind::Mp3 | Kind::Aac => 200 * MB,
+            Kind::Mkv | Kind::Ts | Kind::Mpeg | Kind::Asf | Kind::Flv => 8192 * MB,
+            Kind::Flac | Kind::Aiff | Kind::Caf | Kind::Psd => 2048 * MB,
+            Kind::Ogg => 1024 * MB,
+            Kind::Raf | Kind::Crw => 200 * MB,
             Kind::Mp4 | Kind::Mov | Kind::Avi => 8192 * MB,
             Kind::Wav => 2048 * MB,
             Kind::Tiff => 400 * MB,
@@ -50,8 +68,15 @@ impl Kind {
         use Kind::*;
         match self {
             Zip => inner == Zip,
-            Mp4 | Mov | M4a | Avi => matches!(inner, Mp4 | Mov | M4a | Avi | Jpeg),
-            Tiff => matches!(inner, Tiff | Jpeg),
+            // videos: their frames, cover art, sound tracks stored as bare MP3 or AAC frames
+            Mp4 | Mov | M4a | Avi | Mkv | Asf | Flv => matches!(inner, Mp4 | Mov | M4a | Avi | Mkv | Jpeg | Png | Mp3 | Aac),
+            // a DVD's pack headers come every 2048 bytes, a transport stream's packets every 188
+            Ts | Mpeg => matches!(inner, Ts | Mpeg | Mp3 | Aac | Jpeg),
+            Wav | Aiff | Caf => matches!(inner, Mp3 | Aac),
+            Mp3 | Aac => matches!(inner, Mp3 | Aac | Jpeg | Png),
+            Flac => matches!(inner, Flac | Jpeg | Png),
+            Ogg => matches!(inner, Ogg | Jpeg | Png),
+            Tiff | Raf | Crw | Psd => matches!(inner, Tiff | Jpeg),
             Ole => inner == Ole,
             _ => false,
         }
@@ -122,8 +147,49 @@ pub fn detect(b: &[u8]) -> Option<Kind> {
     if b.starts_with(b"ID3") && b[3] <= 4 && b[6..10].iter().all(|x| x & 0x80 == 0) {
         return Some(Kind::Mp3);
     }
-    if (b.starts_with(b"II*\0") && le32(&b[4..]) >= 8) || (b.starts_with(b"MM\0*") && be32(&b[4..]) >= 8) {
+    // TIFF, and the raw photos that only change its magic number: Olympus ORF, Panasonic RW2
+    let le_tiff = b.starts_with(b"II*\0") || b.starts_with(b"IIRO") || b.starts_with(b"IIRS") || b.starts_with(b"IIU\0");
+    if (le_tiff && le32(&b[4..]) >= 8) || ((b.starts_with(b"MM\0*") || b.starts_with(b"MMOR")) && be32(&b[4..]) >= 8) {
         return Some(Kind::Tiff);
+    }
+    if b.starts_with(&[0x1A, 0x45, 0xDF, 0xA3]) {
+        return Some(Kind::Mkv);
+    }
+    if b.len() >= 400
+        && ((b[0] == 0x47 && b[188] == 0x47 && b[376] == 0x47 && b[1] & 0x80 == 0)
+            || (b[4] == 0x47 && b[196] == 0x47 && b[388] == 0x47 && b[5] & 0x80 == 0))
+    {
+        return Some(Kind::Ts);
+    }
+    if b.starts_with(&[0, 0, 1, 0xBA]) && (b[4] & 0xC4 == 0x44 || b[4] & 0xF1 == 0x21) {
+        return Some(Kind::Mpeg);
+    }
+    if b.starts_with(b"fLaC") && b[4] & 0x7F == 0 && b[5..8] == [0, 0, 34] {
+        return Some(Kind::Flac);
+    }
+    if b.starts_with(b"OggS\0") && b[5] & 0x02 != 0 && b[5] < 8 {
+        return Some(Kind::Ogg);
+    }
+    if b.starts_with(&ASF_HEADER) {
+        return Some(Kind::Asf);
+    }
+    if b.starts_with(b"FLV\x01") && b[4] & 0xFA == 0 && be32(&b[5..]) == 9 {
+        return Some(Kind::Flv);
+    }
+    if b.starts_with(b"FORM") && (&b[8..12] == b"AIFF" || &b[8..12] == b"AIFC") {
+        return Some(Kind::Aiff);
+    }
+    if b.starts_with(b"caff\0\x01\0\0desc") {
+        return Some(Kind::Caf);
+    }
+    if b.starts_with(b"FUJIFILMCCD-RAW ") {
+        return Some(Kind::Raf);
+    }
+    if b.starts_with(b"II\x1a\0\0\0HEAPCCDR") {
+        return Some(Kind::Crw);
+    }
+    if b.starts_with(b"8BPS") && matches!(b[4..6], [0, 1] | [0, 2]) && b[6..12] == [0; 6] {
+        return Some(Kind::Psd);
     }
     if b.starts_with(&[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]) {
         return Some(Kind::Ole);
@@ -149,8 +215,22 @@ pub fn detect(b: &[u8]) -> Option<Kind> {
             return Some(Kind::Markup);
         }
     }
+    // MP3 without a tag, AAC in ADTS frames: just frames, one after the other. The frame after the
+    // first must be valid too when it starts within the sector.
+    // (`keep`: the bits of the third byte that stay the same from frame to frame)
+    for (kind, frame, keep) in [(Kind::Mp3, mp3_frame as fn(&[u8]) -> Option<u64>, 0x0C), (Kind::Aac, adts_frame, 0xFC)] {
+        if let Some(len) = frame(b) {
+            let next = len as usize;
+            let same = |n: &[u8]| frame(n).is_some() && n[1] == b[1] && n[2] & keep == b[2] & keep;
+            if next + 8 > b.len() || same(&b[next..]) {
+                return Some(kind);
+            }
+        }
+    }
     None
 }
+
+const ASF_HEADER: [u8; 16] = [0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9, 0x00, 0xAA, 0x00, 0x62, 0xCE, 0x6C];
 
 /// Any source of bytes that can be read at a position: a volume, an image file...
 pub trait Source {
@@ -200,18 +280,22 @@ struct Cursor<'a> {
     base: u64,
     cache_at: u64,
     cache: Vec<u8>,
+    /// Whether a whole block was read already: the first read is short, as most headers that look
+    /// right at first are not files at all.
+    warm: bool,
 }
 
 impl<'a> Cursor<'a> {
     fn new(src: &'a mut dyn Source, base: u64) -> Self {
-        Self { src, base, cache_at: 0, cache: Vec::new() }
+        Self { src, base, cache_at: 0, cache: Vec::new(), warm: false }
     }
 
     /// `n` bytes at `pos` (relative to the file start), or None past the end of the disk.
     fn get(&mut self, pos: u64, n: usize) -> Option<&[u8]> {
         let have = pos >= self.cache_at && pos + n as u64 <= self.cache_at + self.cache.len() as u64;
         if !have {
-            let want = BLOCK.max(n);
+            let want = if self.warm { BLOCK } else { BLOCK / 16 }.max(n);
+            self.warm = true;
             let mut buf = vec![0u8; want];
             let got = self.src.read_at(self.base + pos, &mut buf);
             buf.truncate(got);
@@ -268,7 +352,8 @@ fn le16(b: &[u8]) -> u64 {
     u16::from_le_bytes(b[..2].try_into().unwrap()) as u64
 }
 
-/// The file found at `offset`: its length and, for zip files, the more precise extension.
+/// The file found at `offset`: its length and its extension, worked out from its content for the
+/// formats that cover several kinds of files (zip, Office, MP4, TIFF...).
 pub fn measure(src: &mut dyn Source, offset: u64, kind: Kind) -> Option<(u64, &'static str)> {
     let mut c = Cursor::new(src, offset);
     let max = kind.max_size();
@@ -279,15 +364,22 @@ pub fn measure(src: &mut dyn Source, offset: u64, kind: Kind) -> Option<(u64, &'
         Kind::Bmp => "bmp",
         Kind::Webp => "webp",
         Kind::Pdf => "pdf",
-        Kind::Mp4 => "mp4",
-        Kind::Mov => "mov",
-        Kind::M4a => "m4a",
         Kind::Avi => "avi",
         Kind::Wav => "wav",
         Kind::Mp3 => "mp3",
         Kind::Pcx => "pcx",
+        Kind::Mpeg => "mpg",
+        Kind::Flac => "flac",
+        Kind::Aac => "aac",
+        Kind::Flv => "flv",
+        Kind::Aiff => "aif",
+        Kind::Caf => "caf",
+        Kind::Raf => "raf",
+        Kind::Crw => "crw",
+        Kind::Psd => "psd",
         // worked out from the file itself
         Kind::Zip | Kind::Tiff | Kind::Ole | Kind::Markup => "",
+        Kind::Mp4 | Kind::Mov | Kind::M4a | Kind::Mkv | Kind::Ts | Kind::Ogg | Kind::Asf => "",
     };
     let len = match kind {
         Kind::Jpeg => jpeg(&mut c, max),
@@ -306,18 +398,34 @@ pub fn measure(src: &mut dyn Source, offset: u64, kind: Kind) -> Option<(u64, &'
             let extra = tail.iter().take_while(|&&x| x == b'\r' || x == b'\n').count() as u64;
             Some(end + extra)
         }
-        Kind::Mp4 | Kind::Mov | Kind::M4a => mp4(&mut c, max),
         Kind::Avi | Kind::Wav | Kind::Webp => {
             let h = c.get(0, 12)?;
             let size = le32(&h[4..]) + 8;
             (size > 64 && size <= max).then_some(size + (size & 1))
         }
+        Kind::Aiff => {
+            let size = be32(&c.get(0, 12)?[4..]) + 8;
+            (size > 64 && size <= max).then_some(size + (size & 1))
+        }
         Kind::Mp3 => mp3(&mut c, max),
         Kind::Pcx => pcx(&mut c, max),
+        Kind::Mpeg => mpeg_ps(&mut c, max),
+        Kind::Flac => flac(&mut c, max),
+        Kind::Aac => aac(&mut c, max),
+        Kind::Flv => flv(&mut c, max),
+        Kind::Caf => caf(&mut c, max),
+        Kind::Raf => raf(&mut c, max),
+        Kind::Crw => crw(&mut c, max),
+        Kind::Psd => psd(&mut c, max),
         Kind::Zip => return zip(&mut c, max),
         Kind::Tiff => return tiff(&mut c, max),
         Kind::Ole => return ole(&mut c, max),
         Kind::Markup => return markup(&mut c, max).filter(|&(len, _)| len >= 64),
+        Kind::Mp4 | Kind::Mov | Kind::M4a => return mp4(&mut c, max).filter(|&(len, _)| len >= 256),
+        Kind::Mkv => return mkv(&mut c, max).filter(|&(len, _)| len >= 256),
+        Kind::Ts => return ts(&mut c, max),
+        Kind::Ogg => return ogg(&mut c, max).filter(|&(len, _)| len >= 256),
+        Kind::Asf => return asf(&mut c, max).filter(|&(len, _)| len >= 256),
     }?;
     (len >= 256).then_some((len, ext))
 }
@@ -464,11 +572,34 @@ fn zip(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
     Some((len, ext))
 }
 
-fn mp4(c: &mut Cursor, max: u64) -> Option<u64> {
+/// The ISO base media files (ISO/IEC 14496-12): MP4, QuickTime, M4A, 3GP, HEIF photos (HEIC and
+/// AVIF), Canon CR3. A chain of boxes, each one with its size; the brands of the first one, `ftyp`,
+/// say which kind of file it is.
+fn mp4(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
     const KNOWN: [&[u8; 4]; 12] =
         [b"ftyp", b"moov", b"mdat", b"free", b"skip", b"wide", b"uuid", b"meta", b"pnot", b"udta", b"moof", b"mfra"];
+    let n = (be32(c.get(0, 16)?) as usize).clamp(16, 512);
+    let ftyp = c.get(0, n)?.to_vec();
+    let major: &[u8] = &ftyp[8..12];
+    let compatible: Vec<&[u8]> = ftyp[16..].as_chunks::<4>().0.iter().map(|b| &b[..]).collect();
+    let has = |b: &[u8]| major == b || compatible.contains(&b);
+    let ext = match major {
+        b"qt  " => "mov",
+        b"M4A " | b"M4B " | b"M4P " => "m4a",
+        b"M4V " | b"M4VH" | b"M4VP" => "m4v",
+        b"crx " => "cr3",
+        b"avif" | b"avis" => "avif",
+        b"heic" | b"heix" | b"heim" | b"heis" | b"hevc" | b"hevx" => "heic",
+        b"mif1" | b"msf1" if has(b"avif") => "avif",
+        b"mif1" | b"msf1" => "heic",
+        m if m.starts_with(b"3g2") => "3g2",
+        m if m.starts_with(b"3gp") || m.starts_with(b"3ge") || m.starts_with(b"3gg") => "3gp",
+        _ => "mp4",
+    };
+    // a HEIF photo has no movie box: its items are described in `meta`
+    let photo = ext == "heic" || ext == "avif";
     let mut pos = 0u64;
-    let (mut moov, mut mdat) = (false, false);
+    let (mut moov, mut mdat, mut meta) = (false, false, false);
     loop {
         let Some(h) = c.get(pos, 16) else { break };
         let mut size = be32(h);
@@ -481,50 +612,563 @@ fn mp4(c: &mut Cursor, max: u64) -> Option<u64> {
         }
         moov |= &typ == b"moov";
         mdat |= &typ == b"mdat";
+        meta |= &typ == b"meta";
         pos += size;
         if pos > max {
             return None;
         }
     }
-    (moov && mdat).then_some(pos)
+    (moov && mdat || photo && meta).then_some((pos, ext))
 }
 
-fn mp3(c: &mut Cursor, max: u64) -> Option<u64> {
+/// The length of the MPEG audio layer III frame whose header starts `f`, if it is one.
+fn mp3_frame(f: &[u8]) -> Option<u64> {
     const BR1: [u64; 15] = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320];
     const BR2: [u64; 15] = [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160];
-    let h = c.get(0, 10)?;
-    let tag = h[6..10].iter().fold(0u64, |a, &b| (a << 7) | b as u64);
-    let mut pos = 10 + tag + if h[5] & 0x10 != 0 { 10 } else { 0 };
-    let mut frames = 0;
+    if f.len() < 4 || f[0] != 0xFF || f[1] & 0xE0 != 0xE0 {
+        return None;
+    }
+    let version = (f[1] >> 3) & 3; // 3 = MPEG1, 2 = MPEG2, 0 = MPEG2.5
+    let layer = (f[1] >> 1) & 3; // 1 = layer III
+    let bri = (f[2] >> 4) as usize;
+    let sri = ((f[2] >> 2) & 3) as usize;
+    if version == 1 || layer != 1 || bri == 0 || bri == 15 || sri == 3 || f[3] & 3 == 2 {
+        return None;
+    }
+    let pad = ((f[2] >> 1) & 1) as u64;
+    let base = [44100u64, 48000, 32000][sri];
+    let (sr, br, k) = match version {
+        3 => (base, BR1[bri], 144),
+        2 => (base / 2, BR2[bri], 72),
+        _ => (base / 4, BR2[bri], 72),
+    };
+    Some(k * br * 1000 / sr + pad)
+}
+
+/// The length of the AAC frame in ADTS form (ISO/IEC 13818-7) whose header starts `h`, if it is one.
+fn adts_frame(h: &[u8]) -> Option<u64> {
+    if h.len() < 7 || h[0] != 0xFF || h[1] & 0xF6 != 0xF0 || (h[2] >> 2) & 15 > 12 {
+        return None;
+    }
+    let len = ((h[3] & 3) as u64) << 11 | (h[4] as u64) << 3 | (h[5] >> 5) as u64;
+    (len >= 7).then_some(len)
+}
+
+/// Frames one after the other, from `pos`, as long as they keep the same format; returns where
+/// they end and how many there are.
+fn frames(c: &mut Cursor, mut pos: u64, max: u64, frame: fn(&[u8]) -> Option<u64>, keep: u8) -> Option<(u64, u32)> {
+    let mut n = 0;
+    let mut first: Option<[u8; 2]> = None;
     loop {
         if pos > max {
             return None;
         }
-        let Some(f) = c.get(pos, 4) else { break };
-        if f[0] != 0xFF || f[1] & 0xE0 != 0xE0 {
+        let Some(f) = c.get(pos, 8) else { break };
+        let Some(len) = frame(f) else { break };
+        let id = [f[1], f[2] & keep];
+        if *first.get_or_insert(id) != id {
             break;
         }
-        let version = (f[1] >> 3) & 3; // 3 = MPEG1, 2 = MPEG2, 0 = MPEG2.5
-        let layer = (f[1] >> 1) & 3; // 1 = layer III
-        let bri = (f[2] >> 4) as usize;
-        let sri = ((f[2] >> 2) & 3) as usize;
-        if version == 1 || layer != 1 || bri == 0 || bri == 15 || sri == 3 {
-            break;
-        }
-        let pad = ((f[2] >> 1) & 1) as u64;
-        let base = [44100u64, 48000, 32000][sri];
-        let (sr, br, k) = match version {
-            3 => (base, BR1[bri], 144),
-            2 => (base / 2, BR2[bri], 72),
-            _ => (base / 4, BR2[bri], 72),
-        };
-        pos += k * br * 1000 / sr + pad;
-        frames += 1;
+        pos += len;
+        n += 1;
     }
+    Some((pos, n))
+}
+
+fn mp3(c: &mut Cursor, max: u64) -> Option<u64> {
+    let h = c.get(0, 10)?;
+    let (start, least) = if h.starts_with(b"ID3") {
+        let tag = h[6..10].iter().fold(0u64, |a, &b| (a << 7) | b as u64);
+        (10 + tag + if h[5] & 0x10 != 0 { 10 } else { 0 }, 10)
+    } else {
+        // without a tag, only the frames say it is a song
+        (0, 32)
+    };
+    let (mut pos, n) = frames(c, start, max, mp3_frame, 0x0C)?;
     if c.get(pos, 3).is_some_and(|t| t == b"TAG") {
         pos += 128;
     }
-    (frames >= 10).then_some(pos)
+    (n >= least).then_some(pos)
+}
+
+fn aac(c: &mut Cursor, max: u64) -> Option<u64> {
+    let (pos, n) = frames(c, 0, max, adts_frame, 0xFC)?;
+    (n >= 32).then_some(pos)
+}
+
+/// An EBML variable-length integer at `pos`: its value (with its length marker for an element ID,
+/// without it for a size, all ones meaning "unknown") and its length.
+fn vint(c: &mut Cursor, pos: u64, id: bool) -> Option<(u64, u64)> {
+    let b = c.get(pos, 8)?;
+    let len = b[0].leading_zeros() as usize + 1;
+    if len > 8 || (id && len > 4) {
+        return None;
+    }
+    let first = if id { b[0] as u64 } else { (b[0] as u64) & (0xFF >> len) };
+    let v = b[1..len].iter().fold(first, |a, &x| (a << 8) | x as u64);
+    Some((v, len as u64))
+}
+
+/// An EBML element at `pos`: its ID, its size (None when unknown) and the length of its header.
+fn element(c: &mut Cursor, pos: u64) -> Option<(u64, Option<u64>, u64)> {
+    let (id, a) = vint(c, pos, true)?;
+    let (size, b) = vint(c, pos + a, false)?;
+    let unknown = size == (1u64 << (7 * b)) - 1;
+    Some((id, (!unknown).then_some(size), a + b))
+}
+
+/// Matroska and WebM: an EBML header that names the kind of document, then one Segment element
+/// that holds everything. Recorders that write as they go (a browser, a screen capture) leave
+/// its size unknown: the file then ends after the last element that can belong to a segment.
+fn mkv(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
+    // the elements a segment holds, and those a cluster holds
+    const SEGMENT: [u64; 10] = [0x114D9B74, 0x1549A966, 0x1654AE6B, 0x1F43B675, 0x1C53BB6B, 0x1941A469, 0x1043A770, 0x1254C367, 0xEC, 0xBF];
+    const CLUSTER: [u64; 8] = [0xE7, 0xA3, 0xA0, 0xA7, 0xAB, 0x5854, 0xEC, 0xBF];
+    fn walk(c: &mut Cursor, mut pos: u64, max: u64, ids: &[u64]) -> u64 {
+        while pos <= max {
+            let Some((id, size, head)) = element(c, pos) else { break };
+            if !ids.contains(&id) {
+                break;
+            }
+            pos = match size {
+                Some(n) => pos + head + n,
+                None if id == 0x1F43B675 => walk(c, pos + head, max, &CLUSTER),
+                None => break,
+            };
+        }
+        pos
+    }
+    let (id, size, head) = element(c, 0)?;
+    let size = size.filter(|&s| id == 0x1A45DFA3 && s <= 1024)?;
+    let ebml = c.get(head, size as usize)?;
+    let ext = if ebml.windows(7).any(|w| w == b"\x42\x82\x84webm") {
+        "webm"
+    } else if ebml.windows(11).any(|w| w == b"\x42\x82\x88matroska") {
+        "mkv"
+    } else {
+        return None;
+    };
+    let seg = head + size;
+    let (id, size, head) = element(c, seg)?;
+    if id != 0x18538067 {
+        return None;
+    }
+    let end = match size {
+        Some(n) => seg + head + n,
+        None => walk(c, seg + head, max, &SEGMENT),
+    };
+    (end <= max).then_some((end, ext))
+}
+
+/// MPEG transport streams: packets of 188 bytes that start with 0x47 (192 bytes, with a time
+/// stamp first, on AVCHD camcorders and Blu-ray discs).
+fn ts(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
+    let (step, at, ext) = if c.get(0, 1)?[0] == 0x47 { (188, 0, "m2t") } else { (192, 4, "mts") };
+    let mut pos = 0u64;
+    let mut n = 0;
+    while c.get(pos + at, 2).is_some_and(|p| p[0] == 0x47 && p[1] & 0x80 == 0) {
+        pos += step;
+        n += 1;
+        if pos > max {
+            return None;
+        }
+    }
+    (n >= 16).then_some((pos, ext))
+}
+
+/// MPEG program streams (MPEG-1 and MPEG-2 video files, DVD VOB files): pack headers and the
+/// packets between them, up to the end code.
+fn mpeg_ps(c: &mut Cursor, max: u64) -> Option<u64> {
+    let mut pos = 0u64;
+    let mut packs = 0;
+    while pos <= max {
+        let Some(h) = c.get(pos, 6).map(|h| [h[0], h[1], h[2], h[3], h[4], h[5]]) else { break };
+        if h[..3] != [0, 0, 1] {
+            break;
+        }
+        match h[3] {
+            0xBA if h[4] & 0xC0 == 0x40 => match c.get(pos, 14) {
+                Some(p) => pos += 14 + (p[13] & 7) as u64,
+                None => break,
+            },
+            0xBA if h[4] & 0xF0 == 0x20 => pos += 12,
+            0xBA => break,
+            0xB9 => return (packs >= 4).then_some(pos + 4),
+            0xBB.. => pos += 6 + ((h[4] as u64) << 8 | h[5] as u64),
+            _ => break,
+        }
+        packs += (h[3] == 0xBA) as u32;
+    }
+    (pos <= max && packs >= 4).then_some(pos)
+}
+
+const fn crc16_table() -> [u16; 256] {
+    let mut t = [0u16; 256];
+    let mut i = 0;
+    while i < 256 {
+        let mut c = (i as u16) << 8;
+        let mut k = 0;
+        while k < 8 {
+            c = if c & 0x8000 != 0 { (c << 1) ^ 0x8005 } else { c << 1 };
+            k += 1;
+        }
+        t[i] = c;
+        i += 1;
+    }
+    t
+}
+const CRC16: [u16; 256] = crc16_table();
+
+fn crc8(data: &[u8]) -> u8 {
+    let mut c = 0u8;
+    for &b in data {
+        c ^= b;
+        for _ in 0..8 {
+            c = if c & 0x80 != 0 { (c << 1) ^ 0x07 } else { c << 1 };
+        }
+    }
+    c
+}
+
+/// The number of samples in the FLAC frame whose header starts `h`, if it is one (its checksum
+/// must match).
+fn flac_frame(h: &[u8]) -> Option<u64> {
+    if h.len() < 16 || h[0] != 0xFF || h[1] & 0xFE != 0xF8 {
+        return None;
+    }
+    let (bs, sr, ch, depth) = (h[2] >> 4, h[2] & 15, h[3] >> 4, (h[3] >> 1) & 7);
+    if bs == 0 || sr == 15 || ch > 10 || depth == 3 || depth == 7 || h[3] & 1 != 0 {
+        return None;
+    }
+    // the frame or sample number, coded like UTF-8
+    let n = match h[4].leading_ones() as usize {
+        0 => 1,
+        k @ 2..=7 => k,
+        _ => return None,
+    };
+    if h[5..4 + n].iter().any(|&x| x & 0xC0 != 0x80) {
+        return None;
+    }
+    let mut p = 4 + n;
+    let samples = match bs {
+        1 => 192,
+        2..=5 => 576u64 << (bs - 2),
+        6 => {
+            p += 1;
+            h[p - 1] as u64 + 1
+        }
+        7 => {
+            p += 2;
+            ((h[p - 2] as u64) << 8 | h[p - 1] as u64) + 1
+        }
+        _ => 256u64 << (bs - 8),
+    };
+    p += match sr {
+        12 => 1,
+        13 | 14 => 2,
+        _ => 0,
+    };
+    (crc8(&h[..p]) == h[p]).then_some(samples)
+}
+
+/// FLAC: metadata blocks, then frames. Frames carry no length: each one ends with a checksum of
+/// the whole frame, so its end is where that checksum matches, just before the next frame (or,
+/// for the last one, once all the samples announced in STREAMINFO are there).
+fn flac(c: &mut Cursor, max: u64) -> Option<u64> {
+    let mut pos = 4u64;
+    let (mut total, mut biggest) = (0u64, 0u64);
+    loop {
+        let h = c.get(pos, 4)?;
+        let (last, typ, len) = (h[0] & 0x80 != 0, h[0] & 0x7F, be32(h) & 0xFF_FFFF);
+        if typ == 127 {
+            return None;
+        }
+        if typ == 0 {
+            let s = c.get(pos + 4, 18)?;
+            biggest = (s[7] as u64) << 16 | (s[8] as u64) << 8 | s[9] as u64;
+            total = ((s[13] & 15) as u64) << 32 | be32(&s[14..]);
+        }
+        pos += 4 + len;
+        if pos > max {
+            return None;
+        }
+        if last {
+            break;
+        }
+    }
+    let cap = if biggest > 0 { biggest + 2 } else { 1 << 20 };
+    let (mut done, mut n) = (0u64, 0u32);
+    loop {
+        let Some(samples) = c.get(pos, 16).and_then(flac_frame) else { break };
+        // the places where the checksum of everything since the frame start comes back to zero
+        let mut ends = Vec::new();
+        let (mut crc, mut at) = (0u16, pos);
+        while at - pos < cap {
+            let Some(s) = c.chunk(at) else { break };
+            let s = s[..s.len().min((cap - (at - pos)) as usize)].to_vec();
+            for (i, &b) in s.iter().enumerate() {
+                crc = (crc << 8) ^ CRC16[((crc >> 8) as u8 ^ b) as usize];
+                let end = at + i as u64 + 1;
+                if crc == 0 && end - pos >= 16 {
+                    ends.push(end);
+                }
+            }
+            at += s.len() as u64;
+        }
+        let last = total > 0 && done + samples >= total;
+        let next = if last { None } else { ends.iter().copied().find(|&e| c.get(e, 16).and_then(flac_frame).is_some()) };
+        let end = match next {
+            Some(e) => e,
+            None if last || total == 0 => match ends.first() {
+                Some(&e) => e,
+                None => break,
+            },
+            None => break,
+        };
+        done += samples;
+        n += 1;
+        pos = end;
+        if pos > max {
+            return None;
+        }
+        if next.is_none() {
+            break;
+        }
+    }
+    (n > 0).then_some(pos)
+}
+
+/// Ogg (Vorbis, Opus, Theora...): pages that start with "OggS". Each logical stream opens with a
+/// page flagged "beginning of stream" and closes with one flagged "end of stream".
+fn ogg(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
+    let mut pos = 0u64;
+    let mut open: Vec<u64> = Vec::new();
+    let (mut pages, mut ext) = (0u32, "ogg");
+    while pos <= max {
+        let Some(h) = c.get(pos, 27) else { break };
+        if &h[..5] != b"OggS\0" {
+            break;
+        }
+        let (flags, serial, segments) = (h[5], le32(&h[14..]), h[26] as u64);
+        let Some(table) = c.get(pos + 27, segments as usize) else { break };
+        let body: u64 = table.iter().map(|&x| x as u64).sum();
+        if flags & 2 != 0 {
+            if pages > 0 && open.is_empty() {
+                break; // the next file
+            }
+            open.push(serial);
+            if pages == 0 {
+                let p = c.get(pos + 27 + segments, 8).map(|p| p.to_vec()).unwrap_or_default();
+                ext = if p.starts_with(b"OpusHead") {
+                    "opus"
+                } else if p.starts_with(b"\x80theora") {
+                    "ogv"
+                } else {
+                    "ogg"
+                };
+            }
+        } else if !open.contains(&serial) {
+            break;
+        }
+        pos += 27 + segments + body;
+        pages += 1;
+        if flags & 4 != 0 {
+            open.retain(|&s| s != serial);
+            if open.is_empty() {
+                break;
+            }
+        }
+    }
+    (pos <= max && pages >= 2).then_some((pos, ext))
+}
+
+fn le64(b: &[u8]) -> u64 {
+    u64::from_le_bytes(b[..8].try_into().unwrap())
+}
+
+/// Windows Media (ASF: wmv, wma). A header object, then a data object and indexes; the header's
+/// file properties give the size of the whole file, except while it is being recorded.
+fn asf(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
+    const DATA: [u8; 16] = [0x36, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11, 0xA6, 0xD9, 0x00, 0xAA, 0x00, 0x62, 0xCE, 0x6C];
+    const FILE_PROPERTIES: [u8; 16] = [0xA1, 0xDC, 0xAB, 0x8C, 0x47, 0xA9, 0xCF, 0x11, 0x8E, 0xE4, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65];
+    const VIDEO: [u8; 16] = [0xC0, 0xEF, 0x19, 0xBC, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B];
+    const AUDIO: [u8; 16] = [0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B];
+    const INDEXES: [[u8; 16]; 2] = [
+        [0x90, 0x08, 0x00, 0x33, 0xB1, 0xE5, 0xCF, 0x11, 0x89, 0xF4, 0x00, 0xA0, 0xC9, 0x03, 0x49, 0xCB],
+        [0xD3, 0x29, 0xE2, 0xD6, 0xDA, 0x35, 0xD1, 0x11, 0x90, 0x34, 0x00, 0xA0, 0xC9, 0x03, 0x49, 0xBE],
+    ];
+    let size = le64(&c.get(0, 30)?[16..]);
+    if !(30..=1 << 20).contains(&size) {
+        return None;
+    }
+    let head = c.get(0, size as usize)?.to_vec();
+    let at = |g: &[u8; 16]| head.windows(16).position(|w| w == g);
+    let ext = if at(&VIDEO).is_some() {
+        "wmv"
+    } else if at(&AUDIO).is_some() {
+        "wma"
+    } else {
+        "asf"
+    };
+    if let Some(i) = at(&FILE_PROPERTIES).filter(|&i| i + 92 <= head.len()) {
+        let (len, broadcast) = (le64(&head[i + 40..]), le32(&head[i + 88..]) & 1 != 0);
+        if !broadcast && len > size && len <= max {
+            return Some((len, ext));
+        }
+    }
+    let mut pos = size;
+    while let Some(o) = c.get(pos, 24) {
+        let len = le64(&o[16..]);
+        if !(o[..16] == DATA || INDEXES.iter().any(|g| o[..16] == *g)) || len < 24 {
+            break;
+        }
+        pos += len;
+        if pos > max {
+            return None;
+        }
+    }
+    (pos > size).then_some((pos, ext))
+}
+
+/// Flash video: a header, then tags, each one followed by its own size.
+fn flv(c: &mut Cursor, max: u64) -> Option<u64> {
+    let mut pos = 13u64;
+    let mut tags = 0;
+    while let Some(t) = c.get(pos, 11) {
+        let len = (t[1] as u64) << 16 | (t[2] as u64) << 8 | t[3] as u64;
+        if !matches!(t[0] & 0x1F, 8 | 9 | 18) || t[8..11] != [0, 0, 0] {
+            break;
+        }
+        if !c.get(pos + 11 + len, 4).is_some_and(|p| be32(p) == 11 + len) {
+            break;
+        }
+        pos += 15 + len;
+        tags += 1;
+        if pos > max {
+            return None;
+        }
+    }
+    (tags >= 2).then_some(pos)
+}
+
+/// Apple Core Audio files: chunks with a 64-bit size, the audio data among them.
+fn caf(c: &mut Cursor, max: u64) -> Option<u64> {
+    let mut pos = 8u64;
+    let mut data = false;
+    while let Some(h) = c.get(pos, 12) {
+        if !h[..4].iter().all(|x| x.is_ascii_alphanumeric() || *x == b' ') {
+            break;
+        }
+        let size = i64::from_be_bytes(h[4..12].try_into().unwrap());
+        if size < 0 {
+            // the audio data of a recording that was never closed: its end is unknown
+            return None;
+        }
+        data |= &h[..4] == b"data";
+        pos += 12 + size as u64;
+        if pos > max {
+            return None;
+        }
+    }
+    data.then_some(pos)
+}
+
+/// Fujifilm RAF: a header that gives the place and length of the JPEG preview, of the sensor
+/// header and of the sensor data.
+fn raf(c: &mut Cursor, max: u64) -> Option<u64> {
+    let h = c.get(0, 0x6C)?.to_vec();
+    let mut end = 0x6C;
+    for i in [0x54, 0x5C, 0x64] {
+        let (at, len) = (be32(&h[i..]), be32(&h[i + 4..]));
+        if len == 0 {
+            continue;
+        }
+        if at < 0x6C || at + len > max {
+            return None;
+        }
+        end = end.max(at + len);
+    }
+    (end > 0x6C).then_some(end)
+}
+
+/// Canon CRW (CIFF): a header, then a heap whose table of contents is at its very end, its offset
+/// in the last four bytes. The scan looks for such a table, counted from the start of the heap;
+/// the table of the whole heap points at sub-heaps that are built the same way (the tables of the
+/// sub-heaps count from the start of each one, so they don't match on the way).
+fn crw(c: &mut Cursor, max: u64) -> Option<u64> {
+    /// Whether `n` entries of 10 bytes, after their count, can end at `q` when the table is at `v`.
+    fn shape(v: u64, q: u64) -> Option<usize> {
+        let n = q.checked_sub(v + 2)?;
+        (n > 0 && n <= 10 * 256 && n % 10 == 0).then_some((n / 10) as usize)
+    }
+    /// The entries of the table of the heap that starts at `start` and ends at `start + len`.
+    fn table(c: &mut Cursor, start: u64, len: u64) -> Option<(u64, Vec<u8>)> {
+        let q = len.checked_sub(4)?;
+        let v = le32(c.get(start + q, 4)?);
+        let n = shape(v, q)?;
+        let t = c.get(start + v, 2 + 10 * n)?.to_vec();
+        (le16(&t) as usize == n).then_some((v, t))
+    }
+    let heap = le32(&c.get(0, 6)?[2..]);
+    let mut len = 16u64;
+    while heap + len <= max {
+        if let Some((v, t)) = table(c, heap, len) {
+            let mut fits = true;
+            let mut subs = Vec::new();
+            for e in t[2..].chunks(10) {
+                let (typ, size, at) = (le16(e), le32(&e[2..]), le32(&e[6..]));
+                if typ & 0xC000 != 0 {
+                    continue; // its value is in the entry itself
+                }
+                fits &= at + size <= v;
+                if matches!(typ & 0x3800, 0x2800 | 0x3000) {
+                    subs.push((at, size));
+                }
+            }
+            if fits && !subs.is_empty() && subs.iter().all(|&(at, size)| table(c, heap + at, size).is_some()) {
+                return Some(heap + len);
+            }
+        }
+        len += 1;
+    }
+    None
+}
+
+/// Photoshop (PSD, and PSB for big documents): a header, three sections with their lengths, then
+/// the merged image, raw or compressed line by line with the length of each line listed first.
+fn psd(c: &mut Cursor, max: u64) -> Option<u64> {
+    let h = c.get(0, 26)?.to_vec();
+    let big = h[5] == 2;
+    let be16 = |b: &[u8]| (b[0] as u64) << 8 | b[1] as u64;
+    let (channels, height, width, depth) = (be16(&h[12..]), be32(&h[14..]), be32(&h[18..]), be16(&h[22..]));
+    if !(1..=56).contains(&channels) || height == 0 || width == 0 || !matches!(depth, 1 | 8 | 16 | 32) {
+        return None;
+    }
+    let mut pos = 26u64;
+    for section in 0..3 {
+        let len = if section == 2 && big { u64::from_be_bytes(c.get(pos, 8)?.try_into().unwrap()) + 8 } else { be32(c.get(pos, 4)?) + 4 };
+        pos += len;
+        if pos > max {
+            return None;
+        }
+    }
+    let lines = channels * height;
+    let compression = be16(c.get(pos, 2)?);
+    pos += 2;
+    match compression {
+        0 => pos += lines * (width * depth).div_ceil(8),
+        1 => {
+            let w = if big { 4 } else { 2 };
+            if lines * w > 64 << 20 {
+                return None;
+            }
+            let counts = c.get(pos, (lines * w) as usize)?;
+            let sum: u64 = counts.chunks(w as usize).map(|v| if big { be32(v) } else { be16(v) }).sum();
+            pos += lines * w + sum;
+        }
+        _ => return None,
+    }
+    (pos <= max).then_some(pos)
 }
 
 fn rd16(le: bool, b: &[u8]) -> u64 {
@@ -639,6 +1283,10 @@ fn tiff(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
     }
     let ext = if dng {
         "dng"
+    } else if matches!(&h[..4], b"IIRO" | b"IIRS" | b"MMOR") {
+        "orf"
+    } else if &h[..4] == b"IIU\0" {
+        "rw2"
     } else if &h[8..10] == b"CR" {
         "cr2"
     } else if sub {
@@ -963,5 +1611,220 @@ mod tests {
         assert!(open.allows(10_000, Kind::Zip), "past its end");
         open.push(Kind::Jpeg, 20_000);
         assert!(open.allows(12_000, Kind::Jpeg), "a photo inside another one");
+    }
+
+    fn boxed(typ: &[u8; 4], body: &[u8]) -> Vec<u8> {
+        let mut b = ((body.len() + 8) as u32).to_be_bytes().to_vec();
+        b.extend_from_slice(typ);
+        b.extend_from_slice(body);
+        b
+    }
+
+    #[test]
+    fn iso_media_named_by_brand() {
+        let heic = [boxed(b"ftyp", b"heic\0\0\0\0mif1heic"), boxed(b"meta", &[0; 300]), boxed(b"mdat", &[7; 200])].concat();
+        assert_eq!(carve_one(&heic, 0x11), Some((Kind::Mp4, heic.len() as u64, "heic")));
+        let avif = [boxed(b"ftyp", b"mif1\0\0\0\0mif1avif"), boxed(b"meta", &[0; 300])].concat();
+        assert_eq!(carve_one(&avif, 0x11), Some((Kind::Mp4, avif.len() as u64, "avif")));
+        let cr3 = [boxed(b"ftyp", b"crx \0\0\0\x01crx isom"), boxed(b"moov", &[0; 300]), boxed(b"mdat", &[7; 200])].concat();
+        assert_eq!(carve_one(&cr3, 0x11), Some((Kind::Mp4, cr3.len() as u64, "cr3")));
+        // a HEIF photo needs its meta box, a video its movie box
+        let no_moov = [boxed(b"ftyp", b"isom\0\0\0\0isom"), boxed(b"mdat", &[7; 400])].concat();
+        assert_eq!(carve_one(&no_moov, 0x11), None);
+    }
+
+    #[test]
+    fn webm_of_unknown_size_ends_after_its_clusters() {
+        let mut f = vec![0x1A, 0x45, 0xDF, 0xA3, 0x87, 0x42, 0x82, 0x84];
+        f.extend_from_slice(b"webm");
+        f.extend_from_slice(&[0x18, 0x53, 0x80, 0x67, 0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
+        f.extend_from_slice(&[0x15, 0x49, 0xA9, 0x66, 0x94]);
+        f.extend_from_slice(&[0; 20]);
+        for _ in 0..2 {
+            f.extend_from_slice(&[0x1F, 0x43, 0xB6, 0x75, 0xFF, 0xE7, 0x81, 0x00]);
+            for _ in 0..2 {
+                f.extend_from_slice(&[0xA3, 0x40, 200]);
+                f.extend_from_slice(&[0x55; 200]);
+            }
+        }
+        assert_eq!(carve_one(&f, 0x11), Some((Kind::Mkv, f.len() as u64, "webm")));
+    }
+
+    #[test]
+    fn transport_and_program_streams() {
+        let packet = |prefix: usize| {
+            let mut p = vec![0u8; prefix];
+            p.extend_from_slice(&[0x47, 0x40, 0x00, 0x10]);
+            p.resize(prefix + 188, 0xFF);
+            p
+        };
+        let ts = packet(0).repeat(20);
+        assert_eq!(carve_one(&ts, 0x11), Some((Kind::Ts, ts.len() as u64, "m2t")));
+        let m2ts = packet(4).repeat(20);
+        assert_eq!(carve_one(&m2ts, 0x11), Some((Kind::Ts, m2ts.len() as u64, "mts")));
+
+        let mut ps = Vec::new();
+        for _ in 0..5 {
+            ps.extend_from_slice(&[0, 0, 1, 0xBA, 0x44, 0, 4, 0, 4, 1, 0, 0, 3, 0xF8]);
+            ps.extend_from_slice(&[0, 0, 1, 0xE0, 0, 100]);
+            ps.extend_from_slice(&[0x80; 100]);
+        }
+        ps.extend_from_slice(&[0, 0, 1, 0xB9]);
+        assert_eq!(carve_one(&ps, 0x11), Some((Kind::Mpeg, ps.len() as u64, "mpg")));
+    }
+
+    #[test]
+    fn flac_ends_with_its_last_sample() {
+        let mut f = b"fLaC".to_vec();
+        f.extend_from_slice(&[0x80, 0, 0, 34]);
+        let mut info = [0u8; 34];
+        info[..4].copy_from_slice(&[0x10, 0, 0x10, 0]);
+        info[10..13].copy_from_slice(&[0x0A, 0xC4, 0x40]); // 44.1 kHz, mono, 16 bits
+        info[14..18].copy_from_slice(&(3 * 4096u32).to_be_bytes());
+        f.extend_from_slice(&info);
+        for k in 0..3u8 {
+            let start = f.len();
+            f.extend_from_slice(&[0xFF, 0xF8, 0xC9, 0x08, k]);
+            f.push(crc8(&f[start..]));
+            f.extend((0..300u32).map(|i| (i * 7 + k as u32 * 13) as u8));
+            let crc = f[start..].iter().fold(0u16, |c, &b| (c << 8) ^ CRC16[((c >> 8) as u8 ^ b) as usize]);
+            f.extend_from_slice(&crc.to_be_bytes());
+        }
+        assert_eq!(carve_one(&f, 0x11), Some((Kind::Flac, f.len() as u64, "flac")));
+    }
+
+    #[test]
+    fn ogg_ends_with_its_last_page() {
+        let page = |flags: u8, table: &[u8], body: &[u8]| {
+            let mut p = b"OggS\0".to_vec();
+            p.push(flags);
+            p.extend_from_slice(&[0; 8]);
+            p.extend_from_slice(&7u32.to_le_bytes());
+            p.extend_from_slice(&[0; 8]);
+            p.push(table.len() as u8);
+            p.extend_from_slice(table);
+            p.extend_from_slice(body);
+            p
+        };
+        let mut head = b"OpusHead".to_vec();
+        head.resize(30, 1);
+        let f = [page(2, &[30], &head), page(0, &[255, 100], &[9; 355]), page(4, &[50], &[9; 50])].concat();
+        assert_eq!(carve_one(&f, 0x11), Some((Kind::Ogg, f.len() as u64, "opus")));
+    }
+
+    #[test]
+    fn bare_audio_frames() {
+        let mut mp3 = Vec::new();
+        for _ in 0..40 {
+            mp3.extend_from_slice(&[0xFF, 0xFB, 0x90, 0x64]);
+            mp3.resize(mp3.len() + 413, 0x22);
+        }
+        assert_eq!(carve_one(&mp3, 0x11), Some((Kind::Mp3, mp3.len() as u64, "mp3")));
+        let mut aac = Vec::new();
+        for _ in 0..40 {
+            aac.extend_from_slice(&[0xFF, 0xF1, 0x50, 0x80, (300 >> 3) as u8, ((300 & 7) << 5 | 0x1F) as u8, 0xFC]);
+            aac.resize(aac.len() + 293, 0x22);
+        }
+        assert_eq!(carve_one(&aac, 0x11), Some((Kind::Aac, aac.len() as u64, "aac")));
+        // a few frames are not a song
+        assert_eq!(carve_one(&mp3[..417 * 5], 0x11), None);
+    }
+
+    #[test]
+    fn asf_takes_its_size_from_its_header() {
+        let mut f = ASF_HEADER.to_vec();
+        f.extend_from_slice(&150u64.to_le_bytes());
+        f.extend_from_slice(&[2, 0, 0, 0, 1, 2]);
+        f.extend_from_slice(&[0xA1, 0xDC, 0xAB, 0x8C, 0x47, 0xA9, 0xCF, 0x11, 0x8E, 0xE4, 0x00, 0xC0, 0x0C, 0x20, 0x53, 0x65]);
+        let mut props = vec![0u8; 88];
+        props[..8].copy_from_slice(&104u64.to_le_bytes());
+        props[24..32].copy_from_slice(&600u64.to_le_bytes());
+        f.extend_from_slice(&props);
+        f.extend_from_slice(&[0x40, 0x9E, 0x69, 0xF8, 0x4D, 0x5B, 0xCF, 0x11, 0xA8, 0xFD, 0x00, 0x80, 0x5F, 0x5C, 0x44, 0x2B]);
+        assert_eq!(f.len(), 150);
+        f.resize(600, 0x33);
+        assert_eq!(carve_one(&f, 0x11), Some((Kind::Asf, 600, "wma")));
+    }
+
+    #[test]
+    fn flv_aiff_and_caf() {
+        let mut flv = b"FLV\x01\x05\0\0\0\x09\0\0\0\0".to_vec();
+        for _ in 0..3 {
+            flv.extend_from_slice(&[9, 0, 0, 100, 0, 0, 0, 0, 0, 0, 0]);
+            flv.extend_from_slice(&[0x44; 100]);
+            flv.extend_from_slice(&111u32.to_be_bytes());
+        }
+        assert_eq!(carve_one(&flv, 0x11), Some((Kind::Flv, flv.len() as u64, "flv")));
+
+        let mut aiff = b"FORM".to_vec();
+        aiff.extend_from_slice(&592u32.to_be_bytes());
+        aiff.extend_from_slice(b"AIFFCOMM");
+        aiff.resize(600, 0x44);
+        assert_eq!(carve_one(&aiff, 0x11), Some((Kind::Aiff, 600, "aif")));
+
+        let mut caf = b"caff\0\x01\0\0desc".to_vec();
+        caf.extend_from_slice(&32u64.to_be_bytes());
+        caf.extend_from_slice(&[0x44; 32]);
+        caf.extend_from_slice(b"data");
+        caf.extend_from_slice(&400u64.to_be_bytes());
+        caf.extend_from_slice(&[0x44; 400]);
+        assert_eq!(carve_one(&caf, 0x11), Some((Kind::Caf, caf.len() as u64, "caf")));
+    }
+
+    #[test]
+    fn raw_photos_that_are_not_tiff() {
+        let mut raf = b"FUJIFILMCCD-RAW 0201FF383501".to_vec();
+        raf.resize(0x54, b' ');
+        for (at, len) in [(0x100u32, 200u32), (0x200, 50), (0x300, 1000)] {
+            raf.extend_from_slice(&at.to_be_bytes());
+            raf.extend_from_slice(&len.to_be_bytes());
+        }
+        raf.resize(0x300 + 1000, 0x55);
+        assert_eq!(carve_one(&raf, 0x11), Some((Kind::Raf, raf.len() as u64, "raf")));
+
+        // CIFF: a sub-heap holding one value, then the table of the whole heap
+        let mut crw = b"II\x1a\0\0\0HEAPCCDRAAAA\0\0\0\0\0\0\0\0".to_vec();
+        let entry = |typ: u16, size: u32, at: u32| [&typ.to_le_bytes()[..], &size.to_le_bytes(), &at.to_le_bytes()].concat();
+        let mut heap = vec![0xAA; 400];
+        let mut sub = vec![0xBB; 20];
+        sub.extend_from_slice(&1u16.to_le_bytes());
+        sub.extend(entry(0x1010, 20, 0));
+        sub.extend_from_slice(&20u32.to_le_bytes());
+        heap.extend_from_slice(&sub);
+        let table = heap.len() as u32;
+        heap.extend_from_slice(&2u16.to_le_bytes());
+        heap.extend(entry(0x2007, 400, 0));
+        heap.extend(entry(0x300A, sub.len() as u32, 400));
+        heap.extend_from_slice(&table.to_le_bytes());
+        crw.extend_from_slice(&heap);
+        assert_eq!(carve_one(&crw, 0x11), Some((Kind::Crw, crw.len() as u64, "crw")));
+
+        let mut orf = b"IIRO\x08\0\0\0\x02\0".to_vec();
+        for (tag, value) in [(273u16, 64u32), (279, 400)] {
+            orf.extend_from_slice(&tag.to_le_bytes());
+            orf.extend_from_slice(&4u16.to_le_bytes());
+            orf.extend_from_slice(&1u32.to_le_bytes());
+            orf.extend_from_slice(&value.to_le_bytes());
+        }
+        orf.resize(464, 0x66);
+        assert_eq!(carve_one(&orf, 0x11), Some((Kind::Tiff, 464, "orf")));
+    }
+
+    #[test]
+    fn psd_ends_after_its_merged_image() {
+        let mut f = b"8BPS\0\x01\0\0\0\0\0\0\0\x03".to_vec();
+        f.extend_from_slice(&10u32.to_be_bytes()); // height
+        f.extend_from_slice(&20u32.to_be_bytes()); // width
+        f.extend_from_slice(&[0, 8, 0, 3]);
+        f.extend_from_slice(&0u32.to_be_bytes());
+        f.extend_from_slice(&4u32.to_be_bytes());
+        f.extend_from_slice(b"8BIM");
+        f.extend_from_slice(&0u32.to_be_bytes());
+        f.extend_from_slice(&1u16.to_be_bytes()); // RLE: the length of each of the 30 lines
+        for _ in 0..30 {
+            f.extend_from_slice(&6u16.to_be_bytes());
+        }
+        f.extend_from_slice(&[0xFD, 0x00, 0xFD, 0x00, 0xF9, 0x00].repeat(30));
+        assert_eq!(carve_one(&f, 0x11), Some((Kind::Psd, f.len() as u64, "psd")));
     }
 }

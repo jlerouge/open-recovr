@@ -46,12 +46,13 @@ impl Category {
 
     pub fn from_ext(ext: &str) -> Category {
         match ext.to_ascii_lowercase().as_str() {
-            "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp" | "heic" | "heif" | "tif" | "tiff" | "raw" | "cr2" | "cr3" | "crw" | "nef"
-            | "dng" | "arw" | "orf" | "raf" | "rw2" | "x3f" | "mrw" | "pef" | "psd" | "pcx" | "svg" => Category::Photos,
-            "mp4" | "mov" | "avi" | "mkv" | "wmv" | "asf" | "3gp" | "m4v" | "mts" | "m2ts" | "webm" | "mpg" | "mpeg" | "flv" | "wtv" => {
-                Category::Videos
+            "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp" | "heic" | "heif" | "avif" | "tif" | "tiff" | "raw" | "cr2" | "cr3" | "crw"
+            | "nef" | "dng" | "arw" | "orf" | "raf" | "rw2" | "x3f" | "mrw" | "pef" | "psd" | "pcx" | "svg" => Category::Photos,
+            "mp4" | "mov" | "avi" | "mkv" | "wmv" | "asf" | "3gp" | "m4v" | "mts" | "m2ts" | "webm" | "mpg" | "mpeg" | "flv" | "wtv"
+            | "ogv" | "3g2" | "m2t" | "vob" => Category::Videos,
+            "mp3" | "wav" | "m4a" | "flac" | "ogg" | "opus" | "wma" | "aac" | "aif" | "aiff" | "mid" | "au" | "ape" | "caf" | "m4b" => {
+                Category::Music
             }
-            "mp3" | "wav" | "m4a" | "flac" | "ogg" | "opus" | "wma" | "aac" | "aif" | "aiff" | "mid" | "au" | "ape" => Category::Music,
             "pdf" | "doc" | "docx" | "xls" | "xlsx" | "ppt" | "pptx" | "odt" | "ods" | "odp" | "odg" | "txt" | "rtf" | "csv" | "md"
             | "epub" | "one" | "wpd" | "ps" | "pub" | "msg" | "eml" | "vsd" | "xml" | "html" | "htm" | "json" | "yaml" | "yml" | "ini"
             | "tex" | "c" | "h" | "cpp" | "hpp" | "cc" | "cs" | "java" | "kt" | "py" | "js" | "ts" | "rs" | "go" | "php" | "rb" | "pl"
@@ -103,7 +104,7 @@ impl Format {
 pub const FORMATS: &[Format] = &[
     fmt("JPG", Category::Photos, &["jpg", "jpeg"], &["jpg"]),
     fmt("PNG", Category::Photos, &["png"], &["png"]),
-    fmt("HEIC", Category::Photos, &["heic", "heif"], &["mov"]),
+    fmt("HEIC / AVIF", Category::Photos, &["heic", "heif", "avif"], &["mov"]),
     fmt(
         "RAW",
         Category::Photos,
@@ -117,16 +118,17 @@ pub const FORMATS: &[Format] = &[
     fmt("PCX", Category::Photos, &["pcx"], &["pcx"]),
     fmt("SVG", Category::Photos, &["svg"], &["xml"]),
     fmt("Photoshop", Category::Photos, &["psd"], &["psd"]),
-    fmt("MP4 / MOV", Category::Videos, &["mp4", "mov", "m4v", "3gp"], &["mov"]),
+    fmt("MP4 / MOV", Category::Videos, &["mp4", "mov", "m4v", "3gp", "3g2"], &["mov"]),
     fmt("AVI", Category::Videos, &["avi"], &["riff"]),
     fmt("MKV", Category::Videos, &["mkv", "webm"], &["mkv"]),
+    fmt("FLV", Category::Videos, &["flv"], &["flv"]),
     fmt("WMV", Category::Videos, &["wmv", "asf"], &["asf"]),
-    fmt("MPEG", Category::Videos, &["mpg", "mpeg", "m2ts", "mts"], &["mpg", "m2ts"]),
+    fmt("MPEG", Category::Videos, &["mpg", "mpeg", "vob", "m2ts", "mts", "m2t"], &["mpg", "m2ts"]),
     fmt("MP3", Category::Music, &["mp3"], &["mp3"]),
-    fmt("WAV", Category::Music, &["wav"], &["riff"]),
-    fmt("M4A / AAC", Category::Music, &["m4a", "aac"], &["mov"]),
+    fmt("WAV / AIFF", Category::Music, &["wav", "aif", "aiff", "caf"], &["riff", "aif"]),
+    fmt("M4A / AAC", Category::Music, &["m4a", "m4b", "aac"], &["mov"]),
     fmt("FLAC", Category::Music, &["flac"], &["flac"]),
-    fmt("OGG", Category::Music, &["ogg", "opus"], &["ogg"]),
+    fmt("OGG", Category::Music, &["ogg", "opus", "ogv"], &["ogg"]),
     fmt("WMA", Category::Music, &["wma"], &["asf"]),
     fmt("Word", Category::Documents, &["doc", "docx", "odt", "rtf"], &["doc", "zip", "txt"]),
     fmt("Excel", Category::Documents, &["xls", "xlsx", "ods", "csv"], &["doc", "zip", "txt"]),
