@@ -22,6 +22,8 @@ rfd = { version = "0.17.2", default-features = false }
 zip = { version = "9.3.0", default-features = false, features = ["deflate"] }
 resvg = { version = "0.49", default-features = false }
 sha2 = "0.10"
+crc32fast = "1.5"
+miniz_oxide = "0.8"
 minisign-verify = "0.3.0"
 
 [target.'cfg(windows)'.dependencies]

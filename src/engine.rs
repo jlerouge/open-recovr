@@ -1,6 +1,7 @@
 //! The work that runs in the background: searching a drive, copying files back, previews.
 
-use crate::carve::{self, Source, Volume};
+use crate::carve::{self, Measure, Source, Volume};
+use crate::frag::{self, Claims, Rebuilt};
 use crate::sys::{self, Disk};
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -497,6 +498,34 @@ pub(crate) fn deep_scan(
     // files already found that cover the position: a header inside one is still looked at
     let mut open = carve::Open::default();
     let mut counts = std::collections::HashMap::<&str, usize>::new();
+    // what the files found cover, and the files that went wrong before their end
+    let mut claims = Claims::default();
+    let mut broken = Vec::new();
+    let mut add = |abs: u64, ext: &'static str, len: u64, origin: Origin| {
+        let cat = Category::from_ext(ext);
+        if !wanted.accepts(ext, cat, len, false) {
+            return;
+        }
+        let n = counts.entry(ext).or_default();
+        *n += 1;
+        let name = format!("{}_{:04}.{ext}", cat.stem(), *n);
+        let mut g = s.lock().unwrap();
+        g.note(t!("trouvé {} ({}) à l'octet {}", name, crate::app::human_size(len), abs));
+        g.add(Found {
+            id: *next_id,
+            name,
+            ext: ext.to_string(),
+            category: cat,
+            size: len,
+            place: t!("Retrouvé dans l'espace libre · {}", crate::app::human_size(abs)),
+            date: None,
+            stamp: 0,
+            chance: Chance::Good,
+            origin,
+            checked: false,
+        });
+        *next_id += 1;
+    };
     let mut last_report = std::time::Instant::now();
     let eta = Eta::new(0.0);
     while pos < size {
@@ -537,37 +566,47 @@ pub(crate) fn deep_scan(
             if !in_use(abs)
                 && let Some(kind) = carve::detect(&buf[off..got.min(off + 512)])
                 && open.allows(abs, kind)
-                && let Some((len, ext)) = carve::measure(&mut vol, abs, kind)
             {
-                open.push(kind, abs + len);
-                let cat = Category::from_ext(ext);
-                if !wanted.accepts(ext, cat, len, false) {
-                    off += step;
-                    continue;
+                match carve::assess(&mut vol, abs, kind) {
+                    Measure::Whole(len, ext, sure) => {
+                        open.push(kind, abs + len);
+                        claims.add(abs, if sure { abs + len } else { abs + 512 });
+                        add(abs, ext, len, Origin::Raw { device: disk.device.clone(), offset: abs });
+                    }
+                    // most likely cut in pieces: put back together once everything else is known
+                    Measure::Broken => {
+                        claims.add(abs, abs + 512);
+                        broken.push((abs, kind));
+                    }
+                    Measure::None => {}
                 }
-                let n = counts.entry(ext).or_default();
-                *n += 1;
-                let name = format!("{}_{:04}.{ext}", cat.stem(), *n);
-                let mut g = s.lock().unwrap();
-                g.note(t!("trouvé {} ({}) à l'octet {}", name, crate::app::human_size(len), abs));
-                g.add(Found {
-                    id: *next_id,
-                    name,
-                    ext: ext.to_string(),
-                    category: cat,
-                    size: len,
-                    place: t!("Retrouvé dans l'espace libre · {}", crate::app::human_size(abs)),
-                    date: None,
-                    stamp: 0,
-                    chance: Chance::Good,
-                    origin: Origin::Raw { device: disk.device.clone(), offset: abs },
-                    checked: false,
-                });
-                *next_id += 1;
             }
             off += step;
         }
         pos += got as u64;
+    }
+    // second pass: the files cut in pieces, rebuilt from the free space no other file holds
+    if !broken.is_empty() && !cancel.load(Ordering::Relaxed) {
+        set_phase(s, t!("Reconstitution des fichiers fragmentés…"), 1.0);
+        ctx.request_repaint();
+    }
+    for (abs, kind) in broken {
+        if cancel.load(Ordering::Relaxed) {
+            break;
+        }
+        match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|off| !in_use(off)) {
+            Some(Rebuilt::Pieces(runs, ext)) => {
+                let len = runs.iter().map(|r| r.1).sum();
+                let runs = runs.into_iter().map(|(a, l)| (Some(a), l)).collect();
+                add(abs, ext, len, Origin::Runs { device: disk.device.clone(), runs });
+            }
+            // what reads of it straight through, as before
+            None => {
+                if let Some((len, ext)) = carve::measure(&mut vol, abs, kind) {
+                    add(abs, ext, len, Origin::Raw { device: disk.device.clone(), offset: abs });
+                }
+            }
+        }
     }
     Ok(())
 }

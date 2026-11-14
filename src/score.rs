@@ -17,7 +17,8 @@
 //! commas (`-` when unknown). With the image given, the scorer reads those ranges back to tell the
 //! files still intact on disk from those already overwritten: no engine can be blamed for those.
 
-use crate::carve::{self, Source, Volume};
+use crate::carve::{self, Measure, Source, Volume};
+use crate::frag::{self, Claims, Rebuilt};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::io::Read;
@@ -40,6 +41,9 @@ pub fn carve_image(image: &Path, out: &Path) {
     let mut buf = vec![0u8; CHUNK];
     let (mut pos, mut found, mut bytes) = (0u64, 0usize, 0u64);
     let mut open = carve::Open::default();
+    // what the files found cover, and the files that went wrong before their end
+    let mut claims = Claims::default();
+    let mut broken = Vec::new();
     while pos < size {
         let span = CHUNK.min((size - pos) as usize);
         let got = vol.read_at(pos, &mut buf[..span]);
@@ -52,20 +56,69 @@ pub fn carve_image(image: &Path, out: &Path) {
             let abs = pos + off as u64;
             if let Some(kind) = carve::detect(&buf[off..got.min(off + 512)])
                 && open.allows(abs, kind)
-                && let Some((len, ext)) = carve::measure(&mut vol, abs, kind)
             {
-                open.push(kind, abs + len);
-                let path = out.join(format!("f{abs:012}.{ext}"));
-                if copy_range(&mut vol, abs, len, &path) {
-                    found += 1;
-                    bytes += len;
+                match carve::assess(&mut vol, abs, kind) {
+                    Measure::Whole(len, ext, sure) => {
+                        open.push(kind, abs + len);
+                        claims.add(abs, if sure { abs + len } else { abs + 512 });
+                        let path = out.join(format!("f{abs:012}.{ext}"));
+                        if copy_range(&mut vol, abs, len, &path) {
+                            found += 1;
+                            bytes += len;
+                        }
+                    }
+                    Measure::Broken => {
+                        claims.add(abs, abs + 512);
+                        broken.push((abs, kind));
+                    }
+                    Measure::None => {}
                 }
             }
             off += STEP;
         }
         pos += got as u64;
     }
-    println!("carved {found} files, {bytes} bytes, in {:.2} s", t.elapsed().as_secs_f64());
+    // second pass: the files cut in pieces, put back together from what no other file holds
+    let mut rebuilt = 0usize;
+    for (abs, kind) in broken {
+        let (runs, ext) = match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|_| true) {
+            Some(Rebuilt::Pieces(runs, ext)) => {
+                rebuilt += 1;
+                (runs, ext)
+            }
+            // what reads of it straight through, as before
+            None => match carve::measure(&mut vol, abs, kind) {
+                Some((len, ext)) => (vec![(abs, len)], ext),
+                None => continue,
+            },
+        };
+        let path = out.join(format!("f{abs:012}.{ext}"));
+        if copy_runs(&mut vol, &runs, &path) {
+            found += 1;
+            bytes += runs.iter().map(|r| r.1).sum::<u64>();
+        }
+    }
+    println!("carved {found} files ({rebuilt} put back together), {bytes} bytes, in {:.2} s", t.elapsed().as_secs_f64());
+}
+
+/// Writes the pieces of a file, one after the other.
+fn copy_runs(src: &mut dyn Source, runs: &[(u64, u64)], path: &Path) -> bool {
+    use std::io::Write;
+    let Ok(f) = std::fs::File::create(path) else { return false };
+    let mut w = std::io::BufWriter::new(f);
+    let mut buf = vec![0u8; 1 << 20];
+    for &(start, len) in runs {
+        let mut done = 0u64;
+        while done < len {
+            let n = ((len - done) as usize).min(buf.len());
+            let got = src.read_at(start + done, &mut buf[..n]);
+            if got == 0 || w.write_all(&buf[..got]).is_err() {
+                return false;
+            }
+            done += got as u64;
+        }
+    }
+    w.flush().is_ok()
 }
 
 fn copy_range(src: &mut dyn Source, start: u64, len: u64, path: &Path) -> bool {

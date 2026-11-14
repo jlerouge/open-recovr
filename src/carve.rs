@@ -352,6 +352,86 @@ fn le16(b: &[u8]) -> u64 {
     u16::from_le_bytes(b[..2].try_into().unwrap()) as u64
 }
 
+/// What the first pass makes of a header.
+pub enum Measure {
+    /// a file that reads straight through: its length and extension
+    /// (sure when its content was checked to the end, not just its declared size trusted:
+    /// only then may no other file have a piece inside it)
+    Whole(u64, &'static str, bool),
+    /// a file whose content goes wrong before its end: most likely cut in pieces, for the
+    /// second pass to put back together
+    Broken,
+    None,
+}
+
+/// Like `measure`, but tells a file cut in pieces from one that is not there at all, for the
+/// formats whose content can be checked closely enough (baseline JPEG, PNG, ZIP).
+pub fn assess(src: &mut dyn Source, offset: u64, kind: Kind) -> Measure {
+    if kind == Kind::Zip {
+        match crate::pkzip::measure(src, offset) {
+            crate::pkzip::Walk::Done(len) => {
+                let ext = measure(src, offset, kind).map_or("zip", |m| m.1);
+                return Measure::Whole(len, ext, true);
+            }
+            crate::pkzip::Walk::Broken(..) => return Measure::Broken,
+            crate::pkzip::Walk::Unsupported => {}
+        }
+    }
+    if kind == Kind::Ole {
+        match crate::ole::measure(src, offset) {
+            crate::ole::Check::Good(len, ext) => return Measure::Whole(len, ext, true),
+            crate::ole::Check::Bad(_) => return Measure::Broken,
+            crate::ole::Check::Unsupported => {}
+        }
+    }
+    if kind == Kind::Png {
+        match crate::png::measure(src, offset) {
+            Some(crate::png::Walk::Done(len)) => return Measure::Whole(len, "png", true),
+            Some(crate::png::Walk::Broken(_)) => return Measure::Broken,
+            None => return Measure::None,
+        }
+    }
+    if kind == Kind::Jpeg {
+        match crate::jpeg::measure(src, offset, kind.max_size()) {
+            crate::jpeg::Outcome::Done(len) => return Measure::Whole(len, "jpg", true),
+            crate::jpeg::Outcome::Broken(_) => return Measure::Broken,
+            crate::jpeg::Outcome::Unsupported => {}
+        }
+    }
+    if kind == Kind::Gif {
+        match crate::gif::measure(src, offset) {
+            crate::gif::Check::Good(len) => return Measure::Whole(len, "gif", true),
+            crate::gif::Check::Bad => return Measure::Broken,
+            crate::gif::Check::Unsupported => {}
+        }
+    }
+    if kind == Kind::Tiff {
+        match crate::tif::measure(src, offset) {
+            crate::tif::Check::Good(len) => return Measure::Whole(len, "tif", true),
+            crate::tif::Check::Bad => return Measure::Broken,
+            crate::tif::Check::Unsupported => {}
+        }
+    }
+    if kind == Kind::Pcx {
+        match crate::pcx::measure(src, offset) {
+            crate::pcx::Check::Good(len) => return Measure::Whole(len, "pcx", true),
+            crate::pcx::Check::Bad => return Measure::Broken,
+            crate::pcx::Check::Unsupported => {}
+        }
+    }
+    if kind == Kind::Bmp {
+        match crate::bmp::measure(src, offset) {
+            crate::bmp::Check::Good(len) => return Measure::Whole(len, "bmp", true),
+            crate::bmp::Check::Bad => return Measure::Broken,
+            crate::bmp::Check::Unsupported => {}
+        }
+    }
+    match measure(src, offset, kind) {
+        Some((len, ext)) => Measure::Whole(len, ext, false),
+        None => Measure::None,
+    }
+}
+
 /// The file found at `offset`: its length and its extension, worked out from its content for the
 /// formats that cover several kinds of files (zip, Office, MP4, TIFF...).
 pub fn measure(src: &mut dyn Source, offset: u64, kind: Kind) -> Option<(u64, &'static str)> {
