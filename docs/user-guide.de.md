@@ -49,11 +49,16 @@ In der Tiefensuche bieten NTFS-Laufwerke (die meisten Windows-Festplatten) zwei 
 | Analyse | Was sie liest | Dauer | Namen erhalten? |
 |---|---|---|---|
 | **Schnell** | Die Dateitabelle des Laufwerks (MFT) | Ein paar Minuten | ✅ Name und Ordner |
-| **Vollständig** | Die Dateitabelle, dann das ganze Laufwerk mit PhotoRec | Von Minuten bis über eine Stunde | Teilweise (siehe unten) |
+| **Vollständig** | Die Dateitabelle, dann das ganze Laufwerk | Von Minuten bis über eine Stunde | Teilweise (siehe unten) |
 
 Beginnen Sie mit **Schnell**. Ist Ihre Datei nicht dabei, klicken Sie auf **Nicht gefunden? Vollständige Analyse starten**.
 
 Auf anderen Dateisystemen (Speicherkarten mit FAT32 und exFAT, ext4, APFS…) geht die Tiefensuche direkt zur vollständigen Analyse über.
+
+Die vollständige Analyse hat zwei Engines, wählbar unter **Einstellungen → Engine der vollständigen Analyse**:
+
+- **Modern** (Standard): die eigene Engine von Open Recovr. Sie setzt fragmentierte Dateien wieder zusammen (JPEG, PNG, GIF, BMP, TIFF, PCX, ZIP und Office-Dateien, ältere Word- und Excel-Dateien) und prüft jede Datei, die sie behält.
+- **Klassisch (PhotoRec)**: startet [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) von Christophe Grenier, das mehrere hundert Dateitypen kennt. PhotoRec ist nicht enthalten: Unter Windows lädt **PhotoRec herunterladen** in den Einstellungen es von cgsecurity.org; unter Linux und macOS installieren Sie das Paket `testdisk`.
 
 ## 3. Die Suche
 
@@ -87,7 +92,7 @@ Jede gefundene Datei wird von vorne bis hinten gelesen, und die Spalte **Zustand
 
 Dieselbe Datei wird oft mehrmals gefunden (zum Beispiel im Papierkorb und auf dem Laufwerk). Die Kopien verbergen sich hinter einem Link *Duplikate ausgeblendet · Anzeigen*.
 
-Von PhotoRec gefundene Dateien haben keinen eigenen Namen. Open Recovr gibt ihnen, wenn möglich, einen aus ihrem Inhalt: `photo_2024-07-14_18-22-05.jpg` aus dem Aufnahmedatum eines Fotos, den Titel eines Word- oder PDF-Dokuments, Künstler und Titel einer MP3.
+Von der vollständigen Analyse gefundene Dateien haben keinen eigenen Namen. Open Recovr gibt ihnen, wenn möglich, einen aus ihrem Inhalt: `photo_2024-07-14_18-22-05.jpg` aus dem Aufnahmedatum eines Fotos, den Titel eines Word- oder PDF-Dokuments, Künstler und Titel einer MP3.
 
 ## 5. Markieren, was zurück soll
 
@@ -127,7 +132,7 @@ Wenn eine neue Version erscheint, zeigt die untere Leiste **→ v…: aktualisie
 
 ![Der Expertenmodus mit dem Suchprotokoll](screenshots/de-7-expert.png)
 
-Der **Expertenmodus** im Menü oben rechts zeigt unter der Liste das Protokoll der Suche: Laufwerk und Dateisystem, jede Phase und die Zeilen von PhotoRec. **Alles kopieren** kopiert das Protokoll, praktisch für eine Fehlermeldung. Ziehen Sie den oberen Rand des Protokolls, um es zu vergrößern.
+Der **Expertenmodus** im Menü oben rechts zeigt unter der Liste das Protokoll der Suche: Laufwerk und Dateisystem, jede Phase und, mit der klassischen Engine, die Zeilen von PhotoRec. **Alles kopieren** kopiert das Protokoll, praktisch für eine Fehlermeldung. Ziehen Sie den oberen Rand des Protokolls, um es zu vergrößern.
 
 Jede Suche wird außerdem in `journal.txt` neben den Einstellungen geschrieben (`%APPDATA%\Open Recovr` unter Windows). Der Link **Protokoll** unten öffnet die Datei.
 
@@ -141,7 +146,7 @@ Im Menü oben rechts (☰) speichert **Bericht erstellen…** ein Zip, das Sie d
 Prüfen Sie, dass das richtige Laufwerk gewählt ist und der Artfilter sie nicht verbirgt (*Alles*). Versuchen Sie dann die Tiefensuche und auf NTFS die vollständige Analyse. Wurde das Laufwerk seit dem Löschen viel benutzt, ist die Datei womöglich überschrieben. Dann kann sie keine Software zurückholen.
 
 **Die geretteten Dateien heißen `f1234567.jpg`.**
-Diese Dateien hat PhotoRec gefunden, das eine Datei an ihrem Inhalt erkennt und nicht über die Dateitabelle: Ihr ursprünglicher Name ist unbekannt. Wenn die Datei selbst nichts über Datum oder Titel verrät, bleibt die Nummer. Sortieren Sie nach Datum oder Größe und nutzen Sie die Vorschau, um Ihre zu finden.
+Diese Dateien hat die vollständige Analyse gefunden, die eine Datei an ihrem Inhalt erkennt und nicht über die Dateitabelle: Ihr ursprünglicher Name ist unbekannt. Wenn die Datei selbst nichts über Datum oder Titel verrät, bleibt die Nummer. Sortieren Sie nach Datum oder Größe und nutzen Sie die Vorschau, um Ihre zu finden.
 
 **Eine Datei ist als Beschädigt markiert. Lohnt sich die Rettung?**
 Oft ja. Ein beschädigtes Foto zeigt vielleicht nur die obere Hälfte, ein beschädigtes Video läuft vielleicht bis zur kaputten Stelle. Retten Sie es und probieren Sie es aus: Es kostet nichts, und das Laufwerk wird nie verändert.
@@ -161,5 +166,5 @@ Sie liest das Laufwerk Sektor für Sektor, unterhalb des Dateisystems, und das B
 **Ist es sicher? Schickt es meine Daten irgendwohin?**
 Open Recovr arbeitet offline. Kein Konto, keine Telemetrie. Die einzige Verbindung ist die Suche nach Updates: Beim Start fragt es GitHub nach der Nummer der neuesten Version und schickt sonst nichts. Entfernen Sie in den Einstellungen den Haken bei „Beim Start nach Updates suchen“, um sie abzuschalten; über das Menü können Sie weiterhin auf Wunsch prüfen. Ein Update wird nur installiert, wenn es mit dem Schlüssel des Projekts signiert ist, der nie auf GitHub liegt: Eine gefälschte Version, die jemand anderes dort ablegt, wird abgelehnt. Der Code ist offen: Überzeugen Sie sich selbst.
 
-**Linux / macOS: Die Tiefensuche meldet, dass PhotoRec nicht verfügbar ist.**
-Installieren Sie es: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) oder `brew install testdisk` (macOS). Open Recovr findet `photorec` dann von selbst. Ohne PhotoRec sucht eine einfachere eingebaute Engine nach den gängigsten Formaten.
+**Die klassische Engine lässt sich in den Einstellungen nicht wählen.**
+PhotoRec ist nicht installiert. Unter Windows klicken Sie unter der Engine-Auswahl auf **PhotoRec herunterladen**. Unter Linux und macOS installieren Sie es: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) oder `brew install testdisk` (macOS). Open Recovr findet `photorec` dann von selbst. Die moderne Engine braucht nichts.

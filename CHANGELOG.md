@@ -4,6 +4,13 @@ All notable changes to Open Recovr are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+- **Two engines for the full scan**, chosen in Settings. The **modern** engine, the default, is Open Recovr's own, written from the format specifications. The **classic** engine runs PhotoRec by Christophe Grenier.
+- The modern engine **puts fragmented files back together**: JPEG, PNG, GIF, BMP, TIFF, PCX, ZIP and Office files, older Word and Excel files. Each format's own structure tells where a piece ends, and the next piece is looked for in the free space. It also recognises many more formats: TIFF and camera raw files, HEIC/AVIF, MKV/WebM, MPEG-TS and PS, FLAC, Ogg, MP3/AAC streams, WMV/WMA, FLV, AIFF, CAF, PSD, Office 97–2003 files, PCX, HTML, XML, icons, TrueType/OpenType fonts and gzip. A PDF now runs to its last `%%EOF` (linearized files, incremental updates) instead of stopping at the first. The methods are described in [docs/carving.md](docs/carving.md).
+- **PhotoRec is no longer included.** Open Recovr looks for it at startup. On Windows, *Download PhotoRec* in Settings fetches the official archive from cgsecurity.org and checks every file against a known SHA-256. On Linux and macOS, install the `testdisk` package.
+- **A carving benchmark** that scores any engine against a list of the files really on the disk (`--carve`, `--bench-score`, `scripts/bench`). The results against PhotoRec 7.2 are in [docs/benchmarks.md](docs/benchmarks.md).
+
 ## 0.3.1
 
 - Five new interface languages: Italian, Brazilian Portuguese, Dutch, Polish and Ukrainian. They were drafted by machine; corrections by native speakers are very welcome (see CONTRIBUTING.md). Polish and Ukrainian get their own plural forms.

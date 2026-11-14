@@ -2,6 +2,7 @@
 
 #[macro_use]
 mod i18n;
+mod addon;
 mod app;
 mod art;
 mod bench;

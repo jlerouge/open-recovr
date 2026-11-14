@@ -8,8 +8,8 @@ Open Recovr is a single Rust binary with an [egui](https://github.com/emilk/egui
 └───────────────┬─────────────────────────────┬──────────────────────────────┘
                 │ ScanJob / start_recovery    │ previews
         ┌───────▼────────── engine.rs (background threads) ──────────────────┐
-        │ 1. Recycle Bin ──► 2. NTFS file table ──► 3. PhotoRec / built-in   │
-        │    (sys)              (ntfs.rs)               (photorec.rs, carve) │
+        │ 1. Recycle Bin ──► 2. NTFS file table ──► 3. modern / classic      │
+        │    (sys)              (ntfs.rs)        (carve, frag; photorec.rs)  │
         └───────┬────────────────────────────────────────────────────────────┘
                 │
         ┌───────▼──────── sys.rs ────────┐
@@ -25,8 +25,10 @@ Open Recovr is a single Rust binary with an [egui](https://github.com/emilk/egui
 | `src/app.rs` | The whole interface: drive cards, type chips, result table, preview panel, recover bar, dialogs, expert log. Also holds the `--screenshot` and `--scene` modes. |
 | `src/engine.rs` | Background work. `ScanJob` runs a search and fills a shared `ScanShared` (found files, phase, progress, ETA, log). `start_recovery` copies ticked files out. Also reads a found file back, whatever its origin. |
 | `src/ntfs.rs` | The quick scan: parses the NTFS Master File Table straight from the raw volume. Deleted records keep their name, parent folder and data runs. |
-| `src/photorec.rs` | Drives PhotoRec as a separate process (see below). |
-| `src/carve.rs` | A small built-in carver used when PhotoRec is missing: recognises JPEG, PNG, GIF, BMP, WebP, PDF, ZIP/Office, MP4/MOV, AVI and WAV by their signature, and works out where each file ends. |
+| `src/carve.rs`, `src/frag.rs` and the format modules (`jpeg.rs`, `png.rs`, `gif.rs`, `bmp.rs`, `tif.rs`, `pcx.rs`, `ole.rs`, `pkzip.rs`) | The modern engine: finds files by their headers in raw sectors, works out where each one ends, and puts fragmented files back together. See [carving.md](carving.md). |
+| `src/photorec.rs` | The classic engine: drives PhotoRec as a separate process (see below). |
+| `src/addon.rs` | Fetches PhotoRec on demand on Windows (the optional add-on). |
+| `src/score.rs` | `--carve` and `--bench-score`, the benchmark tools (see [benchmarks.md](benchmarks.md)). |
 | `src/preview.rs` | What the preview panel shows: decoded pictures, the first lines of text and Office files, or a system thumbnail for videos and PDFs. |
 | `src/sys.rs` + `src/sys/` | Everything that talks to the operating system: listing drives and their kind, admin rights and elevation, the Recycle Bin/Trash, free-space maps, raw reads, thumbnails, sound, the tray icon. `windows.rs` uses `windows-sys`; `unix.rs` covers Linux and macOS with `libc`. |
 | `src/i18n.rs` + `lang/` | Translations (see below). |
@@ -40,7 +42,7 @@ Open Recovr is a single Rust binary with an [egui](https://github.com/emilk/egui
 
 1. **Recycle Bin.** It always runs, with no rights needed. It reads `$Recycle.Bin` on Windows, and the freedesktop Trash or `.Trash`/`.Trashes` on Linux and macOS. Results have *Excellent* chances.
 2. **NTFS file table** (deep mode, NTFS only). `ntfs::scan` opens the raw volume and walks every MFT record that is marked deleted. It rebuilds the full path from the parent references and reads the data runs. Small files are stored inside the record itself (resident data). A file whose clusters have since been reused, or look blank, gets *Low* chances. System noise (`\Windows\`, `\AppData\Local\`…) is filtered out.
-3. **Whole drive** (deep mode, when the user asked for the full scan or the drive isn't NTFS). `photorec::scan` runs PhotoRec. If no PhotoRec binary is found, `engine::deep_scan` uses the built-in carver over the drive's free space.
+3. **Whole drive** (deep mode, when the user asked for the full scan or the drive isn't NTFS). By default, `engine::deep_scan` runs the modern engine over the drive's free space. When the user chose the classic engine in Settings and PhotoRec was found, `photorec::scan` runs PhotoRec instead.
 
 Each found file is a `Found` with an `Origin`, which tells how to read it back:
 
@@ -54,9 +56,9 @@ The interface reads `ScanShared` every frame, so results appear as they arrive.
 
 **Nothing is written to the searched drive.** Raw volumes are opened read-only. PhotoRec's output folder (the *stage*) is always placed on another drive, and so is the recovery folder; the app warns before it saves anywhere else.
 
-## Running PhotoRec
+## Running PhotoRec (classic engine)
 
-PhotoRec is a text-mode program. Open Recovr runs it hidden, with a command line built from the user's choices:
+PhotoRec is a text-mode program, and it is optional. Open Recovr runs it hidden, with a command line built from the user's choices:
 
 - the device;
 - free space only on NTFS, FAT and ext, all space elsewhere;
@@ -66,10 +68,10 @@ It parses PhotoRec's progress from the screen output (sector reached, files foun
 
 The PhotoRec binary is found in this order:
 
-- **Windows:** `vendor/testdisk-7.2/photorec_win.exe` next to the program. It comes from `scripts/fetch-photorec.ps1` in a dev checkout, and is included in the release zip.
+- **Windows:** the add-on folder `%LOCALAPPDATA%Open Recovr	estdisk-7.2`, filled by Settings → *Download PhotoRec* (`addon.rs` downloads the official archive from cgsecurity.org and checks each kept file against a known SHA-256); then `PATH`; then `vendor/testdisk-7.2/` near the program, filled by `scripts/fetch-photorec.ps1` in a dev checkout. PhotoRec is not included in the releases.
 - **Linux and macOS:** `photorec` in `PATH`, `/usr/sbin`, `/usr/local/bin` or `/opt/homebrew/bin`.
 
-Because PhotoRec runs as a separate, unmodified program, Open Recovr's own code can use the MIT licence while PhotoRec keeps the GPL.
+PhotoRec runs as a separate, unmodified program that the user installs on their own, so Open Recovr's own code keeps the MIT licence while PhotoRec keeps the GPL.
 
 `--photorec-test <image> <stage>` runs this pipeline on a disk image, for debugging.
 
@@ -91,4 +93,4 @@ Interface texts are written in French in the code, inside the `t!("…")` macro,
 
 - `--screenshot out.png` renders the window with egui's own screenshot support and quits after a fixed number of frames.
 - `--scene` puts the app in a given state first (`home`, `scanning`, `selected`, `recovered`), so `scripts/screenshots.sh` can regenerate every picture in `docs/screenshots/` with no mouse driving.
-- Unit tests cover the NTFS parser (on a synthetic volume), the carver's length rules, drive classification, translations and icon rendering. `cargo test`. `--bench` is the end-to-end quality check.
+- Unit tests cover the NTFS parser (on a synthetic volume), the carver's length rules and the rebuilding of fragmented files, drive classification, translations and icon rendering. `cargo test`. `--bench` is a small end-to-end regression check; engines are compared with the tools in `scripts/bench` (see [benchmarks.md](benchmarks.md)).

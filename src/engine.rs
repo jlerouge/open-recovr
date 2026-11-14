@@ -48,7 +48,7 @@ impl Category {
     pub fn from_ext(ext: &str) -> Category {
         match ext.to_ascii_lowercase().as_str() {
             "jpg" | "jpeg" | "png" | "gif" | "bmp" | "webp" | "heic" | "heif" | "avif" | "tif" | "tiff" | "raw" | "cr2" | "cr3" | "crw"
-            | "nef" | "dng" | "arw" | "orf" | "raf" | "rw2" | "x3f" | "mrw" | "pef" | "psd" | "pcx" | "svg" => Category::Photos,
+            | "nef" | "dng" | "arw" | "orf" | "raf" | "rw2" | "x3f" | "mrw" | "pef" | "psd" | "pcx" | "svg" | "ico" => Category::Photos,
             "mp4" | "mov" | "avi" | "mkv" | "wmv" | "asf" | "3gp" | "m4v" | "mts" | "m2ts" | "webm" | "mpg" | "mpeg" | "flv" | "wtv"
             | "ogv" | "3g2" | "m2t" | "vob" => Category::Videos,
             "mp3" | "wav" | "m4a" | "flac" | "ogg" | "opus" | "wma" | "aac" | "aif" | "aiff" | "mid" | "au" | "ape" | "caf" | "m4b" => {
@@ -67,7 +67,7 @@ impl Category {
     pub fn families(self) -> &'static [&'static str] {
         match self {
             Category::Photos => {
-                &["jpg", "png", "gif", "bmp", "tif", "psd", "pcx", "raw", "crw", "orf", "raf", "rw2", "x3f", "mrw", "riff", "mov"]
+                &["jpg", "png", "gif", "bmp", "tif", "psd", "pcx", "raw", "crw", "orf", "raf", "rw2", "x3f", "mrw", "riff", "mov", "ico"]
             }
             Category::Videos => &["mov", "mkv", "riff", "mpg", "asf", "flv", "m2ts", "wtv"],
             Category::Music => &["mp3", "flac", "ogg", "riff", "aif", "mid", "au", "ape", "asf", "mov"],
@@ -368,7 +368,7 @@ impl ScanJob {
                     }
                 }
                 if !handled && !c.load(Ordering::Relaxed) {
-                    s.lock().unwrap().note(t!("PhotoRec indisponible : recherche intégrée à la place"));
+                    s.lock().unwrap().note(t!("Analyse complète : moteur moderne d'Open Recovr"));
                     if let Err(msg) = deep_scan(&disk, &wanted, &s, &c, &mut next_id, &ctx) {
                         s.lock().unwrap().problem = Some(msg);
                     }

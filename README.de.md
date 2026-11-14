@@ -7,7 +7,7 @@
 **Gelöschte Dateien zurückholen, ganz einfach.**
 
 Ein einziger Bildschirm, kein Assistent: Laufwerk wählen, suchen, ankreuzen, was zurück soll.<br>
-Frei und kostenlos, angetrieben von [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec).
+Frei und kostenlos, mit eigener Wiederherstellungs-Engine und [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) als Option.
 
 [English](README.md) · [Français](README.fr.md) · [Español](README.es.md) · **Deutsch** · [Italiano](README.it.md) · [Português (Brasil)](README.pt.md) · [Nederlands](README.nl.md) · [Polski](README.pl.md) · [Українська](README.uk.md)
 
@@ -27,7 +27,7 @@ Frei und kostenlos, angetrieben von [PhotoRec](https://www.cgsecurity.org/wiki/P
 
 Den Urlaubsordner oder eine Abschlussarbeit zu verlieren, ist schon stressig genug. Wiederherstellungsprogramme sind oft teuer oder voller Fachjargon. Kostenlose Werkzeuge wie PhotoRec sind hervorragend, laufen aber in einem Textterminal.
 
-Open Recovr setzt eine freundliche Oberfläche mit nur einem Bildschirm auf PhotoRec, eine bewährte freie Engine. Dazu kommt eine schnelle Analyse, die Dateien **mit ihrem ursprünglichen Namen und Ordner** zurückbringt.
+Open Recovr bringt alles auf einen einzigen, einfachen Bildschirm. Eine schnelle Analyse bringt Dateien **mit ihrem ursprünglichen Namen und Ordner** zurück. Für den Rest liest die eigene Engine das ganze Laufwerk und **setzt fragmentierte Fotos, Archive und Office-Dokumente wieder zusammen**. PhotoRec, die bewährte freie Engine, bleibt als klassische Engine verfügbar. Der Vergleich beider ist in den [Benchmarks](docs/benchmarks.md) (auf Englisch) gemessen.
 
 ## So funktioniert es
 
@@ -54,10 +54,10 @@ Eine Datei zu löschen, vernichtet sie nicht. Das System vergisst nur, wo sie li
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-de-dark.svg">
-  <img src="docs/illustrations/deleted-file-de.svg" alt="Was mit einer gelöschten Datei passiert: 1. Im Papierkorb, gefunden von der Schnellsuche. 2. Papierkorb geleert, der Name steht noch im Inhaltsverzeichnis des Laufwerks, gefunden von der Tiefensuche. 3. Verzeichnis neu belegt, die Teile liegen noch auf dem Laufwerk, gefunden von der Tiefensuche dank PhotoRec. 4. Von einer neuen Datei überschrieben, zu spät." width="100%">
+  <img src="docs/illustrations/deleted-file-de.svg" alt="Was mit einer gelöschten Datei passiert: 1. Im Papierkorb, gefunden von der Schnellsuche. 2. Papierkorb geleert, der Name steht noch im Inhaltsverzeichnis des Laufwerks, gefunden von der Tiefensuche. 3. Verzeichnis neu belegt, die Teile liegen noch auf dem Laufwerk, gefunden von der Tiefensuche. 4. Von einer neuen Datei überschrieben, zu spät." width="100%">
 </picture>
 
-In Schritt 3 sind nur noch die Bytes übrig. **File Carving** durchsucht das ganze Laufwerk nach den Signaturen, die Anfang und Ende jedes Dateityps markieren, und setzt die Dateien daraus wieder zusammen. Das ist der schwierige Teil, und ihn erledigt **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. Der ganze Verdienst gebührt Christophe Grenier, der es seit über zwanzig Jahren schreibt und pflegt. Open Recovr erfindet es nicht neu: Es fügt die Oberfläche hinzu, die Schritte 1 und 2 sowie die Prüfungen, Namen und Vorschauen für jede gefundene Datei.
+In Schritt 3 sind nur noch die Bytes übrig. **File Carving** durchsucht das ganze Laufwerk nach den Signaturen, die den Anfang jedes Dateityps markieren, und bestimmt, wo jede Datei endet. War eine Datei in mehreren Teilen gespeichert, wird das nächste Teil im freien Speicher gesucht. Die moderne Engine von Open Recovr erledigt das selbst ([wie](docs/carving.md), auf Englisch). Die klassische Engine überlässt diese Arbeit **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**, das weit mehr Dateitypen erkennt. PhotoRec hat solide Grundlagen für diese Art von Open-Source-Software gelegt: ein großes Dankeschön an Christophe Grenier, der es seit über zwanzig Jahren schreibt und pflegt.
 
 Je früher Sie suchen, desto mehr ist zu finden. Auf einer SSD wird freigegebener Platz oft kurz danach im Hintergrund gelöscht (TRIM): Die Schritte 1 und 2 helfen bei frisch gelöschten Dateien noch, die vollständige Analyse findet dort aber womöglich wenig.
 
@@ -71,7 +71,7 @@ Je früher Sie suchen, desto mehr ist zu finden. Auf einer SSD wird freigegebene
 
 - 🗑️ **Schnellsuche** im Papierkorb, in Sekunden und ohne besondere Rechte.
 - 🔎 **Schnelle Analyse (NTFS).** Liest die Dateitabelle des Laufwerks (MFT), in der eine gelöschte Datei ihren Namen behält. Die Dateien kommen **mit Namen und Ordner** zurück, in wenigen Minuten, auch nach dem Leeren des Papierkorbs.
-- 🧲 **Vollständige Analyse.** PhotoRec liest das ganze Laufwerk und erkennt **Hunderte von Dateitypen**, auch nach einer Formatierung oder auf FAT/exFAT-Karten. Ohne PhotoRec übernimmt eine eingebaute Engine die gängigen Formate.
+- 🧲 **Vollständige Analyse.** Das ganze Laufwerk wird gelesen und Dateien werden an ihrem Inhalt erkannt, auch nach einer Formatierung oder auf FAT/exFAT-Karten. Die **moderne Engine**, die von Open Recovr, erkennt rund vierzig Formate (Fotos, RAW, Videos, Musik, Office, PDF, Archive, Schriften) und **setzt fragmentierte Dateien wieder zusammen**. Die **klassische Engine**, PhotoRec, erkennt **Hunderte von Dateitypen**; sie wird in den Einstellungen gewählt.
 - 💿 **Beschädigte Datenträger.** Unlesbare Bereiche (zerkratzte CD/DVD, abgenutzte Karten) werden übersprungen, statt die Suche zu blockieren.
 - 🖼️ **Vorschau vor der Wiederherstellung.** Fotos, Videos, Töne, PDFs, Texte und Word-Dokumente.
 - 🏷️ **Namen und Daten, die etwas sagen.** Eine Datei, die nur eine Nummer hatte, bekommt einen Namen aus ihrem Inhalt: `photo_2024-07-14_18-22-05.jpg` aus dem EXIF-Datum, den Titel eines Word- oder PDF-Dokuments, Künstler und Titel einer MP3.
@@ -81,7 +81,7 @@ Je früher Sie suchen, desto mehr ist zu finden. Auf einer SSD wird freigegebene
 - 🗂️ **Sortieren und filtern** nach Typ (Fotos, Videos, Musik, Dokumente, Archive), Format, Größe und Name.
 - 💾 **Alle Laufwerke.** Festplatten, SATA- und NVMe-SSDs, SD-, microSD- und CompactFlash-Karten, USB-Sticks, externe Festplatten und CD/DVD.
 - 🕒 **Im Hintergrund.** Das Fenster kann sich während einer langen Suche neben der Uhr verstecken.
-- 🛠️ **Expertenmodus.** Das vollständige Suchprotokoll und die Ausgabe von PhotoRec.
+- 🛠️ **Expertenmodus.** Das vollständige Suchprotokoll (und die Ausgabe von PhotoRec mit der klassischen Engine).
 - 🎨 **Farbdesigns.** Hell oder dunkel mit einem Klick, dazu Nord, Catppuccin, Tokyo Night, Solarized, Monokai und Gruvbox.
 - 🔄 **Sichere Updates.** Ist eine neue Version verfügbar, lädt ein Klick sie herunter, prüft ihre Signatur und installiert sie.
 - 🩺 **Hilfebericht.** *Bericht erstellen…* speichert eine Zip-Datei (System, Laufwerke, Protokoll der letzten Suche) für die Person, die Ihnen hilft, mit unkenntlich gemachten persönlichen Namen. Open Recovr verschickt sie nie selbst.
@@ -96,9 +96,9 @@ Laden Sie die neueste Version unter **[Releases](https://github.com/jlerouge/ope
 
 | System | Datei | So starten Sie es |
 |---|---|---|
-| **Windows 10 / 11** (64 Bit) | `open-recovr-…-windows-x64-setup.exe` oder `…-windows-x64.zip` | Installer starten (ohne Administratorrechte) oder entpacken und `open-recovr.exe` öffnen. PhotoRec ist enthalten. Beide aktualisieren sich mit einem Klick. |
-| Linux (64 Bit) | `open-recovr-…-linux-x64.tar.gz` | Entpacken und `./open-recovr` starten. Für die vollständige Analyse: `sudo apt install testdisk`. |
-| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Entpacken, dann Rechtsklick → *Öffnen* (die App ist nicht signiert). Danach `brew install testdisk`. |
+| **Windows 10 / 11** (64 Bit) | `open-recovr-…-windows-x64-setup.exe` oder `…-windows-x64.zip` | Installer starten (ohne Administratorrechte) oder entpacken und `open-recovr.exe` öffnen. Beide aktualisieren sich mit einem Klick. PhotoRec ist optional: Die Einstellungen können es für die klassische Engine herunterladen. |
+| Linux (64 Bit) | `open-recovr-…-linux-x64.tar.gz` | Entpacken und `./open-recovr` starten. Für die klassische Engine (optional): `sudo apt install testdisk`. |
+| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Entpacken, dann Rechtsklick → *Öffnen* (die App ist nicht signiert). Für die klassische Engine (optional): `brew install testdisk`. |
 
 Das Laufwerk selbst zu lesen (schnelle und vollständige Analyse) erfordert Administratorrechte. Open Recovr fragt nur danach, wenn Sie zur Tiefensuche wechseln; der Papierkorb wird auch ohne sie durchsucht.
 
@@ -110,7 +110,8 @@ Das Laufwerk selbst zu lesen (schnelle und vollständige Analyse) erfordert Admi
 | Auf echter Hardware getestet | ✅ | ⚠️ noch nicht | ⚠️ noch nicht |
 | Papierkorb | ✅ | ✅ freedesktop-Papierkorb | ✅ `.Trash` |
 | NTFS-Dateitabelle (schnelle Analyse) | ✅ | ✅ NTFS-Volumes | ✅ NTFS-Volumes |
-| Vollständige Analyse (PhotoRec) | ✅ enthalten | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
+| Vollständige Analyse, moderne Engine | ✅ | ✅ | ✅ |
+| Vollständige Analyse, klassische Engine (PhotoRec) | ✅ aus den Einstellungen geladen | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
 | Video-/PDF-Vorschaubilder, Ton | ✅ | ❌ | ❌ |
 | Symbol neben der Uhr | ✅ | ❌ | ❌ |
 
@@ -126,13 +127,15 @@ cd open-recovr
 cargo build --release
 ```
 
-Unter Windows laden Sie PhotoRec einmalig mit `powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1` herunter. Die Kommandozeilenoptionen sind im [englischen README](README.md#build-from-source) beschrieben.
+Für die klassische Engine unter Windows können die Einstellungen PhotoRec herunterladen; Entwickler laden es auch einmalig mit `powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1` herunter. Die Kommandozeilenoptionen sind im [englischen README](README.md#build-from-source) beschrieben.
 
 ## Lizenz und Danksagung
 
 Open Recovr ist freie Software unter der [MIT-Lizenz](LICENSE).
 
-Die vollständige Analyse übernimmt **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, lizenziert unter der GNU GPL v2 oder später. Open Recovr startet es als **separates, unverändertes Programm**. Die Windows-Version enthält PhotoRec 7.2 samt Lizenz (`vendor/testdisk-7.2/COPYING.txt`). Der Quellcode von PhotoRec ist auf [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download) erhältlich.
+Die moderne Engine von Open Recovr, standardmäßig für die vollständige Analyse verwendet, ist von Grund auf nach den Spezifikationen der Dateiformate geschrieben und teilt keinen Code mit PhotoRec. Ihre Methoden sind in [docs/carving.md](docs/carving.md) (auf Englisch) beschrieben.
+
+Die klassische Engine startet **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, lizenziert unter der GNU GPL v2 oder später, als **separates, unverändertes Programm**. PhotoRec wird nicht mit Open Recovr ausgeliefert: Unter Windows lädt Open Recovr auf Wunsch in den Einstellungen das offizielle Archiv von PhotoRec 7.2 von [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download) herunter und prüft jede Datei gegen einen bekannten SHA-256; unter Linux und macOS kommt es aus dem `testdisk`-Paket des Systems. PhotoRec hat die Grundlagen des Open-Source-File-Carvings gelegt, und dieses Projekt verdankt ihm viel. Danke, Christophe, für über zwanzig Jahre Arbeit an TestDisk und PhotoRec.
 
 Open Recovr ist ein unabhängiges Projekt und steht in keiner Verbindung zu kommerzieller Wiederherstellungssoftware.
 

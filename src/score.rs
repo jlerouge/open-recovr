@@ -16,6 +16,9 @@
 //! where they lay, as `offset+length` byte ranges counted from the start of the image, separated by
 //! commas (`-` when unknown). With the image given, the scorer reads those ranges back to tell the
 //! files still intact on disk from those already overwritten: no engine can be blamed for those.
+//!
+//! Files with the same content are one file to get back: a file written and deleted several times
+//! counts once, as still on the disk if any of its copies is, and as live if any copy is live.
 
 use crate::carve::{self, Measure, Source, Volume};
 use crate::frag::{self, Claims, Rebuilt};
@@ -294,6 +297,31 @@ fn intact(img: &mut dyn Source, t: &Truth) -> Option<bool> {
     Some(left == 0 && <[u8; 32]>::from(h.finalize()) == t.sha)
 }
 
+/// The same content deleted several times (copied, deleted, written again) is one file to get
+/// back: an engine that brings it back once has done all anyone can. Its copies are merged into
+/// one, still on the disk when any copy is; a content that is still listed somewhere is live.
+fn merge_copies(truth: Vec<Truth>, ceiling: Vec<Option<bool>>) -> (Vec<Truth>, Vec<Option<bool>>) {
+    let mut at: HashMap<[u8; 32], usize> = HashMap::new();
+    let mut out: Vec<(Truth, Option<bool>)> = Vec::new();
+    for (t, c) in truth.into_iter().zip(ceiling) {
+        let Some(&k) = at.get(&t.sha) else {
+            at.insert(t.sha, out.len());
+            out.push((t, c));
+            continue;
+        };
+        let (kept, kc) = &mut out[k];
+        if !t.deleted {
+            kept.deleted = false;
+            *kc = None;
+        } else if kept.deleted && c == Some(true) && *kc != Some(true) {
+            // the copy still on the disk tells how the file lies (in pieces or not)
+            *kept = t;
+            *kc = c;
+        }
+    }
+    out.into_iter().unzip()
+}
+
 const HEAD: u64 = 4096;
 
 pub fn score(truth_path: &Path, recovered: &Path, image: Option<&Path>, label: &str) {
@@ -303,6 +331,15 @@ pub fn score(truth_path: &Path, recovered: &Path, image: Option<&Path>, label: &
         std::process::exit(2);
     }
     let t0 = Instant::now();
+    let ceiling: Vec<Option<bool>> = match image.and_then(|p| std::fs::File::open(p).ok()) {
+        Some(f) => {
+            let size = f.metadata().map(|m| m.len()).unwrap_or(0);
+            let mut vol = Volume { inner: f, size };
+            truth.iter().map(|t| if t.deleted { intact(&mut vol, t) } else { None }).collect()
+        }
+        None => vec![None; truth.len()],
+    };
+    let (truth, ceiling) = merge_copies(truth, ceiling);
     // a recovered file is compared on its full hash, on the hash of its first `size` bytes for
     // each size in the truth (a file followed by extra bytes), and on the hash of its first 4 KiB
     let mut by_sha: HashMap<[u8; 32], Vec<usize>> = HashMap::new();
@@ -315,15 +352,6 @@ pub fn score(truth_path: &Path, recovered: &Path, image: Option<&Path>, label: &
     }
     cuts.sort_unstable();
     cuts.dedup();
-
-    let ceiling: Vec<Option<bool>> = match image.and_then(|p| std::fs::File::open(p).ok()) {
-        Some(f) => {
-            let size = f.metadata().map(|m| m.len()).unwrap_or(0);
-            let mut vol = Volume { inner: f, size };
-            truth.iter().map(|t| if t.deleted { intact(&mut vol, t) } else { None }).collect()
-        }
-        None => vec![None; truth.len()],
-    };
 
     let mut files = Vec::new();
     walk(recovered, &mut files);
@@ -355,6 +383,9 @@ pub fn score(truth_path: &Path, recovered: &Path, image: Option<&Path>, label: &
         if hits.is_empty() {
             m.junk += 1;
             m.junk_bytes += len;
+            if std::env::var_os("SCORE_DETAIL").is_some() {
+                println!("  Junk	{len}	{}", p.display());
+            }
             continue;
         }
         if hits.iter().all(|&(_, i)| !truth[i].deleted) {
@@ -463,7 +494,30 @@ fn report(truth: &[Truth], status: &[Status], copies: &[u32], ceiling: &[Option<
     );
     for (i, t) in truth.iter().enumerate() {
         if t.deleted && status[i] != Status::Exact && std::env::var_os("SCORE_DETAIL").is_some() {
-            println!("  {:?}\t{}\t{}", status[i], t.size, t.name);
+            let state = if ceiling[i].unwrap_or(true) { "intact" } else { "overwritten" };
+            println!("  {:?}\t{state}\t{}\t{}", status[i], t.size, t.name);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn file(sha: u8, deleted: bool, pieces: u32) -> Truth {
+        Truth { sha: [sha; 32], head: [sha; 32], size: 10, deleted, pieces, extents: Vec::new(), name: format!("{sha}.jpg") }
+    }
+
+    #[test]
+    fn copies_of_one_content_count_once() {
+        let truth = vec![file(1, true, 3), file(1, true, 1), file(2, true, 1), file(2, false, 1), file(3, true, 1)];
+        let ceiling = vec![Some(false), Some(true), Some(true), None, Some(false)];
+        let (t, c) = merge_copies(truth, ceiling);
+        assert_eq!(t.len(), 3);
+        // the copy still on the disk is the one kept
+        assert!(t[0].deleted && t[0].pieces == 1 && c[0] == Some(true));
+        // a content still listed by the file system is not a file to get back
+        assert!(!t[1].deleted && c[1].is_none());
+        assert!(t[2].deleted && c[2] == Some(false));
     }
 }

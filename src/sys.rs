@@ -284,6 +284,10 @@ pub fn find_photorec() -> Option<PathBuf> {
         }
     }
     roots.push(PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/vendor")));
+    // the optional add-on, fetched by Open Recovr on demand
+    if let Some(p) = crate::addon::folder().map(|d| d.join(names[0])).filter(|p| p.is_file()) {
+        return Some(p);
+    }
     let mut dirs: Vec<PathBuf> = std::env::var_os("PATH").map(|p| std::env::split_paths(&p).collect()).unwrap_or_default();
     if cfg!(unix) {
         // often installed where only administrators look

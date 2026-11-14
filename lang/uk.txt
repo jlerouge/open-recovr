@@ -215,8 +215,6 @@ Pas trouvé ? Lancer l'analyse complète
 = Не знайшли? Запустіть повне сканування
 Passer en recherche approfondie
 = Перейти до глибокого пошуку
-PhotoRec indisponible : recherche intégrée à la place
-= PhotoRec недоступний: натомість вбудований пошук
 PhotoRec n'a pas pu démarrer
 = Не вдалося запустити PhotoRec
 Photos
@@ -417,16 +415,10 @@ Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter l
 = Виберіть конкретний формат (JPG, Word…) або мінімальний розмір, щоб відкинути дрібні непотрібні файли.
 Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
 = Збереження тут може перезаписати інші файли, які ще можна відновити. Краще виберіть флешку або інший диск.
-Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
-= Виконує швидке сканування, а потім читає весь диск за допомогою PhotoRec: знаходить також старіші файли, часто без назви. Може тривати понад годину.
-La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
-= Глибокий пошук використовує PhotoRec 7.2 © Christophe Grenier, що поширюється за ліцензією GNU GPL (www.cgsecurity.org). Він розпізнає сотні типів файлів.
 Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
 = Журнал заповнюється під час пошуку: кожен крок, а під час глибокого пошуку — рядки PhotoRec.
 Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
 = Читає таблицю файлів диска: кілька хвилин, і файли зберігають назву та папку. Знаходить нещодавно видалене, навіть після очищення Кошика.
-Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
-= Читає весь диск за допомогою PhotoRec, щоб знайти також старіші файли.
 Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
 = Читає весь диск, щоб знайти також файли, видалені давно або після очищення Кошика. Довше: від кількох хвилин до понад години залежно від диска. {} попросить дозволити програму ({}).
 Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
@@ -598,3 +590,36 @@ Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
 = Звіт збережено: {}. Відкрийте його, щоб переглянути перед передаванням.
 Reconstitution des fichiers fragmentés…
 = Відновлення фрагментованих файлів…
+
+Moteur de l'analyse complète
+= Рушій повного сканування
+Moderne
+= Сучасний
+Classique (PhotoRec)
+= Класичний (PhotoRec)
+PhotoRec, de Christophe Grenier, la référence libre depuis plus de vingt ans : il reconnaît des centaines de types de fichiers, et les lit d'un seul tenant.
+= PhotoRec від Крістофа Греньє, вільний еталон уже понад двадцять років: розпізнає сотні типів файлів і читає кожен одним шматком.
+Le moteur d'Open Recovr, écrit de zéro : il vérifie chaque fichier trouvé, et sait recoller les photos, images et documents dont les morceaux sont éparpillés sur le disque.
+= Власний рушій Open Recovr, написаний з нуля: перевіряє кожен знайдений файл і вміє збирати фото, зображення та документи, частини яких розкидані по диску.
+PhotoRec trouvé : {}
+= PhotoRec знайдено: {}
+Téléchargement et vérification de PhotoRec…
+= Завантаження та перевірка PhotoRec…
+PhotoRec n'a pas pu être installé : {}
+= Не вдалося встановити PhotoRec: {}
+PhotoRec n'est pas installé. C'est un logiciel distinct, sous licence GNU GPL, que vous pouvez ajouter si vous le souhaitez.
+= PhotoRec не встановлено. Це окрема програма за ліцензією GNU GPL, яку ви можете додати за бажанням.
+Télécharger PhotoRec (cgsecurity.org)
+= Завантажити PhotoRec (cgsecurity.org)
+Récupère l'archive officielle de PhotoRec 7.2 sur www.cgsecurity.org, vérifie chaque fichier puis le range dans votre dossier de données. Rien d'autre n'est envoyé.
+= Завантажує офіційний архів PhotoRec 7.2 з www.cgsecurity.org, перевіряє кожен файл і зберігає його у вашій теці даних. Більше нічого не надсилається.
+Installez le paquet « testdisk » de votre système (par exemple sudo apt install testdisk, ou brew install testdisk), puis relancez Open Recovr.
+= Встановіть пакет «testdisk» вашої системи (наприклад sudo apt install testdisk або brew install testdisk), потім перезапустіть Open Recovr.
+Le moteur moderne d'Open Recovr est écrit de zéro, sans reprendre le code d'aucun autre logiciel. Un grand merci à Christophe Grenier, l'auteur de PhotoRec et TestDisk (www.cgsecurity.org, licence GNU GPL) : il a posé les bases de la récupération de fichiers libre. Le moteur classique fait appel à PhotoRec, un logiciel distinct installé à part.
+= Сучасний рушій Open Recovr написано з нуля, без використання коду будь-якої іншої програми. Щира подяка Крістофу Греньє, автору PhotoRec і TestDisk (www.cgsecurity.org, ліцензія GNU GPL): він заклав основи вільного відновлення файлів. Класичний рушій викликає PhotoRec, окрему програму, що встановлюється окремо.
+Lit tout le disque pour retrouver aussi les fichiers plus anciens.
+= Читає весь диск, щоб знайти також старіші файли.
+Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Виконує швидке сканування, потім читає весь диск: знаходить також старіші файли, часто без назви. Може тривати понад годину.
+Analyse complète : moteur moderne d'Open Recovr
+= Повне сканування: сучасний рушій Open Recovr

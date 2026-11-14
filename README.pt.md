@@ -7,7 +7,7 @@
 **Recupere seus arquivos excluídos, de forma simples.**
 
 Uma só tela, sem assistente: escolha a unidade, busque e marque o que quer recuperar.<br>
-Livre e gratuito, com o [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) como motor.
+Livre e gratuito, com seu próprio motor de recuperação e o [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) como opção.
 
 [English](README.md) · [Français](README.fr.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · **Português (Brasil)** · [Nederlands](README.nl.md) · [Polski](README.pl.md) · [Українська](README.uk.md)
 
@@ -30,7 +30,7 @@ Livre e gratuito, com o [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) com
 
 Perder a pasta das férias ou um TCC já é estressante o bastante. Os programas de recuperação costumam ser caros ou cheios de jargão. Os gratuitos, como o PhotoRec, são excelentes, mas funcionam em um terminal de texto.
 
-O Open Recovr coloca uma interface amigável, de uma só tela, sobre o PhotoRec, um motor livre e comprovado. Ele ainda acrescenta uma análise rápida que traz os arquivos de volta **com o nome e a pasta originais**.
+O Open Recovr reúne tudo em uma só tela simples. Uma análise rápida traz os arquivos de volta **com o nome e a pasta originais**. Para o resto, seu próprio motor lê a unidade inteira e **junta de novo fotos, arquivos compactados e documentos do Office fragmentados**. O PhotoRec, o motor livre e comprovado, continua disponível como motor clássico. A comparação entre os dois está medida nos [benchmarks](docs/benchmarks.md) (em inglês).
 
 ## Como funciona
 
@@ -57,10 +57,10 @@ Excluir um arquivo não o apaga. O sistema só esquece onde ele está e marca o 
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-pt-dark.svg">
-  <img src="docs/illustrations/deleted-file-pt.svg" alt="O que acontece com um arquivo excluído: 1. Na Lixeira, a busca rápida o encontra. 2. Lixeira esvaziada, o nome ainda está no índice do disco, a busca profunda o encontra. 3. Índice reutilizado, os pedaços ainda estão no disco, a busca profunda os encontra graças ao PhotoRec. 4. Sobrescrito por um arquivo novo, tarde demais." width="100%">
+  <img src="docs/illustrations/deleted-file-pt.svg" alt="O que acontece com um arquivo excluído: 1. Na Lixeira, a busca rápida o encontra. 2. Lixeira esvaziada, o nome ainda está no índice do disco, a busca profunda o encontra. 3. Índice reutilizado, os pedaços ainda estão no disco, a busca profunda os encontra. 4. Sobrescrito por um arquivo novo, tarde demais." width="100%">
 </picture>
 
-No passo 3 só restam os bytes. O **file carving** percorre o disco inteiro procurando as assinaturas que marcam o início e o fim de cada tipo de arquivo, e reconstrói os arquivos a partir delas. É a parte difícil, e quem faz é o **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. Todo o mérito é de Christophe Grenier, que o escreve e mantém há mais de vinte anos. O Open Recovr não o reinventa: acrescenta a interface, os passos 1 e 2, e as verificações, nomes e pré-visualizações de cada arquivo encontrado.
+No passo 3 só restam os bytes. O **file carving** percorre o disco inteiro procurando as assinaturas que marcam o início de cada tipo de arquivo, e determina onde cada arquivo termina. Quando um arquivo estava gravado em vários pedaços, o pedaço seguinte é procurado no espaço livre. O motor moderno do Open Recovr faz isso sozinho ([como](docs/carving.md), em inglês). O motor clássico entrega esse trabalho ao **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**, que reconhece muito mais tipos de arquivo. O PhotoRec lançou bases sólidas para esse tipo de software em código aberto: muito obrigado a Christophe Grenier, que o escreve e mantém há mais de vinte anos.
 
 Quanto antes você buscar, mais há para encontrar. Em um SSD, o espaço liberado costuma ser apagado em segundo plano pouco depois (TRIM): os passos 1 e 2 ainda funcionam para exclusões recentes, mas a análise completa pode encontrar pouco.
 
@@ -74,7 +74,7 @@ Quanto antes você buscar, mais há para encontrar. Em um SSD, o espaço liberad
 
 - 🗑️ **Busca rápida** na Lixeira, em segundos e sem permissões especiais.
 - 🔎 **Análise rápida (NTFS).** Lê a tabela de arquivos da unidade (MFT), onde um arquivo excluído mantém o nome. Os arquivos voltam **com o nome e a pasta**, em minutos, mesmo depois de esvaziar a Lixeira.
-- 🧲 **Análise completa.** O PhotoRec lê a unidade inteira e reconhece **centenas de tipos de arquivo**, mesmo depois de uma formatação ou em cartões FAT/exFAT. Sem o PhotoRec, um mecanismo embutido cuida dos formatos mais comuns.
+- 🧲 **Análise completa.** A unidade inteira é lida e os arquivos são reconhecidos pelo conteúdo, mesmo depois de uma formatação ou em cartões FAT/exFAT. O **motor moderno**, o do Open Recovr, reconhece uns quarenta formatos (fotos, RAW, vídeos, música, Office, PDF, arquivos compactados, fontes) e **junta de novo os arquivos fragmentados**. O **motor clássico**, o PhotoRec, reconhece **centenas de tipos de arquivo**; ele é escolhido nas Configurações.
 - 💿 **Mídias danificadas.** As áreas ilegíveis (CD/DVD riscados, cartões gastos) são puladas em vez de travar a busca.
 - 🖼️ **Pré-visualização antes de recuperar.** Fotos, vídeos, sons, PDFs, textos e documentos do Word.
 - 🏷️ **Nomes e datas que fazem sentido.** Um arquivo que só tinha um número ganha um nome tirado do conteúdo: `photo_2024-07-14_18-22-05.jpg` pela data EXIF, o título de um documento Word ou PDF, o artista e a música de um MP3.
@@ -84,7 +84,7 @@ Quanto antes você buscar, mais há para encontrar. Em um SSD, o espaço liberad
 - 🗂️ **Ordenação e filtros** por tipo (fotos, vídeos, música, documentos, arquivos compactados), formato, tamanho e nome.
 - 💾 **Todo tipo de unidade.** Discos rígidos, SSDs SATA e NVMe, cartões SD, microSD e CompactFlash, pendrives, discos externos, CD/DVD.
 - 🕒 **Em segundo plano.** A janela pode se esconder ao lado do relógio durante uma busca longa.
-- 🛠️ **Modo avançado.** O registro completo da busca e a saída do PhotoRec.
+- 🛠️ **Modo avançado.** O registro completo da busca (e a saída do PhotoRec com o motor clássico).
 - 🎨 **Temas de cores.** Claro ou escuro com um clique, e também Nord, Catppuccin, Tokyo Night, Solarized, Monokai e Gruvbox.
 - 🔄 **Atualizações seguras.** Quando sai uma nova versão, um clique baixa, verifica a assinatura e instala.
 - 🩺 **Relatório de ajuda.** *Preparar um relatório…* salva um zip (sistema, unidades, registro da última busca) para enviar a quem ajuda você, com os nomes pessoais mascarados. O Open Recovr nunca o envia sozinho.
@@ -99,9 +99,9 @@ Baixe a versão mais recente em **[Releases](https://github.com/jlerouge/open-re
 
 | Sistema | Arquivo | Como iniciar |
 |---|---|---|
-| **Windows 10 / 11** (64 bits) | `open-recovr-…-windows-x64-setup.exe` ou `…-windows-x64.zip` | Execute o instalador (sem direitos de administrador), ou descompacte e abra `open-recovr.exe`. O PhotoRec está incluído. Os dois se atualizam com um clique. |
-| Linux (64 bits) | `open-recovr-…-linux-x64.tar.gz` | Descompacte e execute `./open-recovr`. Para a análise completa: `sudo apt install testdisk`. |
-| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Descompacte, depois clique com o botão direito → *Abrir* (o app não é assinado). Depois, `brew install testdisk`. |
+| **Windows 10 / 11** (64 bits) | `open-recovr-…-windows-x64-setup.exe` ou `…-windows-x64.zip` | Execute o instalador (sem direitos de administrador), ou descompacte e abra `open-recovr.exe`. Os dois se atualizam com um clique. O PhotoRec é opcional: as Configurações podem baixá-lo para o motor clássico. |
+| Linux (64 bits) | `open-recovr-…-linux-x64.tar.gz` | Descompacte e execute `./open-recovr`. Para o motor clássico (opcional): `sudo apt install testdisk`. |
+| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Descompacte, depois clique com o botão direito → *Abrir* (o app não é assinado). Para o motor clássico (opcional): `brew install testdisk`. |
 
 Ler a própria unidade (análise rápida e completa) exige direitos de administrador. O Open Recovr só os pede quando você muda para a busca profunda; a Lixeira é verificada sem eles.
 
@@ -113,7 +113,8 @@ Ler a própria unidade (análise rápida e completa) exige direitos de administr
 | Testado em um computador real | ✅ | ⚠️ ainda não | ⚠️ ainda não |
 | Lixeira | ✅ | ✅ lixeira freedesktop | ✅ `.Trash` |
 | Tabela de arquivos NTFS (análise rápida) | ✅ | ✅ volumes NTFS | ✅ volumes NTFS |
-| Análise completa (PhotoRec) | ✅ incluído | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
+| Análise completa, motor moderno | ✅ | ✅ | ✅ |
+| Análise completa, motor clássico (PhotoRec) | ✅ baixado nas Configurações | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
 | Miniaturas de vídeo / PDF, som | ✅ | ❌ | ❌ |
 | Ícone ao lado do relógio | ✅ | ❌ | ❌ |
 
@@ -129,12 +130,14 @@ cd open-recovr
 cargo build --release
 ```
 
-No Windows, baixe o PhotoRec uma vez com `powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1`. As opções de linha de comando estão descritas no [README em inglês](README.md#build-from-source).
+Para o motor clássico no Windows, as Configurações podem baixar o PhotoRec; desenvolvedores também podem baixá-lo uma vez com `powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1`. As opções de linha de comando estão descritas no [README em inglês](README.md#build-from-source).
 
 ## Licença e créditos
 
 O Open Recovr é software livre sob a [licença MIT](LICENSE).
 
-A análise completa é feita pelo **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, sob a licença GNU GPL v2 ou posterior. O Open Recovr o executa como um **programa separado, sem modificá-lo**. A versão para Windows inclui o PhotoRec 7.2 com sua licença (`vendor/testdisk-7.2/COPYING.txt`). O código-fonte do PhotoRec está disponível em [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download).
+O motor moderno do Open Recovr, usado por padrão na análise completa, foi escrito do zero a partir das especificações dos formatos de arquivo e não compartilha código com o PhotoRec. Seus métodos estão descritos em [docs/carving.md](docs/carving.md) (em inglês).
+
+O motor clássico executa o **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, sob a licença GNU GPL v2 ou posterior, como um **programa separado, sem modificá-lo**. O PhotoRec não é distribuído com o Open Recovr: no Windows, quando você pede nas Configurações, o Open Recovr baixa o arquivo oficial do PhotoRec 7.2 de [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download) e confere cada arquivo com um SHA-256 conhecido; no Linux e no macOS, ele vem do pacote `testdisk` do sistema. O PhotoRec lançou as bases do file carving em código aberto, e este projeto deve muito a ele. Obrigado, Christophe, por mais de vinte anos de trabalho no TestDisk e no PhotoRec.
 
 O Open Recovr é um projeto independente, sem ligação com nenhum software comercial de recuperação.

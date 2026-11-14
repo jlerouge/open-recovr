@@ -7,7 +7,7 @@
 **Haal uw verwijderde bestanden terug, eenvoudig.**
 
 Eén scherm, geen wizard: kies de schijf, zoek en vink aan wat u terug wilt.<br>
-Vrij en gratis, met [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) als motor.
+Vrij en gratis, met een eigen herstelmotor en [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) als optie.
 
 [English](README.md) · [Français](README.fr.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português (Brasil)](README.pt.md) · **Nederlands** · [Polski](README.pl.md) · [Українська](README.uk.md)
 
@@ -30,7 +30,7 @@ Vrij en gratis, met [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) als mot
 
 Een vakantiemap of een scriptie kwijtraken is al stressvol genoeg. Herstelprogramma's zijn vaak duur of zitten vol vakjargon. Gratis programma's zoals PhotoRec zijn uitstekend, maar werken in een tekstterminal.
 
-Open Recovr zet een vriendelijke interface van één scherm bovenop PhotoRec, een beproefde vrije motor. Daarnaast voegt het een snelle scan toe die bestanden terugbrengt **met hun oorspronkelijke naam en map**.
+Open Recovr brengt alles samen op één eenvoudig scherm. Een snelle scan brengt bestanden terug **met hun oorspronkelijke naam en map**. Voor de rest leest de eigen motor de hele schijf en **zet gefragmenteerde foto's, archieven en Office-documenten weer in elkaar**. PhotoRec, de beproefde vrije motor, blijft beschikbaar als klassieke motor. De vergelijking tussen beide is gemeten in de [benchmarks](docs/benchmarks.md) (in het Engels).
 
 ## Hoe het werkt
 
@@ -57,10 +57,10 @@ Een bestand verwijderen wist het niet. Het systeem vergeet alleen waar het staat
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-nl-dark.svg">
-  <img src="docs/illustrations/deleted-file-nl.svg" alt="Wat er met een verwijderd bestand gebeurt: 1. In de Prullenbak, gevonden door snel zoeken. 2. Prullenbak geleegd, de naam staat nog in de inhoudsopgave van de schijf, gevonden door diep zoeken. 3. Inhoudsopgave hergebruikt, de stukken staan nog op de schijf, gevonden door diep zoeken dankzij PhotoRec. 4. Overschreven door een nieuw bestand, te laat." width="100%">
+  <img src="docs/illustrations/deleted-file-nl.svg" alt="Wat er met een verwijderd bestand gebeurt: 1. In de Prullenbak, gevonden door snel zoeken. 2. Prullenbak geleegd, de naam staat nog in de inhoudsopgave van de schijf, gevonden door diep zoeken. 3. Inhoudsopgave hergebruikt, de stukken staan nog op de schijf, gevonden door diep zoeken. 4. Overschreven door een nieuw bestand, te laat." width="100%">
 </picture>
 
-Bij stap 3 zijn alleen de bytes nog over. **File carving** doorzoekt de hele schijf naar de handtekeningen die het begin en einde van elk bestandstype markeren, en bouwt de bestanden daaruit opnieuw op. Dat is het moeilijke deel, en dat doet **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. Alle eer gaat naar Christophe Grenier, die het al meer dan twintig jaar schrijft en onderhoudt. Open Recovr vindt het niet opnieuw uit: het voegt de interface toe, stap 1 en 2, en de controles, namen en voorbeelden voor elk gevonden bestand.
+Bij stap 3 zijn alleen de bytes nog over. **File carving** doorzoekt de hele schijf naar de handtekeningen die het begin van elk bestandstype markeren, en bepaalt waar elk bestand eindigt. Als een bestand in meerdere stukken was opgeslagen, wordt het volgende stuk in de vrije ruimte gezocht. De moderne motor van Open Recovr doet dat zelf ([hoe](docs/carving.md), in het Engels). De klassieke motor laat dit werk over aan **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**, dat veel meer bestandstypen herkent. PhotoRec heeft een stevige basis gelegd voor dit soort opensourcesoftware: veel dank aan Christophe Grenier, die het al meer dan twintig jaar schrijft en onderhoudt.
 
 Hoe eerder u zoekt, hoe meer er te vinden is. Op een SSD wordt vrijgekomen ruimte vaak kort daarna op de achtergrond gewist (TRIM): stap 1 en 2 werken nog voor recent verwijderde bestanden, maar de volledige scan vindt er misschien weinig.
 
@@ -74,7 +74,7 @@ Hoe eerder u zoekt, hoe meer er te vinden is. Op een SSD wordt vrijgekomen ruimt
 
 - 🗑️ **Snel zoeken** in de Prullenbak, in seconden en zonder bijzondere rechten.
 - 🔎 **Snelle scan (NTFS).** Leest de bestandstabel van de schijf (MFT), waar een verwijderd bestand zijn naam houdt. Bestanden komen terug **met hun naam en map**, in minuten, zelfs nadat de Prullenbak is geleegd.
-- 🧲 **Volledige scan.** PhotoRec leest de hele schijf en herkent **honderden bestandstypen**, zelfs na formatteren of op FAT/exFAT-kaarten. Zonder PhotoRec neemt een ingebouwde engine de gangbaarste formaten voor zijn rekening.
+- 🧲 **Volledige scan.** De hele schijf wordt gelezen en bestanden worden aan hun inhoud herkend, zelfs na formatteren of op FAT/exFAT-kaarten. De **moderne motor**, die van Open Recovr, herkent zo'n veertig formaten (foto's, RAW, video's, muziek, Office, PDF, archieven, lettertypen) en **zet gefragmenteerde bestanden weer in elkaar**. De **klassieke motor**, PhotoRec, herkent **honderden bestandstypen**; je kiest hem in de Instellingen.
 - 💿 **Beschadigde media.** Onleesbare gebieden (bekraste cd/dvd, versleten kaarten) worden overgeslagen in plaats van het zoeken te laten vastlopen.
 - 🖼️ **Voorbeeld vóór het herstellen.** Foto's, video's, geluiden, pdf's, teksten en Word-documenten.
 - 🏷️ **Namen en datums die iets zeggen.** Een bestand met alleen een nummer krijgt een naam op basis van de inhoud: `photo_2024-07-14_18-22-05.jpg` uit de EXIF-datum, de titel van een Word- of pdf-document, artiest en nummer van een MP3.
@@ -84,7 +84,7 @@ Hoe eerder u zoekt, hoe meer er te vinden is. Op een SSD wordt vrijgekomen ruimt
 - 🗂️ **Sorteren en filteren** op type (foto's, video's, muziek, documenten, archieven), formaat, grootte en naam.
 - 💾 **Elk soort schijf.** Harde schijven, SATA- en NVMe-SSD's, SD-, microSD- en CompactFlash-kaarten, USB-sticks, externe schijven, cd/dvd.
 - 🕒 **Op de achtergrond.** Het venster kan zich tijdens een lange zoekactie naast de klok verbergen.
-- 🛠️ **Expertmodus.** Het volledige logboek van de zoekactie en de uitvoer van PhotoRec.
+- 🛠️ **Expertmodus.** Het volledige logboek van de zoekactie (en de uitvoer van PhotoRec met de klassieke motor).
 - 🎨 **Kleurthema's.** Licht of donker met één klik, en ook Nord, Catppuccin, Tokyo Night, Solarized, Monokai en Gruvbox.
 - 🔄 **Veilige updates.** Als er een nieuwe versie is, downloadt één klik hem, controleert de handtekening en installeert hem.
 - 🩺 **Hulprapport.** *Rapport maken…* slaat een zip op (systeem, schijven, logboek van de laatste zoekactie) om te sturen naar wie u helpt, met persoonlijke namen onherkenbaar gemaakt. Open Recovr verstuurt het nooit zelf.
@@ -99,9 +99,9 @@ Download de nieuwste versie via **[Releases](https://github.com/jlerouge/open-re
 
 | Systeem | Bestand | Zo start u het |
 |---|---|---|
-| **Windows 10 / 11** (64-bit) | `open-recovr-…-windows-x64-setup.exe` of `…-windows-x64.zip` | Start het installatieprogramma (zonder beheerdersrechten), of pak uit en open `open-recovr.exe`. PhotoRec zit erbij. Beide werken zichzelf met één klik bij. |
-| Linux (64-bit) | `open-recovr-…-linux-x64.tar.gz` | Pak uit en start `./open-recovr`. Voor de volledige scan: `sudo apt install testdisk`. |
-| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Pak uit, dan rechtsklik → *Openen* (de app is niet ondertekend). Daarna `brew install testdisk`. |
+| **Windows 10 / 11** (64-bit) | `open-recovr-…-windows-x64-setup.exe` of `…-windows-x64.zip` | Start het installatieprogramma (zonder beheerdersrechten), of pak uit en open `open-recovr.exe`. Beide werken zichzelf met één klik bij. PhotoRec is optioneel: de Instellingen kunnen het downloaden voor de klassieke motor. |
+| Linux (64-bit) | `open-recovr-…-linux-x64.tar.gz` | Pak uit en start `./open-recovr`. Voor de klassieke motor (optioneel): `sudo apt install testdisk`. |
+| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Pak uit, dan rechtsklik → *Openen* (de app is niet ondertekend). Voor de klassieke motor (optioneel): `brew install testdisk`. |
 
 De schijf zelf lezen (snelle en volledige scan) vraagt beheerdersrechten. Open Recovr vraagt daar pas om als u overschakelt naar diep zoeken; de Prullenbak wordt zonder doorzocht.
 
@@ -113,7 +113,8 @@ De schijf zelf lezen (snelle en volledige scan) vraagt beheerdersrechten. Open R
 | Getest op een echte computer | ✅ | ⚠️ nog niet | ⚠️ nog niet |
 | Prullenbak | ✅ | ✅ freedesktop-prullenbak | ✅ `.Trash` |
 | NTFS-bestandstabel (snelle scan) | ✅ | ✅ NTFS-volumes | ✅ NTFS-volumes |
-| Volledige scan (PhotoRec) | ✅ meegeleverd | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
+| Volledige scan, moderne motor | ✅ | ✅ | ✅ |
+| Volledige scan, klassieke motor (PhotoRec) | ✅ gedownload via de Instellingen | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
 | Miniaturen van video / pdf, geluid | ✅ | ❌ | ❌ |
 | Pictogram naast de klok | ✅ | ❌ | ❌ |
 
@@ -129,12 +130,14 @@ cd open-recovr
 cargo build --release
 ```
 
-Haal op Windows PhotoRec één keer op met `powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1`. De opdrachtregelopties staan in de [Engelse README](README.md#build-from-source).
+Voor de klassieke motor op Windows kunnen de Instellingen PhotoRec downloaden; ontwikkelaars kunnen het ook één keer ophalen met `powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1`. De opdrachtregelopties staan in de [Engelse README](README.md#build-from-source).
 
 ## Licentie en dankwoord
 
 Open Recovr is vrije software onder de [MIT-licentie](LICENSE).
 
-De volledige scan wordt gedaan door **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, onder de GNU GPL v2 of later. Open Recovr voert het uit als een **afzonderlijk, ongewijzigd programma**. De Windows-versie bevat PhotoRec 7.2 met zijn licentie (`vendor/testdisk-7.2/COPYING.txt`). De broncode van PhotoRec is beschikbaar op [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download).
+De moderne motor van Open Recovr, standaard gebruikt voor de volledige scan, is vanaf nul geschreven op basis van de specificaties van de bestandsformaten en deelt geen code met PhotoRec. De methoden staan beschreven in [docs/carving.md](docs/carving.md) (in het Engels).
+
+De klassieke motor voert **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, onder de GNU GPL v2 of later, uit als een **afzonderlijk, ongewijzigd programma**. PhotoRec wordt niet met Open Recovr meegeleverd: op Windows downloadt Open Recovr, als je daarom vraagt in de Instellingen, het officiële archief van PhotoRec 7.2 van [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download) en controleert elk bestand met een bekende SHA-256; op Linux en macOS komt het uit het `testdisk`-pakket van het systeem. PhotoRec heeft de basis gelegd voor opensource file carving, en dit project heeft er veel aan te danken. Dank je, Christophe, voor meer dan twintig jaar werk aan TestDisk en PhotoRec.
 
 Open Recovr is een onafhankelijk project, zonder banden met commerciële herstelsoftware.

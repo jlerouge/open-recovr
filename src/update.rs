@@ -113,6 +113,21 @@ fn curl() -> Command {
     Command::new("curl")
 }
 
+/// Saves `url` into `to`, failing on any HTTP error.
+pub(crate) fn download(url: &str, to: &Path) -> Result<(), String> {
+    let out = curl()
+        .args(["-fsSL", "--max-time", "600", "-A", "open-recovr", "-o"])
+        .arg(to)
+        .arg(url)
+        .stdin(Stdio::null())
+        .output()
+        .map_err(|e| format!("curl: {e}"))?;
+    if !out.status.success() {
+        return Err(String::from_utf8_lossy(&out.stderr).trim().to_string());
+    }
+    Ok(())
+}
+
 fn fetch_text(url: &str) -> Result<String, String> {
     let out = curl()
         .args(["-fsSL", "--max-time", "20", "-A", "open-recovr-updater", "-H", "Accept: application/vnd.github+json", url])

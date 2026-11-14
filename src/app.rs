@@ -1,5 +1,6 @@
 //! The single screen: pick a drive, search, tick, recover.
 
+use crate::addon;
 use crate::art::{self, Art};
 use crate::engine::{self, Category, Chance, CopyShared, FORMATS, Found, Origin, ScanJob, ScanPlan, ScanShared, Wanted};
 use crate::i18n;
@@ -155,6 +156,8 @@ enum Shown {
 #[derive(Default)]
 struct Settings {
     never_ask_deep: bool,
+    /// The complete search uses PhotoRec (classic) instead of Open Recovr's own engine (modern).
+    classic: bool,
     /// Shows the search journal and the raw bytes of files.
     expert: bool,
     /// The language chosen by hand ("en"…); none follows the system.
@@ -173,6 +176,7 @@ impl Settings {
         let theme = text.lines().find_map(|l| l.trim().strip_prefix("theme=")).map(str::to_string);
         Settings {
             never_ask_deep: has("proposer_recherche_approfondie=non"),
+            classic: has("moteur=classique"),
             expert: has("mode_expert=oui"),
             language,
             theme,
@@ -187,10 +191,11 @@ impl Settings {
         }
         let yes = |b: bool| if b { "oui" } else { "non" };
         let mut text = format!(
-            "proposer_recherche_approfondie={}\nmode_expert={}\nrechercher_mises_a_jour={}\n",
+            "proposer_recherche_approfondie={}\nmode_expert={}\nrechercher_mises_a_jour={}\nmoteur={}\n",
             yes(!self.never_ask_deep),
             yes(self.expert),
-            yes(self.check_updates)
+            yes(self.check_updates),
+            if self.classic { "classique" } else { "moderne" }
         );
         if let Some(l) = &self.language {
             text.push_str(&format!("langue={l}\n"));
@@ -647,6 +652,8 @@ pub struct App {
     quitting: bool,
     confirm_dest: Option<(PathBuf, Vec<Found>)>,
     photorec: Option<PathBuf>,
+    /// Fetching PhotoRec, when the user asks for the classic engine on Windows.
+    addon: Arc<Mutex<addon::State>>,
     notice: Option<String>,
     screenshot: Option<PathBuf>,
     /// The moment to show in a documentation screenshot (`--scene`).
@@ -666,6 +673,8 @@ pub struct App {
     show_dupes: bool,
     /// The settings page is shown instead of the search.
     settings_open: bool,
+    /// a screenshot scene: scroll the settings to the engine
+    scroll_engine: bool,
     /// Newer versions on GitHub, and the update under way.
     update: update::Shared,
     /// An update was asked for: its failure is shown.
@@ -725,6 +734,7 @@ impl App {
             quitting: false,
             confirm_dest: None,
             photorec: sys::find_photorec(),
+            addon: Arc::new(Mutex::new(addon::State::Idle)),
             notice: None,
             screenshot,
             scene: None,
@@ -740,6 +750,7 @@ impl App {
             dupes: 0,
             show_dupes: false,
             settings_open: false,
+            scroll_engine: false,
             update: update::shared(),
             update_tried: false,
             report: None,
@@ -816,6 +827,14 @@ impl App {
                 }
             }
             "settings" => self.settings_open = true,
+            // the engine section, with PhotoRec found or not
+            "engine" | "engine-none" => {
+                self.settings_open = true;
+                self.scroll_engine = true;
+                if scene == "engine-none" {
+                    self.photorec = None;
+                }
+            }
             "report" => {
                 self.settings_open = true;
                 if let Some(shot) = self.screenshot.clone() {
@@ -968,7 +987,7 @@ impl App {
             deep: self.full_access(),
             full: self.full,
             wanted: self.wanted.clone(),
-            photorec: self.photorec.clone(),
+            photorec: self.photorec.clone().filter(|_| self.settings.classic),
         };
         self.log_out = start_log_file(&plan);
         self.scan = Some(ScanJob::start(plan, ctx.clone()));
@@ -1483,6 +1502,13 @@ impl App {
                     self.settings.save();
                 }
             });
+            if self.scroll_engine {
+                ui.scroll_to_cursor(Some(Align::TOP));
+                self.scroll_engine = false;
+            }
+            section(ui, t!("Moteur de l'analyse complète"), &mut |ui| {
+                self.engine_rows(ui);
+            });
             section(ui, t!("Mises à jour"), &mut |ui| {
                 if toggle_row(
                     ui,
@@ -1558,12 +1584,15 @@ impl App {
             section(ui, t!("À propos"), &mut |ui| {
                 let text = |s: &str| egui::RichText::new(s).font(regular(14.0)).color(pal().muted);
                 ui.label(text(t!("Logiciel libre sous licence MIT. Pas de compte, pas de télémétrie.")));
-                if self.photorec.is_some() {
-                    ui.label(text(t!(
-                        "La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL \
-                         (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers."
-                    )));
-                }
+                ui.add(
+                    egui::Label::new(text(t!(
+                        "Le moteur moderne d'Open Recovr est écrit de zéro, sans reprendre le code d'aucun autre logiciel. \
+                         Un grand merci à Christophe Grenier, l'auteur de PhotoRec et TestDisk (www.cgsecurity.org, \
+                         licence GNU GPL) : il a posé les bases de la récupération de fichiers libre. Le moteur classique \
+                         fait appel à PhotoRec, un logiciel distinct installé à part."
+                    )))
+                    .wrap(),
+                );
                 ui.add_space(4.0);
                 ui.horizontal(|ui| {
                     let link = |s: &str| egui::RichText::new(s).font(bold(14.0)).color(pal().accent);
@@ -1577,6 +1606,90 @@ impl App {
                 });
             });
         });
+    }
+
+    /// Modern (Open Recovr's own engine) or classic (PhotoRec), and PhotoRec as an add-on.
+    fn engine_rows(&mut self, ui: &mut egui::Ui) {
+        let ctx = ui.ctx().clone();
+        let state = self.addon.lock().unwrap().clone();
+        // a finished install makes PhotoRec usable at once
+        if let addon::State::Done(p) = &state
+            && self.photorec.is_none()
+        {
+            self.photorec = Some(p.clone());
+        }
+        let has = self.photorec.is_some();
+        let classic = self.settings.classic && has;
+        let text = |s: &str| egui::RichText::new(s).font(regular(14.0)).color(pal().muted);
+        ui.horizontal_wrapped(|ui| {
+            ui.spacing_mut().item_spacing = vec2(8.0, 8.0);
+            if chip_with(ui, None, t!("Moderne").into(), !classic, pal().accent, true, false).clicked() {
+                self.settings.classic = false;
+                self.settings.save();
+            }
+            if chip_with(ui, None, t!("Classique (PhotoRec)").into(), classic, pal().accent, has, false).clicked() {
+                self.settings.classic = true;
+                self.settings.save();
+            }
+        });
+        ui.add_space(6.0);
+        ui.add(
+            egui::Label::new(text(if classic {
+                t!("PhotoRec, de Christophe Grenier, la référence libre depuis plus de vingt ans : il reconnaît des centaines \
+                    de types de fichiers, et les lit d'un seul tenant.")
+            } else {
+                t!("Le moteur d'Open Recovr, écrit de zéro : il vérifie chaque fichier trouvé, et sait recoller les photos, \
+                    images et documents dont les morceaux sont éparpillés sur le disque.")
+            }))
+            .wrap(),
+        );
+        ui.add_space(6.0);
+        match (&self.photorec, state) {
+            (Some(p), _) => {
+                ui.add(egui::Label::new(text(&t!("PhotoRec trouvé : {}", p.display()))).wrap());
+            }
+            (None, addon::State::Working) => {
+                ui.horizontal(|ui| {
+                    ui.spinner();
+                    ui.label(text(t!("Téléchargement et vérification de PhotoRec…")));
+                });
+            }
+            (None, s) => {
+                if let addon::State::Failed(e) = s {
+                    ui.add(
+                        egui::Label::new(
+                            egui::RichText::new(t!("PhotoRec n'a pas pu être installé : {}", e)).font(regular(14.0)).color(pal().red),
+                        )
+                        .wrap(),
+                    );
+                }
+                ui.add(
+                    egui::Label::new(text(t!(
+                        "PhotoRec n'est pas installé. C'est un logiciel distinct, sous licence GNU GPL, que vous pouvez \
+                         ajouter si vous le souhaitez."
+                    )))
+                    .wrap(),
+                );
+                ui.add_space(4.0);
+                if addon::installable() {
+                    if icon_button(ui, vec2(320.0, 38.0), Some(Icon::Download), t!("Télécharger PhotoRec (cgsecurity.org)"), false, true)
+                        .on_hover_text(t!("Récupère l'archive officielle de PhotoRec 7.2 sur www.cgsecurity.org, vérifie chaque fichier \
+                             puis le range dans votre dossier de données. Rien d'autre n'est envoyé."))
+                        .clicked()
+                    {
+                        addon::install(self.addon.clone(), ctx);
+                    }
+                } else {
+                    ui.add(
+                        egui::Label::new(text(t!(
+                            "Installez le paquet « testdisk » de votre système (par exemple sudo apt install testdisk, \
+                             ou brew install testdisk), puis relancez Open Recovr."
+                        )))
+                        .wrap(),
+                    );
+                }
+            }
+        }
     }
 
     /// The language, with a menu of the others.
@@ -1711,7 +1824,7 @@ impl App {
                                             .font(bold(13.5))
                                             .color(pal().accent),
                                     )
-                                    .on_hover_text(t!("Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens."))
+                                    .on_hover_text(t!("Lit tout le disque pour retrouver aussi les fichiers plus anciens."))
                                     .clicked()
                             {
                                 self.full = true;
@@ -1838,10 +1951,8 @@ impl App {
                 self.full = false;
             }
             if chip_sized(ui, None, t!("Complète").into(), self.full, pal().accent, !busy, true)
-                .on_hover_text(t!(
-                    "Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, \
-                     souvent sans leur nom. Peut prendre plus d'une heure."
-                ))
+                .on_hover_text(t!("Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus anciens, \
+                     souvent sans leur nom. Peut prendre plus d'une heure."))
                 .clicked()
             {
                 self.full = true;

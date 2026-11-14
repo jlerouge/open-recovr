@@ -7,7 +7,7 @@
 **Odzyskaj usunięte pliki, po prostu.**
 
 Jeden ekran, bez kreatora: wybierz dysk, szukaj i zaznacz, co chcesz odzyskać.<br>
-Wolne i darmowe oprogramowanie, napędzane przez [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec).
+Wolne i darmowe oprogramowanie z własnym silnikiem odzyskiwania i opcjonalnym [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec).
 
 [English](README.md) · [Français](README.fr.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português (Brasil)](README.pt.md) · [Nederlands](README.nl.md) · **Polski** · [Українська](README.uk.md)
 
@@ -30,7 +30,7 @@ Wolne i darmowe oprogramowanie, napędzane przez [PhotoRec](https://www.cgsecuri
 
 Utrata folderu ze zdjęciami z wakacji albo pracy dyplomowej to wystarczający stres. Programy do odzyskiwania są często drogie albo pełne żargonu. Darmowe, takie jak PhotoRec, są świetne, ale działają w terminalu tekstowym.
 
-Open Recovr nakłada przyjazny interfejs z jednym ekranem na PhotoRec, sprawdzony wolny silnik. Dodaje też szybkie skanowanie, które przywraca pliki **z ich oryginalną nazwą i folderem**.
+Open Recovr zbiera wszystko na jednym prostym ekranie. Szybkie skanowanie przywraca pliki **z ich oryginalną nazwą i folderem**. Do reszty własny silnik czyta cały dysk i **składa z powrotem pofragmentowane zdjęcia, archiwa i dokumenty Office**. PhotoRec, sprawdzony wolny silnik, pozostaje dostępny jako silnik klasyczny. Porównanie obu zmierzono w [testach porównawczych](docs/benchmarks.md) (po angielsku).
 
 ## Jak to działa
 
@@ -57,10 +57,10 @@ Usunięcie pliku go nie kasuje. System tylko zapomina, gdzie plik leży, i oznac
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-pl-dark.svg">
-  <img src="docs/illustrations/deleted-file-pl.svg" alt="Co się dzieje z usuniętym plikiem: 1. W Koszu, znajdzie go szybkie wyszukiwanie. 2. Kosz opróżniony, nazwa jest wciąż w spisie treści dysku, znajdzie go głębokie wyszukiwanie. 3. Spis użyty ponownie, kawałki są wciąż na dysku, znajdzie je głębokie wyszukiwanie dzięki PhotoRec. 4. Nadpisany przez nowy plik, za późno." width="100%">
+  <img src="docs/illustrations/deleted-file-pl.svg" alt="Co się dzieje z usuniętym plikiem: 1. W Koszu, znajdzie go szybkie wyszukiwanie. 2. Kosz opróżniony, nazwa jest wciąż w spisie treści dysku, znajdzie go głębokie wyszukiwanie. 3. Spis użyty ponownie, kawałki są wciąż na dysku, znajdzie je głębokie wyszukiwanie. 4. Nadpisany przez nowy plik, za późno." width="100%">
 </picture>
 
-Na etapie 3 zostają tylko bajty. **File carving** przeszukuje cały dysk w poszukiwaniu sygnatur, które oznaczają początek i koniec każdego typu pliku, i na ich podstawie odtwarza pliki. To najtrudniejsza część i wykonuje ją **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. Cała zasługa należy do Christophe'a Greniera, który pisze go i rozwija od ponad dwudziestu lat. Open Recovr nie wymyśla go na nowo: dodaje interfejs, etapy 1 i 2 oraz sprawdzanie, nazwy i podglądy każdego znalezionego pliku.
+Na etapie 3 zostają tylko bajty. **File carving** przeszukuje cały dysk w poszukiwaniu sygnatur, które oznaczają początek każdego typu pliku, i ustala, gdzie każdy plik się kończy. Gdy plik był zapisany w kilku kawałkach, następny kawałek jest szukany w wolnym miejscu. Nowoczesny silnik Open Recovr robi to sam ([jak](docs/carving.md), po angielsku). Silnik klasyczny powierza tę pracę programowi **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**, który rozpoznaje znacznie więcej typów plików. PhotoRec położył solidne podstawy pod tego rodzaju otwarte oprogramowanie: wielkie podziękowania dla Christophe'a Greniera, który pisze go i rozwija od ponad dwudziestu lat.
 
 Im szybciej zaczniesz szukać, tym więcej znajdziesz. Na dysku SSD zwolnione miejsce jest często kasowane w tle wkrótce potem (TRIM): etapy 1 i 2 nadal działają dla niedawno usuniętych plików, ale pełne skanowanie może znaleźć niewiele.
 
@@ -74,7 +74,7 @@ Im szybciej zaczniesz szukać, tym więcej znajdziesz. Na dysku SSD zwolnione mi
 
 - 🗑️ **Szybkie wyszukiwanie** w Koszu, w kilka sekund i bez specjalnych uprawnień.
 - 🔎 **Szybkie skanowanie (NTFS).** Czyta tablicę plików dysku (MFT), w której usunięty plik zachowuje nazwę. Pliki wracają **z nazwą i folderem**, w kilka minut, nawet po opróżnieniu Kosza.
-- 🧲 **Pełne skanowanie.** PhotoRec czyta cały dysk i rozpoznaje **setki typów plików**, nawet po formatowaniu i na kartach FAT/exFAT. Bez PhotoRec najpopularniejszymi formatami zajmuje się wbudowany silnik.
+- 🧲 **Pełne skanowanie.** Cały dysk jest czytany, a pliki są rozpoznawane po zawartości, nawet po formatowaniu i na kartach FAT/exFAT. **Nowoczesny silnik**, własny silnik Open Recovr, rozpoznaje około czterdziestu formatów (zdjęcia, RAW, wideo, muzyka, Office, PDF, archiwa, czcionki) i **składa z powrotem pofragmentowane pliki**. **Silnik klasyczny**, PhotoRec, rozpoznaje **setki typów plików**; wybiera się go w Ustawieniach.
 - 💿 **Uszkodzone nośniki.** Nieczytelne obszary (porysowane CD/DVD, zużyte karty) są pomijane, zamiast blokować wyszukiwanie.
 - 🖼️ **Podgląd przed odzyskaniem.** Zdjęcia, filmy, dźwięki, PDF-y, teksty i dokumenty Word.
 - 🏷️ **Sensowne nazwy i daty.** Plik, który miał tylko numer, dostaje nazwę z zawartości: `photo_2024-07-14_18-22-05.jpg` z daty EXIF, tytuł dokumentu Word lub PDF, wykonawca i tytuł utworu MP3.
@@ -84,7 +84,7 @@ Im szybciej zaczniesz szukać, tym więcej znajdziesz. Na dysku SSD zwolnione mi
 - 🗂️ **Sortowanie i filtry** według typu (zdjęcia, filmy, muzyka, dokumenty, archiwa), formatu, rozmiaru i nazwy.
 - 💾 **Każdy rodzaj dysku.** Dyski twarde, SSD SATA i NVMe, karty SD, microSD i CompactFlash, pendrive'y, dyski zewnętrzne, CD/DVD.
 - 🕒 **W tle.** Podczas długiego wyszukiwania okno może schować się obok zegara.
-- 🛠️ **Tryb eksperta.** Pełny dziennik wyszukiwania i wyjście PhotoRec.
+- 🛠️ **Tryb eksperta.** Pełny dziennik wyszukiwania (i wyjście PhotoRec przy silniku klasycznym).
 - 🎨 **Motywy kolorów.** Jasny lub ciemny jednym kliknięciem, a także Nord, Catppuccin, Tokyo Night, Solarized, Monokai i Gruvbox.
 - 🔄 **Bezpieczne aktualizacje.** Gdy wyjdzie nowa wersja, jedno kliknięcie ją pobiera, sprawdza podpis i instaluje.
 - 🩺 **Raport pomocy.** *Przygotuj raport…* zapisuje plik zip (system, dyski, dziennik ostatniego wyszukiwania) do wysłania osobie, która Ci pomaga, z zamaskowanymi danymi osobistymi. Open Recovr nigdy nie wysyła go sam.
@@ -99,9 +99,9 @@ Pobierz najnowszą wersję z **[Releases](https://github.com/jlerouge/open-recov
 
 | System | Plik | Jak uruchomić |
 |---|---|---|
-| **Windows 10 / 11** (64-bit) | `open-recovr-…-windows-x64-setup.exe` lub `…-windows-x64.zip` | Uruchom instalator (bez uprawnień administratora) albo rozpakuj i otwórz `open-recovr.exe`. PhotoRec jest w zestawie. Obie wersje aktualizują się jednym kliknięciem. |
-| Linux (64-bit) | `open-recovr-…-linux-x64.tar.gz` | Rozpakuj i uruchom `./open-recovr`. Do pełnego skanowania: `sudo apt install testdisk`. |
-| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Rozpakuj, potem prawy przycisk → *Otwórz* (aplikacja nie jest podpisana). Następnie `brew install testdisk`. |
+| **Windows 10 / 11** (64-bit) | `open-recovr-…-windows-x64-setup.exe` lub `…-windows-x64.zip` | Uruchom instalator (bez uprawnień administratora) albo rozpakuj i otwórz `open-recovr.exe`. Obie wersje aktualizują się jednym kliknięciem. PhotoRec jest opcjonalny: Ustawienia mogą go pobrać dla silnika klasycznego. |
+| Linux (64-bit) | `open-recovr-…-linux-x64.tar.gz` | Rozpakuj i uruchom `./open-recovr`. Dla silnika klasycznego (opcjonalnie): `sudo apt install testdisk`. |
+| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Rozpakuj, potem prawy przycisk → *Otwórz* (aplikacja nie jest podpisana). Dla silnika klasycznego (opcjonalnie): `brew install testdisk`. |
 
 Odczyt samego dysku (szybkie i pełne skanowanie) wymaga uprawnień administratora. Open Recovr prosi o nie dopiero, gdy przechodzisz do głębokiego wyszukiwania; Kosz jest przeszukiwany bez nich.
 
@@ -113,7 +113,8 @@ Odczyt samego dysku (szybkie i pełne skanowanie) wymaga uprawnień administrato
 | Testowany na prawdziwym komputerze | ✅ | ⚠️ jeszcze nie | ⚠️ jeszcze nie |
 | Kosz | ✅ | ✅ kosz freedesktop | ✅ `.Trash` |
 | Tablica plików NTFS (szybkie skanowanie) | ✅ | ✅ woluminy NTFS | ✅ woluminy NTFS |
-| Pełne skanowanie (PhotoRec) | ✅ w zestawie | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
+| Pełne skanowanie, nowoczesny silnik | ✅ | ✅ | ✅ |
+| Pełne skanowanie, silnik klasyczny (PhotoRec) | ✅ pobierany w Ustawieniach | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
 | Miniatury wideo / PDF, dźwięk | ✅ | ❌ | ❌ |
 | Ikona obok zegara | ✅ | ❌ | ❌ |
 
@@ -129,12 +130,14 @@ cd open-recovr
 cargo build --release
 ```
 
-W Windows pobierz PhotoRec raz poleceniem `powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1`. Opcje wiersza poleceń są opisane w [angielskim README](README.md#build-from-source).
+Dla silnika klasycznego w Windows Ustawienia mogą pobrać PhotoRec; programiści mogą też pobrać go raz poleceniem `powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1`. Opcje wiersza poleceń są opisane w [angielskim README](README.md#build-from-source).
 
 ## Licencja i podziękowania
 
 Open Recovr jest wolnym oprogramowaniem na [licencji MIT](LICENSE).
 
-Pełne skanowanie wykonuje **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, na licencji GNU GPL v2 lub nowszej. Open Recovr uruchamia go jako **osobny, niezmieniony program**. Wersja dla Windows zawiera PhotoRec 7.2 z jego licencją (`vendor/testdisk-7.2/COPYING.txt`). Kod źródłowy PhotoRec jest dostępny na [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download).
+Nowoczesny silnik Open Recovr, domyślnie używany do pełnego skanowania, został napisany od zera na podstawie specyfikacji formatów plików i nie dzieli kodu z PhotoRec. Jego metody opisano w [docs/carving.md](docs/carving.md) (po angielsku).
+
+Silnik klasyczny uruchamia **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, na licencji GNU GPL v2 lub nowszej, jako **osobny, niezmieniony program**. PhotoRec nie jest dołączany do Open Recovr: w Windows, gdy poprosisz o to w Ustawieniach, Open Recovr pobiera oficjalne archiwum PhotoRec 7.2 z [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download) i sprawdza każdy plik ze znanym SHA-256; w Linuksie i macOS pochodzi z systemowego pakietu `testdisk`. PhotoRec położył podstawy otwartego file carvingu, a ten projekt wiele mu zawdzięcza. Dziękujemy, Christophe, za ponad dwadzieścia lat pracy nad TestDisk i PhotoRec.
 
 Open Recovr to niezależny projekt, niezwiązany z żadnym komercyjnym oprogramowaniem do odzyskiwania danych.

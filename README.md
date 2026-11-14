@@ -7,7 +7,7 @@
 **Get your deleted files back, simply.**
 
 One screen, no wizard: pick the drive, search, tick what you want back.<br>
-Free and open source, powered by [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec).
+Free and open source, with its own recovery engine and [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) as an option.
 
 **English** · [Français](README.fr.md) · [Español](README.es.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português (Brasil)](README.pt.md) · [Nederlands](README.nl.md) · [Polski](README.pl.md) · [Українська](README.uk.md)
 
@@ -28,7 +28,7 @@ Free and open source, powered by [PhotoRec](https://www.cgsecurity.org/wiki/Phot
 
 Losing a holiday folder or a thesis is stressful enough. Most recovery tools either cost a lot or bury you in jargon. Free ones like PhotoRec are excellent but run in a text terminal.
 
-Open Recovr puts a friendly, single-screen interface on top of PhotoRec, the proven free engine. It adds a fast search that brings files back **with their original names and folders**.
+Open Recovr puts it all on one friendly screen. A fast search brings files back **with their original names and folders**. For the rest, its own engine reads the whole drive and **puts fragmented pictures, archives and Office files back together**. PhotoRec, the proven free engine, stays available as the classic engine. How the two compare is measured in the [benchmarks](docs/benchmarks.md).
 
 ## How it works
 
@@ -55,10 +55,10 @@ Deleting a file does not erase it. The system only forgets where the file is and
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-en-dark.svg">
-  <img src="docs/illustrations/deleted-file-en.svg" alt="What happens to a deleted file: 1. In the Recycle Bin, found by the quick search. 2. Bin emptied, its name is still in the disk's table of contents, found by the deep search. 3. Table entry reused, the pieces are still on the disk, found by the deep search thanks to PhotoRec. 4. Overwritten by a new file, too late." width="100%">
+  <img src="docs/illustrations/deleted-file-en.svg" alt="What happens to a deleted file: 1. In the Recycle Bin, found by the quick search. 2. Bin emptied, its name is still in the disk's table of contents, found by the deep search. 3. Table entry reused, the pieces are still on the disk, found by the full scan. 4. Overwritten by a new file, too late." width="100%">
 </picture>
 
-At step 3, only the bytes are left. **File carving** scans the whole disk for the signatures that mark the start and end of each file type, and rebuilds the files from them. This is the hard part, and it is done by **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. All credit goes to Christophe Grenier, who has written and maintained it for over twenty years. Open Recovr does not reinvent it: it adds the interface, steps 1 and 2, and the checks, names and previews applied to every file found.
+At step 3, only the bytes are left. **File carving** scans the whole disk for the signatures that mark the start of each file type and works out where each file ends. When a file was stored in several pieces, the next piece is looked for in the free space. Open Recovr's modern engine does this itself ([how it works](docs/carving.md)). The classic engine hands the job to **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**, which recognises far more file types. PhotoRec laid solid foundations for this kind of software in open source: many thanks to Christophe Grenier, who has written and maintained it for over twenty years.
 
 The sooner you search, the more there is to find. On an SSD, freed space is often erased in the background soon after (TRIM): steps 1 and 2 still work for recent deletions, but the full scan may find little.
 
@@ -72,7 +72,7 @@ The sooner you search, the more there is to find. On an SSD, freed space is ofte
 
 - 🗑️ **Quick search.** Searches the Recycle Bin / Trash in seconds, with no special rights.
 - 🔎 **Quick scan (NTFS).** Reads the drive's file table (MFT), where a deleted file keeps its name until the entry is reused. Files come back with their **real names and folders**, in minutes, even after the bin was emptied.
-- 🧲 **Full scan.** Reads the whole drive with PhotoRec, which recognises **hundreds of file types**, even on formatted drives and on FAT/exFAT cards. If PhotoRec is missing, a built-in engine recognises the common formats instead.
+- 🧲 **Full scan.** Reads the whole drive and finds files by their content, even on formatted drives and on FAT/exFAT cards. The **modern engine**, Open Recovr's own, recognises about forty formats (photos, camera raw, videos, music, Office, PDF, archives, fonts) and **puts fragmented files back together**. The **classic engine**, PhotoRec, recognises **hundreds of file types**; pick it in Settings.
 - 💿 **Damaged media.** Unreadable areas (scratched CD/DVD, worn SD card) are skipped instead of freezing the search.
 - 🖼️ **Preview before recovering.** Photos, videos, sounds, PDFs, text and Word documents.
 - 🏷️ **Names and dates that mean something.** Files that only had a number get one from what they say about themselves: `photo_2024-07-14_18-22-05.jpg` from the EXIF date, the title of a Word or PDF document, the artist and song of an MP3.
@@ -82,7 +82,7 @@ The sooner you search, the more there is to find. On an SSD, freed space is ofte
 - 🗂️ **Sort and filter** by type (photos, videos, music, documents, archives), format, size and name.
 - 💾 **Every kind of drive.** Hard disks, SATA and NVMe SSDs, SD / microSD / CompactFlash cards, USB sticks, external disks, CD/DVD.
 - 🕒 **Runs in the background.** The window can hide next to the clock during a long search.
-- 🛠️ **Expert mode.** The full search log and PhotoRec's output, for the curious and for bug reports.
+- 🛠️ **Expert mode.** The full search log (and PhotoRec's output with the classic engine), for the curious and for bug reports.
 - 🎨 **Colour themes.** Light and dark in one click, plus Nord, Catppuccin, Tokyo Night, Solarized, Monokai and Gruvbox.
 - 🔄 **Safe updates.** When a new version is out, one click downloads it, checks its signature and installs it.
 - 🩺 **Help report.** *Prepare a report…* saves a zip (system, drives, last search log) to send to someone who helps you, with personal names masked. Open Recovr never sends it itself.
@@ -97,9 +97,9 @@ Get the latest version from **[Releases](https://github.com/jlerouge/open-recovr
 
 | System | File | How to start it |
 |---|---|---|
-| **Windows 10 / 11** (64-bit) | `open-recovr-…-windows-x64-setup.exe` or `…-windows-x64.zip` | Run the installer (no administrator rights asked), or unzip and open `open-recovr.exe`. PhotoRec is included. Both update themselves in one click. |
-| Linux (64-bit) | `open-recovr-…-linux-x64.tar.gz` | Extract, then run `./open-recovr`. Install PhotoRec for the deep search: `sudo apt install testdisk`. |
-| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Extract, then right-click → *Open* (the app is not signed). Install PhotoRec: `brew install testdisk`. |
+| **Windows 10 / 11** (64-bit) | `open-recovr-…-windows-x64-setup.exe` or `…-windows-x64.zip` | Run the installer (no administrator rights asked), or unzip and open `open-recovr.exe`. Both update themselves in one click. PhotoRec is optional: Settings can fetch it for the classic engine. |
+| Linux (64-bit) | `open-recovr-…-linux-x64.tar.gz` | Extract, then run `./open-recovr`. For the classic engine (optional): `sudo apt install testdisk`. |
+| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Extract, then right-click → *Open* (the app is not signed). For the classic engine (optional): `brew install testdisk`. |
 
 Reading the drive itself (quick scan and full scan) needs administrator rights. Open Recovr asks for them only when you switch to the deep search; the Recycle Bin search works without them.
 
@@ -111,7 +111,8 @@ Reading the drive itself (quick scan and full scan) needs administrator rights. 
 | Tested on real hardware | ✅ | ⚠️ not yet | ⚠️ not yet |
 | Recycle Bin / Trash | ✅ | ✅ freedesktop Trash | ✅ `.Trash` |
 | NTFS file table (quick scan) | ✅ | ✅ NTFS volumes | ✅ NTFS volumes |
-| Full scan (PhotoRec) | ✅ bundled | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
+| Full scan, modern engine | ✅ | ✅ | ✅ |
+| Full scan, classic engine (PhotoRec) | ✅ fetched from Settings | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
 | Video / PDF thumbnails, sound preview | ✅ | ❌ | ❌ |
 | Icon next to the clock | ✅ | ❌ | ❌ |
 
@@ -127,7 +128,7 @@ cd open-recovr
 cargo build --release
 ```
 
-The program is in `target/release/`. On Windows, fetch PhotoRec once for the deep search:
+The program is in `target/release/`. For the classic engine on Windows, Settings can fetch PhotoRec; developers can also fetch it once with:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1
@@ -148,7 +149,7 @@ On Linux, also install `libxkbcommon-dev`, `libwayland-dev` and the `libxcb-*-de
 | `--expert` | show the search log for this run |
 | `--show file.jpg` | list this file as found, to try its preview |
 | `--screenshot out.png` | draw the window off-screen, save it as an image, then quit |
-| `--scene name` | with `--screenshot`, the moment to draw: `home`, `scanning`, `selected`, `recovered`, `settings` |
+| `--scene name` | with `--screenshot`, the moment to draw: `home`, `scanning`, `selected`, `recovered`, `settings`, `engine`, `engine-none` |
 | `--bench [folder]` | measure each search method on a disk image built for the purpose |
 
 </details>
@@ -157,6 +158,8 @@ On Linux, also install `libxkbcommon-dev`, `libwayland-dev` and the `libxcb-*-de
 
 - 📖 [User guide](docs/user-guide.md): every step, with tips and an FAQ
 - 🏗️ [Architecture](docs/architecture.md): how the code is organised and how each search works
+- 🔬 [Carving](docs/carving.md): how the modern engine finds files and puts them back together
+- 📊 [Benchmarks](docs/benchmarks.md): the modern engine and PhotoRec on the same disks
 - 🤝 [Contributing](CONTRIBUTING.md): building, testing, translating (AI-assisted contributions welcome)
 - 📝 [Changelog](CHANGELOG.md)
 
@@ -164,7 +167,9 @@ On Linux, also install `libxkbcommon-dev`, `libwayland-dev` and the `libxcb-*-de
 
 Open Recovr is free software under the [MIT licence](LICENSE).
 
-The deep search is done by **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, released under the GNU GPL v2 or later. Open Recovr runs it as a **separate, unmodified program**. The Windows download includes PhotoRec 7.2 with its Cygwin libraries and its licence (`vendor/testdisk-7.2/COPYING.txt`). PhotoRec's source code is available from [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download). Thank you, Christophe, for over twenty years of work on TestDisk and PhotoRec.
+Open Recovr's modern engine, used by default for the full scan, is written from scratch from the file format specifications and shares no code with PhotoRec. Its methods are described in [docs/carving.md](docs/carving.md).
+
+The classic engine calls **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, released under the GNU GPL v2 or later, as a **separate, unmodified program**. PhotoRec is not included with Open Recovr: on Windows, when you ask for it in Settings, Open Recovr downloads the official PhotoRec 7.2 archive from [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download) and checks each file against a known SHA-256; on Linux and macOS it comes from your system's `testdisk` package. PhotoRec laid the groundwork for open-source file carving, and this project owes it a great deal. Thank you, Christophe, for over twenty years of work on TestDisk and PhotoRec.
 
 Open Recovr is an independent project, not affiliated with any commercial recovery software.
 

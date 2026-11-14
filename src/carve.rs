@@ -34,6 +34,9 @@ pub enum Kind {
     Raf,
     Crw,
     Psd,
+    Ico,
+    Font,
+    Gzip,
 }
 
 impl Kind {
@@ -57,6 +60,9 @@ impl Kind {
             Kind::Ole => 512 * MB,
             Kind::Pcx => 100 * MB,
             Kind::Markup => 64 * MB,
+            Kind::Ico => 16 * MB,
+            Kind::Font => 64 * MB,
+            Kind::Gzip => 2048 * MB,
         }
     }
 
@@ -190,6 +196,25 @@ pub fn detect(b: &[u8]) -> Option<Kind> {
     }
     if b.starts_with(b"8BPS") && matches!(b[4..6], [0, 1] | [0, 2]) && b[6..12] == [0; 6] {
         return Some(Kind::Psd);
+    }
+    // icons and cursors: the first entry of the directory, which starts right after it
+    if b[..4] == [0, 0, 1, 0] || b[..4] == [0, 0, 2, 0] {
+        let n = le16(&b[4..]);
+        if (1..=64).contains(&n) && b[9] == 0 && le32(&b[18..]) == 6 + 16 * n && le32(&b[14..]) >= 40 {
+            return Some(Kind::Ico);
+        }
+    }
+    // fonts: the table count and the search fields derived from it
+    if b.starts_with(&[0, 1, 0, 0]) || b.starts_with(b"OTTO") || b.starts_with(b"true") {
+        let n = u16::from_be_bytes([b[4], b[5]]) as u32;
+        let p = if n == 0 { 0 } else { 1u32 << (31 - n.leading_zeros()) };
+        let field = |i: usize| u16::from_be_bytes([b[i], b[i + 1]]) as u32;
+        if (4..=64).contains(&n) && field(6) == 16 * p && field(8) == p.trailing_zeros() && field(10) == 16 * n - 16 * p {
+            return Some(Kind::Font);
+        }
+    }
+    if b.starts_with(&[0x1F, 0x8B, 8]) && b[3] & 0xE0 == 0 && matches!(b[8], 0 | 2 | 4) && (b[9] <= 13 || b[9] == 255) {
+        return Some(Kind::Gzip);
     }
     if b.starts_with(&[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]) {
         return Some(Kind::Ole);
@@ -457,8 +482,10 @@ pub fn measure(src: &mut dyn Source, offset: u64, kind: Kind) -> Option<(u64, &'
         Kind::Raf => "raf",
         Kind::Crw => "crw",
         Kind::Psd => "psd",
+        Kind::Ico => "ico",
+        Kind::Gzip => "gz",
         // worked out from the file itself
-        Kind::Zip | Kind::Tiff | Kind::Ole | Kind::Markup => "",
+        Kind::Zip | Kind::Tiff | Kind::Ole | Kind::Markup | Kind::Font => "",
         Kind::Mp4 | Kind::Mov | Kind::M4a | Kind::Mkv | Kind::Ts | Kind::Ogg | Kind::Asf => "",
     };
     let len = match kind {
@@ -471,13 +498,7 @@ pub fn measure(src: &mut dyn Source, offset: u64, kind: Kind) -> Option<(u64, &'
             let data = le32(&h[10..]);
             (size > 64 && data < size && size <= max).then_some(size)
         }
-        Kind::Pdf => {
-            let end = c.find(8, b"%%EOF", max)?;
-            // keep the line break that usually follows
-            let tail = c.get(end, 2).map(|t| t.to_vec()).unwrap_or_default();
-            let extra = tail.iter().take_while(|&&x| x == b'\r' || x == b'\n').count() as u64;
-            Some(end + extra)
-        }
+        Kind::Pdf => pdf(&mut c, max),
         Kind::Avi | Kind::Wav | Kind::Webp => {
             let h = c.get(0, 12)?;
             let size = le32(&h[4..]) + 8;
@@ -497,6 +518,12 @@ pub fn measure(src: &mut dyn Source, offset: u64, kind: Kind) -> Option<(u64, &'
         Kind::Raf => raf(&mut c, max),
         Kind::Crw => crw(&mut c, max),
         Kind::Psd => psd(&mut c, max),
+        Kind::Ico => ico(&mut c, max),
+        Kind::Font => {
+            let otf = c.get(0, 4)? == b"OTTO";
+            return font(&mut c, max).filter(|&len| len >= 256).map(|len| (len, if otf { "otf" } else { "ttf" }));
+        }
+        Kind::Gzip => gzip(&mut c, max),
         Kind::Zip => return zip(&mut c, max),
         Kind::Tiff => return tiff(&mut c, max),
         Kind::Ole => return ole(&mut c, max),
@@ -555,6 +582,69 @@ fn jpeg(c: &mut Cursor, max: u64) -> Option<u64> {
             }
         }
     }
+}
+
+/// A PDF ends at its last `%%EOF`, which is not always the first one: a linearized file has one
+/// after its first page, and each incremental update appends a body, a table and another `%%EOF`.
+/// A linearized file states its own length (`/L`), used when a `%%EOF` really ends there.
+/// Otherwise the file goes on past a `%%EOF` as long as an object or a table follows it.
+fn pdf(c: &mut Cursor, max: u64) -> Option<u64> {
+    let eol = |c: &mut Cursor, at: u64| {
+        let t = c.get(at, 2).map(|t| t.to_vec()).unwrap_or_default();
+        t.iter().take_while(|&&x| x == b'\r' || x == b'\n').count() as u64
+    };
+    let head = match c.get(0, 1024) {
+        Some(h) => h.to_vec(),
+        None => c.get(0, 64)?.to_vec(),
+    };
+    if let Some(l) = linearized_len(&head)
+        && l > 64
+        && l <= max
+        && let Some(t) = c.get(l - 16, 16)
+    {
+        let t = t.to_vec();
+        let body = t.iter().rposition(|&x| x != b'\r' && x != b'\n' && x != b' ');
+        if body.is_some_and(|i| i >= 4 && &t[i - 4..=i] == b"%%EOF") {
+            return Some(l);
+        }
+    }
+    let mut end = c.find(8, b"%%EOF", max)?;
+    end += eol(c, end);
+    loop {
+        let Some(next) = c.get(end, 32).map(|t| t.to_vec()) else { break };
+        let s = next.iter().position(|x| !x.is_ascii_whitespace()).unwrap_or(next.len());
+        if !pdf_goes_on(&next[s..]) {
+            break;
+        }
+        let Some(e) = c.find(end + s as u64, b"%%EOF", max) else { break };
+        end = e + eol(c, e);
+    }
+    Some(end)
+}
+
+/// The `/L` length of a linearization dictionary at the start of a PDF.
+fn linearized_len(head: &[u8]) -> Option<u64> {
+    let i = head.windows(11).position(|w| w == b"/Linearized")?;
+    let rest = &head[i..];
+    // `/L` and not `/Linearized`
+    let k = (0..rest.len().saturating_sub(2)).find(|&k| &rest[k..k + 2] == b"/L" && !rest[k + 2].is_ascii_alphabetic())?;
+    let digits: Vec<u8> =
+        rest[k + 2..].iter().skip_while(|x| x.is_ascii_whitespace()).take_while(|x| x.is_ascii_digit()).copied().collect();
+    std::str::from_utf8(&digits).ok()?.parse().ok()
+}
+
+/// Whether bytes after a `%%EOF` carry on the same PDF: an object ("12 0 obj") or a table.
+fn pdf_goes_on(b: &[u8]) -> bool {
+    if b.starts_with(b"xref") {
+        return true;
+    }
+    let num = |b: &[u8]| b.iter().take_while(|x| x.is_ascii_digit()).count();
+    let a = num(b);
+    if a == 0 || b.get(a) != Some(&b' ') {
+        return false;
+    }
+    let g = num(&b[a + 1..]);
+    g > 0 && b[a + 1 + g..].starts_with(b" obj")
 }
 
 fn png(c: &mut Cursor, max: u64) -> Option<u64> {
@@ -626,6 +716,29 @@ fn zip(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
     let e = c.get(end_sig, 22)?.to_vec();
     let cd_size = le32(&e[12..]);
     let cd_start = le32(&e[16..]);
+    // The central directory ends where the end record starts (or, in a ZIP64 file, where its
+    // ZIP64 records start). When the end record is further away than it says, either the file is
+    // in pieces, or this end record belongs to another archive (this one's own end is gone, and
+    // reading on would glue unrelated data to it). It is this file's end only if the directory
+    // just before it lists this file's first entry, by its name, at offset 0.
+    let zip64 =
+        cd_start == 0xFFFF_FFFF || cd_size == 0xFFFF_FFFF || (end_sig >= 20 && c.get(end_sig - 20, 4).is_some_and(|b| b == b"PK\x06\x07"));
+    if !zip64 && cd_start + cd_size != end_sig {
+        let ours = cd_size <= 8 << 20
+            && cd_size <= end_sig
+            && c.get(end_sig - cd_size, cd_size as usize).is_some_and(|cd| {
+                cd.windows(4).enumerate().any(|(i, w)| {
+                    w == b"PK\x01\x02"
+                        && cd.len() >= i + 46 + first.len()
+                        && le32(&cd[i + 42..]) == 0
+                        && le16(&cd[i + 28..]) as usize == name_len
+                        && cd[i + 46..i + 46 + first.len()] == first[..]
+                })
+            });
+        if !ours {
+            return None;
+        }
+    }
     let len = end_sig + 22 + le16(&e[20..]);
     let mut ext = "zip";
     if first.starts_with(b"mimetype") {
@@ -1216,6 +1329,103 @@ fn crw(c: &mut Cursor, max: u64) -> Option<u64> {
 
 /// Photoshop (PSD, and PSB for big documents): a header, three sections with their lengths, then
 /// the merged image, raw or compressed line by line with the length of each line listed first.
+/// An icon (or a cursor): a directory of images, each with its offset and size. The file ends
+/// with the last image. Each image must start with a PNG signature or a bitmap header.
+fn ico(c: &mut Cursor, max: u64) -> Option<u64> {
+    let n = le16(c.get(4, 2)?);
+    let dir = c.get(6, 16 * n as usize)?.to_vec();
+    let first = 6 + 16 * n;
+    let mut end = 0;
+    let mut at = Vec::new();
+    for e in dir.chunks(16) {
+        let (size, off) = (le32(&e[8..]), le32(&e[12..]));
+        if e[3] != 0 || size < 40 || off < first || off + size > max {
+            return None;
+        }
+        at.push(off);
+        end = end.max(off + size);
+    }
+    for off in at {
+        let h = c.get(off, 8)?;
+        if !(h.starts_with(b"\x89PNG\r\n\x1a\n") || le32(h) == 40) {
+            return None;
+        }
+    }
+    Some(end)
+}
+
+/// A TrueType or OpenType font: a directory of tables, each with its offset and length,
+/// padded to four bytes. The file ends with the last table.
+fn font(c: &mut Cursor, max: u64) -> Option<u64> {
+    let n = c.get(4, 2).map(|b| u16::from_be_bytes([b[0], b[1]]) as u64)?;
+    let dir = c.get(12, 16 * n as usize)?.to_vec();
+    let first = 12 + 16 * n;
+    let mut end = 0;
+    let mut prev = [0u8; 4];
+    for e in dir.chunks(16) {
+        let tag: [u8; 4] = e[..4].try_into().unwrap();
+        let (off, len) = (be32(&e[8..]), be32(&e[12..]));
+        // tags are printable and sorted
+        if !tag.iter().all(|&x| (0x20..0x7F).contains(&x)) || tag <= prev || off < first || off + len > max {
+            return None;
+        }
+        prev = tag;
+        end = end.max(off + len);
+    }
+    Some(end.div_ceil(4) * 4)
+}
+
+/// A gzip file: a header, a deflate stream, then the CRC and length of what it inflates to.
+/// Inflating it is the only way to find its end, and the trailer checks the result.
+fn gzip(c: &mut Cursor, max: u64) -> Option<u64> {
+    use miniz_oxide::inflate::stream::{InflateState, inflate};
+    use miniz_oxide::{DataFormat, MZError, MZFlush, MZStatus};
+    let h = c.get(0, 10)?.to_vec();
+    let flags = h[3];
+    let mut pos = 10u64;
+    if flags & 4 != 0 {
+        pos += 2 + le16(c.get(pos, 2)?);
+    }
+    for bit in [8u8, 16] {
+        if flags & bit != 0 {
+            pos = c.find(pos, b"\0", pos + 4096)?;
+        }
+    }
+    if flags & 2 != 0 {
+        pos += 2;
+    }
+    let mut st = InflateState::new_boxed(DataFormat::Raw);
+    let mut out = vec![0u8; 64 << 10];
+    let mut crc = crc32fast::Hasher::new();
+    let mut size = 0u64;
+    loop {
+        if pos >= max {
+            return None;
+        }
+        let inp = c.chunk(pos)?.to_vec();
+        let mut inp = &inp[..];
+        loop {
+            let r = inflate(&mut st, inp, &mut out, MZFlush::None);
+            crc.update(&out[..r.bytes_written]);
+            size += r.bytes_written as u64;
+            inp = &inp[r.bytes_consumed..];
+            pos += r.bytes_consumed as u64;
+            match r.status {
+                Ok(MZStatus::StreamEnd) => {
+                    let t = c.get(pos, 8)?;
+                    let ok = le32(t) as u32 == crc.finalize() && le32(&t[4..]) == size & 0xFFFF_FFFF;
+                    return ok.then_some(pos + 8);
+                }
+                Ok(_) | Err(MZError::Buf) => {}
+                Err(_) => return None,
+            }
+            if (inp.is_empty() && r.bytes_written < out.len()) || (r.bytes_consumed == 0 && r.bytes_written == 0) {
+                break;
+            }
+        }
+    }
+}
+
 fn psd(c: &mut Cursor, max: u64) -> Option<u64> {
     let h = c.get(0, 26)?.to_vec();
     let big = h[5] == 2;
@@ -1574,6 +1784,37 @@ mod tests {
     }
 
     #[test]
+    fn pdf_runs_to_its_last_eof() {
+        // incremental update: two bodies, two `%%EOF`
+        let mut upd = b"%PDF-1.4\n1 0 obj<<>>stream\n".to_vec();
+        upd.extend(std::iter::repeat_n(b'y', 300));
+        upd.extend_from_slice(b"endstream endobj\nxref\ntrailer<<>>\n%%EOF\n");
+        upd.extend_from_slice(b"2 0 obj<<>>endobj\nxref\ntrailer<<>>\n%%EOF\r\n");
+        // linearized: `/L` gives the length, with a `%%EOF` after the first page
+        let mut lin = b"%PDF-1.5\n1 0 obj<</Linearized 1/L 0000000000/O 3>>endobj\n".to_vec();
+        lin.extend_from_slice(b"xref\ntrailer<<>>\n%%EOF\n");
+        lin.extend(std::iter::repeat_n(b'x', 700));
+        lin.extend_from_slice(b"\nstartxref\n9\n%%EOF\n");
+        let l = format!("{:010}", lin.len());
+        let at = lin.windows(10).position(|w| w == b"0000000000").unwrap();
+        lin[at..at + 10].copy_from_slice(l.as_bytes());
+
+        let mut disk = vec![0u8; 1024];
+        let upd_at = disk.len();
+        disk.extend_from_slice(&upd);
+        disk.extend_from_slice(b"\0\0garbage %%EOF\n");
+        disk.resize(4096, 0);
+        let lin_at = disk.len();
+        disk.extend_from_slice(&lin);
+        disk.extend_from_slice(b"junk 1 0 obj %%EOF\n");
+        disk.resize(disk.len() + 4096, 0);
+
+        let mut m = Mem(disk);
+        assert_eq!(measure(&mut m, upd_at as u64, Kind::Pdf).unwrap().0, upd.len() as u64);
+        assert_eq!(measure(&mut m, lin_at as u64, Kind::Pdf).unwrap().0, lin.len() as u64);
+    }
+
+    #[test]
     fn png_and_jpeg_lengths() {
         let mut img = image::RgbImage::new(64, 48);
         for (x, y, p) in img.enumerate_pixels_mut() {
@@ -1599,6 +1840,60 @@ mod tests {
         assert_eq!(measure(&mut m, jpg_at as u64, Kind::Jpeg).unwrap().0, jpg_bytes.len() as u64);
     }
 
+    /// A ZIP holding one stored entry.
+    fn stored_zip(name: &[u8], data: &[u8]) -> Vec<u8> {
+        let crc = crc32fast::hash(data);
+        let (n, d) = (name.len() as u16, data.len() as u32);
+        let mut z = b"PK\x03\x04\x14\0\0\0\0\0\0\0\0\0".to_vec();
+        z.extend(crc.to_le_bytes());
+        z.extend(d.to_le_bytes());
+        z.extend(d.to_le_bytes());
+        z.extend(n.to_le_bytes());
+        z.extend(0u16.to_le_bytes());
+        z.extend_from_slice(name);
+        z.extend_from_slice(data);
+        let cd = z.len() as u32;
+        z.extend(b"PK\x01\x02\x14\0\x14\0\0\0\0\0\0\0\0\0");
+        z.extend(crc.to_le_bytes());
+        z.extend(d.to_le_bytes());
+        z.extend(d.to_le_bytes());
+        z.extend(n.to_le_bytes());
+        z.extend([0u8; 12]);
+        z.extend(0u32.to_le_bytes());
+        z.extend_from_slice(name);
+        let cd_size = z.len() as u32 - cd;
+        z.extend(b"PK\x05\x06\0\0\0\0\x01\0\x01\0");
+        z.extend(cd_size.to_le_bytes());
+        z.extend(cd.to_le_bytes());
+        z.extend(0u16.to_le_bytes());
+        z
+    }
+
+    #[test]
+    fn zip_does_not_borrow_another_archives_end() {
+        let a = stored_zip(b"a.txt", &[b'a'; 3000]);
+        let b = stored_zip(b"b.txt", &[b'b'; 2000]);
+        // the first archive lost its central directory and end record to other data
+        let cut = a.len() - 60;
+        let mut disk = vec![0u8; 1024];
+        disk.extend_from_slice(&a[..cut]);
+        disk.resize(disk.len().div_ceil(512) * 512 + 2048, 0x5A);
+        let b_at = disk.len();
+        disk.extend_from_slice(&b);
+        disk.resize(disk.len() + 4096, 0);
+        let mut m = Mem(disk);
+        assert_eq!(measure(&mut m, 1024, Kind::Zip), None);
+        assert_eq!(measure(&mut m, b_at as u64, Kind::Zip).unwrap().0, b.len() as u64);
+
+        // the same archive cut in two, with other data between the pieces: still read to its end
+        let mut disk = vec![0u8; 1024];
+        disk.extend_from_slice(&a[..2048]);
+        disk.extend(std::iter::repeat_n(0x5Au8, 4096));
+        disk.extend_from_slice(&a[2048..]);
+        disk.resize(disk.len() + 4096, 0);
+        assert_eq!(measure(&mut Mem(disk), 1024, Kind::Zip).unwrap().0, a.len() as u64 + 4096);
+    }
+
     /// `file` at sector 2 of a disk, followed by `after`; returns what the carver makes of it.
     fn carve_one(file: &[u8], after: u8) -> Option<(Kind, u64, &'static str)> {
         let mut disk = vec![0u8; 1024];
@@ -1607,6 +1902,40 @@ mod tests {
         let kind = detect(&disk[1024..])?;
         let (len, ext) = measure(&mut Mem(disk), 1024, kind)?;
         Some((kind, len, ext))
+    }
+
+    #[test]
+    fn icons_fonts_and_gzip() {
+        // an icon holding one PNG
+        let img = image::RgbaImage::from_fn(32, 32, |x, y| image::Rgba([(x * 7) as u8, (y * 9) as u8, (x * y) as u8, 255]));
+        let mut png_bytes = Vec::new();
+        img.write_to(&mut std::io::Cursor::new(&mut png_bytes), image::ImageFormat::Png).unwrap();
+        let mut ico = vec![0, 0, 1, 0, 1, 0, 32, 32, 0, 0, 1, 0, 32, 0];
+        ico.extend_from_slice(&(png_bytes.len() as u32).to_le_bytes());
+        ico.extend_from_slice(&22u32.to_le_bytes());
+        ico.extend_from_slice(&png_bytes);
+        assert_eq!(carve_one(&ico, 0x55), Some((Kind::Ico, ico.len() as u64, "ico")));
+
+        // a font with four tables, the last one not a multiple of four long
+        let mut ttf = vec![0, 1, 0, 0, 0, 4, 0, 64, 0, 2, 0, 0];
+        let mut off = 12 + 16 * 4u32;
+        for (tag, len) in [(b"cmap", 100u32), (b"glyf", 300), (b"head", 54), (b"name", 61)] {
+            ttf.extend_from_slice(tag);
+            ttf.extend_from_slice(&[0; 4]);
+            ttf.extend_from_slice(&off.to_be_bytes());
+            ttf.extend_from_slice(&len.to_be_bytes());
+            off += len.div_ceil(4) * 4;
+        }
+        ttf.resize(off as usize, 7);
+        assert_eq!(carve_one(&ttf, 0x55), Some((Kind::Font, ttf.len() as u64, "ttf")));
+
+        // a gzip file
+        let text: Vec<u8> = (0..20_000u32).flat_map(|i| format!("line {i}\n").into_bytes()).collect();
+        let mut gz = vec![0x1F, 0x8B, 8, 0, 0, 0, 0, 0, 0, 11];
+        gz.extend_from_slice(&miniz_oxide::deflate::compress_to_vec(&text, 6));
+        gz.extend_from_slice(&crc32fast::hash(&text).to_le_bytes());
+        gz.extend_from_slice(&(text.len() as u32).to_le_bytes());
+        assert_eq!(carve_one(&gz, 0x55), Some((Kind::Gzip, gz.len() as u64, "gz")));
     }
 
     #[test]

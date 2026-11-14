@@ -213,8 +213,6 @@ Pas trouvé ? Lancer l'analyse complète
 = ¿No lo encuentra? Iniciar el análisis completo
 Passer en recherche approfondie
 = Pasar a búsqueda profunda
-PhotoRec indisponible : recherche intégrée à la place
-= PhotoRec no disponible: búsqueda integrada en su lugar
 PhotoRec n'a pas pu démarrer
 = PhotoRec no pudo iniciarse
 Photos
@@ -415,16 +413,10 @@ Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter l
 = Elegir un formato preciso (JPG, Word…) o un tamaño mínimo, para descartar los archivos pequeños sin interés.
 Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
 = Guardar aquí puede sobrescribir otros archivos aún recuperables. Es mejor elegir una memoria USB u otro disco.
-Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
-= Hace el análisis rápido y luego lee todo el disco con PhotoRec: encuentra también archivos más antiguos, a menudo sin su nombre. Puede tardar más de una hora.
-La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
-= La búsqueda profunda usa PhotoRec 7.2 © Christophe Grenier, distribuido bajo licencia GNU GPL (www.cgsecurity.org). Reconoce cientos de tipos de archivo.
 Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
 = El registro se llena durante la búsqueda: cada paso y, en búsqueda profunda, las líneas de PhotoRec.
 Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
 = Lee la tabla de archivos del disco: unos minutos, y los archivos conservan su nombre y su carpeta. Encuentra lo borrado recientemente, incluso tras vaciar la papelera.
-Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
-= Lee todo el disco con PhotoRec para encontrar también los archivos más antiguos.
 Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
 = Lee todo el disco para encontrar también archivos borrados hace tiempo o tras vaciar la papelera. Más largo: de unos minutos a más de una hora según el disco. {} le pedirá que autorice la aplicación ({}).
 Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
@@ -596,3 +588,36 @@ Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
 = Informe guardado: {}. Ábralo para revisarlo antes de transmitirlo.
 Reconstitution des fichiers fragmentés…
 = Reconstruyendo los archivos fragmentados…
+
+Moteur de l'analyse complète
+= Motor del análisis completo
+Moderne
+= Moderno
+Classique (PhotoRec)
+= Clásico (PhotoRec)
+PhotoRec, de Christophe Grenier, la référence libre depuis plus de vingt ans : il reconnaît des centaines de types de fichiers, et les lit d'un seul tenant.
+= PhotoRec, de Christophe Grenier, la referencia libre desde hace más de veinte años: reconoce cientos de tipos de archivo y los lee de una sola pieza.
+Le moteur d'Open Recovr, écrit de zéro : il vérifie chaque fichier trouvé, et sait recoller les photos, images et documents dont les morceaux sont éparpillés sur le disque.
+= El motor propio de Open Recovr, escrito desde cero: comprueba cada archivo encontrado y sabe recomponer fotos, imágenes y documentos cuyos fragmentos están dispersos por el disco.
+PhotoRec trouvé : {}
+= PhotoRec encontrado: {}
+Téléchargement et vérification de PhotoRec…
+= Descargando y comprobando PhotoRec…
+PhotoRec n'a pas pu être installé : {}
+= No se pudo instalar PhotoRec: {}
+PhotoRec n'est pas installé. C'est un logiciel distinct, sous licence GNU GPL, que vous pouvez ajouter si vous le souhaitez.
+= PhotoRec no está instalado. Es un programa independiente, con licencia GNU GPL, que puede añadir si lo desea.
+Télécharger PhotoRec (cgsecurity.org)
+= Descargar PhotoRec (cgsecurity.org)
+Récupère l'archive officielle de PhotoRec 7.2 sur www.cgsecurity.org, vérifie chaque fichier puis le range dans votre dossier de données. Rien d'autre n'est envoyé.
+= Obtiene el archivo oficial de PhotoRec 7.2 en www.cgsecurity.org, comprueba cada archivo y lo guarda en su carpeta de datos. No se envía nada más.
+Installez le paquet « testdisk » de votre système (par exemple sudo apt install testdisk, ou brew install testdisk), puis relancez Open Recovr.
+= Instale el paquete «testdisk» de su sistema (por ejemplo sudo apt install testdisk, o brew install testdisk) y vuelva a abrir Open Recovr.
+Le moteur moderne d'Open Recovr est écrit de zéro, sans reprendre le code d'aucun autre logiciel. Un grand merci à Christophe Grenier, l'auteur de PhotoRec et TestDisk (www.cgsecurity.org, licence GNU GPL) : il a posé les bases de la récupération de fichiers libre. Le moteur classique fait appel à PhotoRec, un logiciel distinct installé à part.
+= El motor moderno de Open Recovr está escrito desde cero, sin reutilizar código de ningún otro programa. Muchas gracias a Christophe Grenier, autor de PhotoRec y TestDisk (www.cgsecurity.org, licencia GNU GPL): sentó las bases de la recuperación de archivos libre. El motor clásico recurre a PhotoRec, un programa independiente que se instala aparte.
+Lit tout le disque pour retrouver aussi les fichiers plus anciens.
+= Lee todo el disco para encontrar también los archivos más antiguos.
+Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Hace el análisis rápido y luego lee todo el disco: encuentra también archivos más antiguos, a menudo sin su nombre. Puede tardar más de una hora.
+Analyse complète : moteur moderne d'Open Recovr
+= Análisis completo: motor moderno de Open Recovr

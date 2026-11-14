@@ -214,8 +214,6 @@ Pas trouvé ? Lancer l'analyse complète
 = Non trovato? Avvia l'analisi completa
 Passer en recherche approfondie
 = Passa alla ricerca approfondita
-PhotoRec indisponible : recherche intégrée à la place
-= PhotoRec non disponibile: ricerca integrata al suo posto
 PhotoRec n'a pas pu démarrer
 = PhotoRec non è riuscito ad avviarsi
 Photos
@@ -416,16 +414,10 @@ Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter l
 = Scegli un formato preciso (JPG, Word…) o una dimensione minima, per escludere i piccoli file senza interesse.
 Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
 = Salvare qui può sovrascrivere altri file ancora recuperabili. Meglio scegliere una chiavetta USB o un altro disco.
-Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
-= Fa l'analisi rapida, poi legge tutto il disco con PhotoRec: trova anche i file più vecchi, spesso senza il loro nome. Può richiedere più di un'ora.
-La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
-= La ricerca approfondita usa PhotoRec 7.2 © Christophe Grenier, distribuito con licenza GNU GPL (www.cgsecurity.org). Riconosce centinaia di tipi di file.
 Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
 = Il registro si riempie durante la ricerca: ogni passo e, nella ricerca approfondita, le righe di PhotoRec.
 Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
 = Legge la tabella dei file del disco: pochi minuti, e i file mantengono nome e cartella. Trova ciò che è stato eliminato di recente, anche dopo aver svuotato il Cestino.
-Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
-= Legge tutto il disco con PhotoRec per trovare anche i file più vecchi.
 Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
 = Legge tutto il disco per trovare anche i file eliminati da tempo o dopo aver svuotato il Cestino. Più lunga: da pochi minuti a più di un'ora secondo il disco. {} ti chiederà di autorizzare l'applicazione ({}).
 Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
@@ -597,3 +589,36 @@ Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
 = Rapporto salvato: {}. Aprilo per rileggerlo prima di trasmetterlo.
 Reconstitution des fichiers fragmentés…
 = Ricostruzione dei file frammentati…
+
+Moteur de l'analyse complète
+= Motore dell'analisi completa
+Moderne
+= Moderno
+Classique (PhotoRec)
+= Classico (PhotoRec)
+PhotoRec, de Christophe Grenier, la référence libre depuis plus de vingt ans : il reconnaît des centaines de types de fichiers, et les lit d'un seul tenant.
+= PhotoRec, di Christophe Grenier, il riferimento libero da oltre vent'anni: riconosce centinaia di tipi di file e li legge in un unico pezzo.
+Le moteur d'Open Recovr, écrit de zéro : il vérifie chaque fichier trouvé, et sait recoller les photos, images et documents dont les morceaux sont éparpillés sur le disque.
+= Il motore di Open Recovr, scritto da zero: verifica ogni file trovato e sa ricomporre foto, immagini e documenti i cui pezzi sono sparsi sul disco.
+PhotoRec trouvé : {}
+= PhotoRec trovato: {}
+Téléchargement et vérification de PhotoRec…
+= Download e verifica di PhotoRec…
+PhotoRec n'a pas pu être installé : {}
+= Impossibile installare PhotoRec: {}
+PhotoRec n'est pas installé. C'est un logiciel distinct, sous licence GNU GPL, que vous pouvez ajouter si vous le souhaitez.
+= PhotoRec non è installato. È un programma separato, con licenza GNU GPL, che puoi aggiungere se lo desideri.
+Télécharger PhotoRec (cgsecurity.org)
+= Scarica PhotoRec (cgsecurity.org)
+Récupère l'archive officielle de PhotoRec 7.2 sur www.cgsecurity.org, vérifie chaque fichier puis le range dans votre dossier de données. Rien d'autre n'est envoyé.
+= Scarica l'archivio ufficiale di PhotoRec 7.2 da www.cgsecurity.org, verifica ogni file e lo salva nella tua cartella dati. Non viene inviato nient'altro.
+Installez le paquet « testdisk » de votre système (par exemple sudo apt install testdisk, ou brew install testdisk), puis relancez Open Recovr.
+= Installa il pacchetto «testdisk» del tuo sistema (per esempio sudo apt install testdisk, o brew install testdisk), poi riavvia Open Recovr.
+Le moteur moderne d'Open Recovr est écrit de zéro, sans reprendre le code d'aucun autre logiciel. Un grand merci à Christophe Grenier, l'auteur de PhotoRec et TestDisk (www.cgsecurity.org, licence GNU GPL) : il a posé les bases de la récupération de fichiers libre. Le moteur classique fait appel à PhotoRec, un logiciel distinct installé à part.
+= Il motore moderno di Open Recovr è scritto da zero, senza riprendere il codice di nessun altro programma. Un grande grazie a Christophe Grenier, autore di PhotoRec e TestDisk (www.cgsecurity.org, licenza GNU GPL): ha posto le basi del recupero file libero. Il motore classico si appoggia a PhotoRec, un programma separato installato a parte.
+Lit tout le disque pour retrouver aussi les fichiers plus anciens.
+= Legge tutto il disco per trovare anche i file più vecchi.
+Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Esegue l'analisi rapida, poi legge tutto il disco: trova anche i file più vecchi, spesso senza il loro nome. Può richiedere più di un'ora.
+Analyse complète : moteur moderne d'Open Recovr
+= Analisi completa: motore moderno di Open Recovr

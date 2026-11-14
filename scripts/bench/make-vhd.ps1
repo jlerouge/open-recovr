@@ -65,10 +65,12 @@ Remove-Item $dp
 $disk = Mount-DiskImage -ImagePath $vhd -PassThru | Get-Disk
 try {
     Initialize-Disk -Number $disk.Number -PartitionStyle MBR
-    $part = New-Partition -DiskNumber $disk.Number -UseMaximumSize -AssignDriveLetter
+    # no letter until formatted, or Explorer pops up "you must format the disk"
+    $part = New-Partition -DiskNumber $disk.Number -UseMaximumSize
     $fmt = @{ FileSystem = $FileSystem; NewFileSystemLabel = 'BENCH'; Confirm = $false; Force = $true }
     if ($Cluster -gt 0) { $fmt.AllocationUnitSize = $Cluster }
     $vol = $part | Format-Volume @fmt
+    $part | Add-PartitionAccessPath -AssignDriveLetter
     $part = Get-Partition -DiskNumber $disk.Number -PartitionNumber $part.PartitionNumber
     $root = "$($part.DriveLetter):\"
     $cl = $vol.AllocationUnitSize

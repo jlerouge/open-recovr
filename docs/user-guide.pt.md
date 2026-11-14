@@ -52,11 +52,16 @@ Na busca profunda, as unidades NTFS (a maioria dos discos do Windows) oferecem d
 | Análise | O que ela lê | Duração | Mantém os nomes? |
 |---|---|---|---|
 | **Rápida** | A tabela de arquivos da unidade (MFT) | Alguns minutos | ✅ nome e pasta |
-| **Completa** | A tabela de arquivos, depois a unidade inteira com o PhotoRec | De minutos a mais de uma hora | Em parte (veja abaixo) |
+| **Completa** | A tabela de arquivos, depois a unidade inteira | De minutos a mais de uma hora | Em parte (veja abaixo) |
 
 Comece pela **Rápida**. Se o seu arquivo não estiver lá, clique em **Não encontrou? Fazer a análise completa**.
 
 Em outros sistemas de arquivos (cartões de memória FAT32 e exFAT, ext4, APFS…), a busca profunda vai direto para a análise completa.
+
+A análise completa tem dois motores, à escolha em **Configurações → Motor da análise completa**:
+
+- **Moderno** (padrão): o motor do próprio Open Recovr. Ele junta de novo os arquivos fragmentados (JPEG, PNG, GIF, BMP, TIFF, PCX, ZIP e arquivos do Office, arquivos antigos do Word e do Excel) e verifica cada arquivo que mantém.
+- **Clássico (PhotoRec)**: executa o [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) de Christophe Grenier, que conhece várias centenas de tipos de arquivo. O PhotoRec não vem incluído: no Windows, **Baixar o PhotoRec** nas Configurações o busca em cgsecurity.org; no Linux e no macOS, instale o pacote `testdisk`.
 
 ## 3. A busca
 
@@ -90,7 +95,7 @@ Cada arquivo encontrado é lido do início ao fim, e a coluna **Estado** mostra 
 
 O mesmo arquivo costuma ser encontrado várias vezes (na Lixeira e na unidade, por exemplo). As cópias ficam escondidas atrás de um link *duplicatas ocultas · Mostrar*.
 
-Os arquivos encontrados pelo PhotoRec não têm nome próprio. O Open Recovr dá um nome a eles a partir do conteúdo quando pode: `photo_2024-07-14_18-22-05.jpg` pela data em que a foto foi tirada, o título de um documento Word ou PDF, o artista e a música de um MP3.
+Os arquivos encontrados pela análise completa não têm nome próprio. O Open Recovr dá um nome a eles a partir do conteúdo quando pode: `photo_2024-07-14_18-22-05.jpg` pela data em que a foto foi tirada, o título de um documento Word ou PDF, o artista e a música de um MP3.
 
 ## 5. Marcar o que você quer recuperar
 
@@ -130,7 +135,7 @@ Quando sai uma nova versão, a barra inferior mostra **→ v…: atualizar**. Um
 
 ![O modo avançado com o registro da busca](screenshots/en-7-expert.png)
 
-O **Modo avançado**, no menu no canto superior direito, mostra o registro da busca embaixo da lista: a unidade e seu sistema de arquivos, cada etapa e as linhas do PhotoRec. **Copiar tudo** copia o registro, útil para relatar um problema. Arraste a borda superior do registro para aumentá-lo.
+O **Modo avançado**, no menu no canto superior direito, mostra o registro da busca embaixo da lista: a unidade e seu sistema de arquivos, cada etapa e, com o motor clássico, as linhas do PhotoRec. **Copiar tudo** copia o registro, útil para relatar um problema. Arraste a borda superior do registro para aumentá-lo.
 
 Cada busca também é gravada em `journal.txt`, junto das configurações (`%APPDATA%\Open Recovr` no Windows). O link **Registro**, embaixo, abre o arquivo.
 
@@ -144,7 +149,7 @@ No menu no canto superior direito (☰), **Preparar um relatório…** salva um 
 Verifique se a unidade certa está escolhida e se o filtro de tipo não o esconde (*Tudo*). Depois tente a busca profunda e, em NTFS, a análise completa. Se a unidade foi muito usada desde a exclusão, o arquivo pode ter sido sobrescrito. Aí nenhum programa consegue trazê-lo de volta.
 
 **Os arquivos recuperados se chamam `f1234567.jpg`.**
-Esses arquivos foram encontrados pelo PhotoRec, que reconhece um arquivo pelo conteúdo e não pela tabela de arquivos: o nome original é desconhecido. Quando o próprio arquivo não diz nada sobre a data ou o título, o número fica. Ordene por data ou tamanho e use a pré-visualização para encontrar o seu.
+Esses arquivos foram encontrados pela análise completa, que reconhece um arquivo pelo conteúdo e não pela tabela de arquivos: o nome original é desconhecido. Quando o próprio arquivo não diz nada sobre a data ou o título, o número fica. Ordene por data ou tamanho e use a pré-visualização para encontrar o seu.
 
 **Um arquivo está marcado como Danificado. Vale a pena recuperá-lo?**
 Muitas vezes, sim. Uma foto danificada pode mostrar só a metade de cima, um vídeo danificado pode tocar até a parte estragada. Recupere e teste: não custa nada, e a unidade nunca é alterada.
@@ -164,5 +169,5 @@ Ela lê a unidade setor por setor, abaixo do sistema de arquivos, e o sistema op
 **É seguro? Ele envia meus dados para algum lugar?**
 O Open Recovr funciona offline. Sem conta, sem telemetria. A única conexão é a procura de atualizações: ao iniciar, ele pergunta ao GitHub o número da versão mais recente, e não envia mais nada. Desmarque «Procurar atualizações ao iniciar» nas Configurações para desativá-la; o menu ainda pode verificar quando você pedir. Uma atualização só é instalada se estiver assinada com a chave do projeto, que nunca vai para o GitHub: uma versão falsa colocada lá por outra pessoa é recusada. O código é aberto: confira você mesmo.
 
-**Linux / macOS: a busca profunda diz que o PhotoRec não está disponível.**
-Instale-o: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) ou `brew install testdisk` (macOS). O Open Recovr encontra o `photorec` sozinho. Sem ele, um mecanismo embutido mais simples busca os formatos mais comuns.
+**O motor clássico não pode ser escolhido nas Configurações.**
+O PhotoRec não está instalado. No Windows, clique em **Baixar o PhotoRec** abaixo da escolha do motor. No Linux e no macOS, instale-o: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) ou `brew install testdisk` (macOS). O Open Recovr encontra o `photorec` sozinho. O motor moderno não precisa de nada.

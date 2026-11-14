@@ -52,11 +52,16 @@ Bij diep zoeken bieden NTFS-schijven (de meeste Windows-schijven) twee scans:
 | Scan | Wat ze leest | Duur | Namen behouden? |
 |---|---|---|---|
 | **Snel** | De bestandstabel van de schijf (MFT) | Een paar minuten | ✅ naam en map |
-| **Volledig** | De bestandstabel, daarna de hele schijf met PhotoRec | Van minuten tot meer dan een uur | Deels (zie hieronder) |
+| **Volledig** | De bestandstabel, daarna de hele schijf | Van minuten tot meer dan een uur | Deels (zie hieronder) |
 
 Begin met **Snel**. Staat uw bestand er niet bij, klik dan op **Niet gevonden? Start de volledige scan**.
 
 Op andere bestandssystemen (geheugenkaarten met FAT32 en exFAT, ext4, APFS…) gaat diep zoeken meteen naar de volledige scan.
+
+De volledige scan heeft twee engines, te kiezen in **Instellingen → Engine van de volledige scan**:
+
+- **Modern** (standaard): de eigen engine van Open Recovr. Die zet gefragmenteerde bestanden weer in elkaar (JPEG, PNG, GIF, BMP, TIFF, PCX, ZIP en Office-bestanden, oudere Word- en Excel-bestanden) en controleert elk bestand dat hij bewaart.
+- **Klassiek (PhotoRec)**: start [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) van Christophe Grenier, dat honderden bestandstypen kent. PhotoRec zit er niet bij: op Windows haalt **PhotoRec downloaden** in de Instellingen het op bij cgsecurity.org; op Linux en macOS installeert u het pakket `testdisk`.
 
 ## 3. Het zoeken
 
@@ -90,7 +95,7 @@ Elk gevonden bestand wordt van begin tot eind gelezen, en de kolom **Staat** gee
 
 Hetzelfde bestand wordt vaak meerdere keren gevonden (in de Prullenbak en op de schijf, bijvoorbeeld). De kopieën zitten verborgen achter een link *duplicaten verborgen · Tonen*.
 
-Door PhotoRec gevonden bestanden hebben geen eigen naam. Open Recovr geeft ze, als het kan, een naam op basis van de inhoud: `photo_2024-07-14_18-22-05.jpg` uit de opnamedatum van een foto, de titel van een Word- of pdf-document, artiest en nummer van een MP3.
+Door de volledige scan gevonden bestanden hebben geen eigen naam. Open Recovr geeft ze, als het kan, een naam op basis van de inhoud: `photo_2024-07-14_18-22-05.jpg` uit de opnamedatum van een foto, de titel van een Word- of pdf-document, artiest en nummer van een MP3.
 
 ## 5. Aanvinken wat u terug wilt
 
@@ -130,7 +135,7 @@ Als er een nieuwe versie is, toont de balk onderaan **→ v…: bijwerken**. Eé
 
 ![De expertmodus met het logboek van de zoekactie](screenshots/en-7-expert.png)
 
-De **Expertmodus**, in het menu rechtsboven, toont onder de lijst het logboek van de zoekactie: de schijf en het bestandssysteem, elke fase en de regels van PhotoRec. **Alles kopiëren** kopieert het logboek, handig voor een foutmelding. Sleep de bovenrand van het logboek om het groter te maken.
+De **Expertmodus**, in het menu rechtsboven, toont onder de lijst het logboek van de zoekactie: de schijf en het bestandssysteem, elke fase en, met de klassieke engine, de regels van PhotoRec. **Alles kopiëren** kopieert het logboek, handig voor een foutmelding. Sleep de bovenrand van het logboek om het groter te maken.
 
 Elke zoekactie wordt ook weggeschreven in `journal.txt`, naast de instellingen (`%APPDATA%\Open Recovr` op Windows). De link **Logboek** onderaan opent het.
 
@@ -144,7 +149,7 @@ In het menu rechtsboven (☰) slaat **Rapport maken…** een zip op die u kunt s
 Controleer of de juiste schijf gekozen is en of het typefilter het niet verbergt (*Alles*). Probeer daarna diep zoeken en op NTFS de volledige scan. Is de schijf na het verwijderen veel gebruikt, dan is het bestand misschien overschreven. Dan kan geen enkel programma het terughalen.
 
 **De herstelde bestanden heten `f1234567.jpg`.**
-Die bestanden zijn gevonden door PhotoRec, dat een bestand herkent aan de inhoud en niet via de bestandstabel: hun oorspronkelijke naam is onbekend. Als het bestand zelf niets zegt over de datum of de titel, blijft het nummer staan. Sorteer op datum of grootte en gebruik het voorbeeld om het uwe te vinden.
+Die bestanden zijn gevonden door de volledige scan, die een bestand herkent aan de inhoud en niet via de bestandstabel: hun oorspronkelijke naam is onbekend. Als het bestand zelf niets zegt over de datum of de titel, blijft het nummer staan. Sorteer op datum of grootte en gebruik het voorbeeld om het uwe te vinden.
 
 **Een bestand staat als Beschadigd. Is het de moeite waard om het te herstellen?**
 Vaak wel. Een beschadigde foto toont misschien alleen de bovenste helft, een beschadigde video speelt misschien tot het kapotte stuk. Herstel het en probeer het: het kost niets, en de schijf wordt nooit gewijzigd.
@@ -164,5 +169,5 @@ Het leest de schijf sector voor sector, onder het bestandssysteem, en het bestur
 **Is het veilig? Stuurt het mijn gegevens ergens heen?**
 Open Recovr werkt offline. Geen account, geen telemetrie. De enige verbinding is het zoeken naar updates: bij het starten vraagt het GitHub naar het nummer van de nieuwste versie, en stuurt verder niets. Vink in Instellingen „Bij het starten naar updates zoeken” uit om dat uit te zetten; via het menu kunt u nog steeds op verzoek controleren. Een update wordt alleen geïnstalleerd als hij ondertekend is met de sleutel van het project, die nooit naar GitHub gaat: een nepversie die iemand anders daar neerzet, wordt geweigerd. De code is open: kijk zelf.
 
-**Linux / macOS: diep zoeken meldt dat PhotoRec niet beschikbaar is.**
-Installeer het: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) of `brew install testdisk` (macOS). Open Recovr vindt `photorec` dan zelf. Zonder PhotoRec zoekt een eenvoudigere ingebouwde engine naar de meest voorkomende formaten.
+**De klassieke engine kan niet worden gekozen in de Instellingen.**
+PhotoRec is niet geïnstalleerd. Klik op Windows op **PhotoRec downloaden** onder de keuze van de engine. Installeer het op Linux en macOS: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) of `brew install testdisk` (macOS). Open Recovr vindt `photorec` dan zelf. De moderne engine heeft niets nodig.

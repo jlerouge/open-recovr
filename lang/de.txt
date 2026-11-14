@@ -213,8 +213,6 @@ Pas trouvé ? Lancer l'analyse complète
 = Nicht gefunden? Vollständige Analyse starten
 Passer en recherche approfondie
 = Zur Tiefensuche wechseln
-PhotoRec indisponible : recherche intégrée à la place
-= PhotoRec nicht verfügbar: stattdessen eingebaute Suche
 PhotoRec n'a pas pu démarrer
 = PhotoRec konnte nicht starten
 Photos
@@ -415,16 +413,10 @@ Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter l
 = Ein bestimmtes Format (JPG, Word…) oder eine Mindestgröße wählen, um kleine unwichtige Dateien auszusortieren.
 Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
 = Hier zu speichern kann andere noch rettbare Dateien überschreiben. Wählen Sie besser einen USB-Stick oder ein anderes Laufwerk.
-Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
-= Führt die schnelle Analyse aus und liest dann das ganze Laufwerk mit PhotoRec: findet auch ältere Dateien, oft ohne ihren Namen. Kann über eine Stunde dauern.
-La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
-= Die Tiefensuche nutzt PhotoRec 7.2 © Christophe Grenier, verbreitet unter der GNU-GPL-Lizenz (www.cgsecurity.org). Es erkennt Hunderte von Dateitypen.
 Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
 = Das Protokoll füllt sich während der Suche: jeder Schritt und bei der Tiefensuche die Zeilen von PhotoRec.
 Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
 = Liest die Dateitabelle des Laufwerks: wenige Minuten, und die Dateien behalten Namen und Ordner. Findet kürzlich Gelöschtes, auch nach dem Leeren des Papierkorbs.
-Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
-= Liest das ganze Laufwerk mit PhotoRec, um auch ältere Dateien zu finden.
 Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
 = Liest das ganze Laufwerk, um auch längst gelöschte Dateien oder solche nach dem Leeren des Papierkorbs zu finden. Länger: je nach Laufwerk wenige Minuten bis über eine Stunde. {} wird Sie bitten, die Anwendung zuzulassen ({}).
 Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
@@ -596,3 +588,36 @@ Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
 = Bericht gespeichert: {}. Öffnen Sie ihn, um ihn vor der Weitergabe zu lesen.
 Reconstitution des fichiers fragmentés…
 = Fragmentierte Dateien werden zusammengesetzt…
+
+Moteur de l'analyse complète
+= Engine der vollständigen Analyse
+Moderne
+= Modern
+Classique (PhotoRec)
+= Klassisch (PhotoRec)
+PhotoRec, de Christophe Grenier, la référence libre depuis plus de vingt ans : il reconnaît des centaines de types de fichiers, et les lit d'un seul tenant.
+= PhotoRec von Christophe Grenier, seit über zwanzig Jahren die freie Referenz: Es erkennt Hunderte von Dateitypen und liest jede Datei an einem Stück.
+Le moteur d'Open Recovr, écrit de zéro : il vérifie chaque fichier trouvé, et sait recoller les photos, images et documents dont les morceaux sont éparpillés sur le disque.
+= Die eigene Engine von Open Recovr, von Grund auf neu geschrieben: Sie prüft jede gefundene Datei und kann Fotos, Bilder und Dokumente wieder zusammensetzen, deren Teile über das Laufwerk verstreut sind.
+PhotoRec trouvé : {}
+= PhotoRec gefunden: {}
+Téléchargement et vérification de PhotoRec…
+= PhotoRec wird heruntergeladen und geprüft…
+PhotoRec n'a pas pu être installé : {}
+= PhotoRec konnte nicht installiert werden: {}
+PhotoRec n'est pas installé. C'est un logiciel distinct, sous licence GNU GPL, que vous pouvez ajouter si vous le souhaitez.
+= PhotoRec ist nicht installiert. Es ist eine eigenständige Software unter der GNU-GPL-Lizenz, die Sie bei Bedarf hinzufügen können.
+Télécharger PhotoRec (cgsecurity.org)
+= PhotoRec herunterladen (cgsecurity.org)
+Récupère l'archive officielle de PhotoRec 7.2 sur www.cgsecurity.org, vérifie chaque fichier puis le range dans votre dossier de données. Rien d'autre n'est envoyé.
+= Lädt das offizielle Archiv von PhotoRec 7.2 von www.cgsecurity.org, prüft jede Datei und legt es in Ihrem Datenordner ab. Sonst wird nichts gesendet.
+Installez le paquet « testdisk » de votre système (par exemple sudo apt install testdisk, ou brew install testdisk), puis relancez Open Recovr.
+= Installieren Sie das Paket „testdisk“ Ihres Systems (zum Beispiel sudo apt install testdisk oder brew install testdisk) und starten Sie Open Recovr neu.
+Le moteur moderne d'Open Recovr est écrit de zéro, sans reprendre le code d'aucun autre logiciel. Un grand merci à Christophe Grenier, l'auteur de PhotoRec et TestDisk (www.cgsecurity.org, licence GNU GPL) : il a posé les bases de la récupération de fichiers libre. Le moteur classique fait appel à PhotoRec, un logiciel distinct installé à part.
+= Die moderne Engine von Open Recovr ist von Grund auf neu geschrieben, ohne Code aus anderer Software zu übernehmen. Vielen Dank an Christophe Grenier, den Autor von PhotoRec und TestDisk (www.cgsecurity.org, GNU-GPL-Lizenz): Er hat die Grundlagen der freien Datenrettung gelegt. Die klassische Engine ruft PhotoRec auf, eine eigenständige, separat installierte Software.
+Lit tout le disque pour retrouver aussi les fichiers plus anciens.
+= Liest das ganze Laufwerk, um auch ältere Dateien zu finden.
+Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Führt die schnelle Suche aus und liest dann das ganze Laufwerk: findet auch ältere Dateien, oft ohne ihren Namen. Kann über eine Stunde dauern.
+Analyse complète : moteur moderne d'Open Recovr
+= Vollständige Analyse: moderne Engine von Open Recovr

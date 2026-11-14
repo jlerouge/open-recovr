@@ -214,8 +214,6 @@ Pas trouvé ? Lancer l'analyse complète
 = Não encontrou? Fazer a análise completa
 Passer en recherche approfondie
 = Mudar para a busca profunda
-PhotoRec indisponible : recherche intégrée à la place
-= PhotoRec indisponível: busca integrada no lugar
 PhotoRec n'a pas pu démarrer
 = O PhotoRec não pôde iniciar
 Photos
@@ -416,16 +414,10 @@ Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter l
 = Escolher um formato preciso (JPG, Word…) ou um tamanho mínimo, para deixar de fora os arquivos pequenos sem interesse.
 Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
 = Salvar aqui pode sobrescrever outros arquivos ainda recuperáveis. É melhor escolher um pen drive ou outro disco.
-Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
-= Faz a análise rápida e depois lê o disco inteiro com o PhotoRec: encontra também arquivos mais antigos, muitas vezes sem o nome. Pode levar mais de uma hora.
-La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
-= A busca profunda usa o PhotoRec 7.2 © Christophe Grenier, distribuído sob a licença GNU GPL (www.cgsecurity.org). Ele reconhece centenas de tipos de arquivo.
 Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
 = O registro é preenchido durante a busca: cada etapa e, na busca profunda, as linhas do PhotoRec.
 Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
 = Lê a tabela de arquivos do disco: alguns minutos, e os arquivos mantêm nome e pasta. Encontra o que foi apagado recentemente, mesmo depois de esvaziar a Lixeira.
-Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
-= Lê o disco inteiro com o PhotoRec para encontrar também os arquivos mais antigos.
 Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
 = Lê o disco inteiro para encontrar também arquivos apagados há muito tempo ou depois de esvaziar a Lixeira. Mais demorado: de alguns minutos a mais de uma hora, conforme o disco. {} vai pedir que você autorize o aplicativo ({}).
 Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
@@ -597,3 +589,36 @@ Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
 = Relatório salvo: {}. Abra-o para relê-lo antes de repassá-lo.
 Reconstitution des fichiers fragmentés…
 = Reconstituindo os arquivos fragmentados…
+
+Moteur de l'analyse complète
+= Motor da análise completa
+Moderne
+= Moderno
+Classique (PhotoRec)
+= Clássico (PhotoRec)
+PhotoRec, de Christophe Grenier, la référence libre depuis plus de vingt ans : il reconnaît des centaines de types de fichiers, et les lit d'un seul tenant.
+= PhotoRec, de Christophe Grenier, a referência livre há mais de vinte anos: reconhece centenas de tipos de arquivo e lê cada um de uma só vez.
+Le moteur d'Open Recovr, écrit de zéro : il vérifie chaque fichier trouvé, et sait recoller les photos, images et documents dont les morceaux sont éparpillés sur le disque.
+= O motor próprio do Open Recovr, escrito do zero: verifica cada arquivo encontrado e sabe remontar fotos, imagens e documentos cujos pedaços estão espalhados pelo disco.
+PhotoRec trouvé : {}
+= PhotoRec encontrado: {}
+Téléchargement et vérification de PhotoRec…
+= Baixando e verificando o PhotoRec…
+PhotoRec n'a pas pu être installé : {}
+= Não foi possível instalar o PhotoRec: {}
+PhotoRec n'est pas installé. C'est un logiciel distinct, sous licence GNU GPL, que vous pouvez ajouter si vous le souhaitez.
+= O PhotoRec não está instalado. É um programa separado, sob licença GNU GPL, que você pode adicionar se quiser.
+Télécharger PhotoRec (cgsecurity.org)
+= Baixar o PhotoRec (cgsecurity.org)
+Récupère l'archive officielle de PhotoRec 7.2 sur www.cgsecurity.org, vérifie chaque fichier puis le range dans votre dossier de données. Rien d'autre n'est envoyé.
+= Baixa o arquivo oficial do PhotoRec 7.2 em www.cgsecurity.org, verifica cada arquivo e o guarda na sua pasta de dados. Nada mais é enviado.
+Installez le paquet « testdisk » de votre système (par exemple sudo apt install testdisk, ou brew install testdisk), puis relancez Open Recovr.
+= Instale o pacote "testdisk" do seu sistema (por exemplo sudo apt install testdisk, ou brew install testdisk) e reabra o Open Recovr.
+Le moteur moderne d'Open Recovr est écrit de zéro, sans reprendre le code d'aucun autre logiciel. Un grand merci à Christophe Grenier, l'auteur de PhotoRec et TestDisk (www.cgsecurity.org, licence GNU GPL) : il a posé les bases de la récupération de fichiers libre. Le moteur classique fait appel à PhotoRec, un logiciel distinct installé à part.
+= O motor moderno do Open Recovr é escrito do zero, sem reaproveitar código de nenhum outro programa. Muito obrigado a Christophe Grenier, autor do PhotoRec e do TestDisk (www.cgsecurity.org, licença GNU GPL): ele lançou as bases da recuperação de arquivos livre. O motor clássico usa o PhotoRec, um programa separado instalado à parte.
+Lit tout le disque pour retrouver aussi les fichiers plus anciens.
+= Lê o disco inteiro para encontrar também os arquivos mais antigos.
+Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Faz a análise rápida e depois lê o disco inteiro: encontra também arquivos mais antigos, muitas vezes sem o nome. Pode levar mais de uma hora.
+Analyse complète : moteur moderne d'Open Recovr
+= Análise completa: motor moderno do Open Recovr

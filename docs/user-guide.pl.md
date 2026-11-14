@@ -52,11 +52,16 @@ W głębokim wyszukiwaniu dyski NTFS (większość dysków Windows) oferują dwa
 | Skanowanie | Co czyta | Czas | Zachowuje nazwy? |
 |---|---|---|---|
 | **Szybkie** | Tablicę plików dysku (MFT) | Kilka minut | ✅ nazwa i folder |
-| **Pełne** | Tablicę plików, a potem cały dysk za pomocą PhotoRec | Od minut do ponad godziny | Częściowo (patrz niżej) |
+| **Pełne** | Tablicę plików, a potem cały dysk | Od minut do ponad godziny | Częściowo (patrz niżej) |
 
 Zacznij od **Szybkie**. Jeśli Twojego pliku tam nie ma, kliknij **Nie znaleziono? Uruchom pełne skanowanie**.
 
 W innych systemach plików (karty pamięci FAT32 i exFAT, ext4, APFS…) głębokie wyszukiwanie od razu przechodzi do pełnego skanowania.
+
+Pełne skanowanie ma dwa silniki, do wyboru w **Ustawienia → Silnik pełnego skanowania**:
+
+- **Nowoczesny** (domyślny): własny silnik Open Recovr. Składa z powrotem pofragmentowane pliki (JPEG, PNG, GIF, BMP, TIFF, PCX, ZIP i pliki Office, starsze pliki Word i Excel) i sprawdza każdy plik, który zachowuje.
+- **Klasyczny (PhotoRec)**: uruchamia [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) Christophe'a Greniera, który zna kilkaset typów plików. PhotoRec nie jest dołączony: w Windows przycisk **Pobierz PhotoRec** w Ustawieniach pobiera go z cgsecurity.org; w Linuksie i macOS zainstaluj pakiet `testdisk`.
 
 ## 3. Wyszukiwanie
 
@@ -90,7 +95,7 @@ Każdy znaleziony plik jest czytany od początku do końca, a kolumna **Stan** p
 
 Ten sam plik często jest znajdowany kilka razy (na przykład w Koszu i na dysku). Kopie są ukryte za linkiem *Ukryte duplikaty · Pokaż*.
 
-Pliki znalezione przez PhotoRec nie mają własnej nazwy. Open Recovr nadaje im ją na podstawie zawartości, gdy to możliwe: `photo_2024-07-14_18-22-05.jpg` z daty zrobienia zdjęcia, tytuł dokumentu Word lub PDF, wykonawca i tytuł utworu MP3.
+Pliki znalezione przez pełne skanowanie nie mają własnej nazwy. Open Recovr nadaje im ją na podstawie zawartości, gdy to możliwe: `photo_2024-07-14_18-22-05.jpg` z daty zrobienia zdjęcia, tytuł dokumentu Word lub PDF, wykonawca i tytuł utworu MP3.
 
 ## 5. Zaznaczanie tego, co chcesz odzyskać
 
@@ -130,7 +135,7 @@ Gdy wyjdzie nowa wersja, dolny pasek pokazuje **→ v…: aktualizuj**. Jedno kl
 
 ![Tryb eksperta z dziennikiem wyszukiwania](screenshots/en-7-expert.png)
 
-**Tryb eksperta**, w menu w prawym górnym rogu, pokazuje pod listą dziennik wyszukiwania: dysk i jego system plików, każdy etap i wiersze PhotoRec. **Kopiuj wszystko** kopiuje dziennik, co przydaje się przy zgłaszaniu błędu. Przeciągnij górną krawędź dziennika, aby go powiększyć.
+**Tryb eksperta**, w menu w prawym górnym rogu, pokazuje pod listą dziennik wyszukiwania: dysk i jego system plików, każdy etap i, przy silniku klasycznym, wiersze PhotoRec. **Kopiuj wszystko** kopiuje dziennik, co przydaje się przy zgłaszaniu błędu. Przeciągnij górną krawędź dziennika, aby go powiększyć.
 
 Każde wyszukiwanie jest też zapisywane w `journal.txt`, obok ustawień (`%APPDATA%\Open Recovr` w Windows). Link **Dziennik** na dole otwiera ten plik.
 
@@ -144,7 +149,7 @@ W menu w prawym górnym rogu (☰) **Przygotuj raport…** zapisuje plik zip, kt
 Sprawdź, czy wybrano właściwy dysk i czy filtr typu go nie ukrywa (*Wszystko*). Potem spróbuj głębokiego wyszukiwania, a na NTFS pełnego skanowania. Jeśli dysk był intensywnie używany od usunięcia, plik mógł zostać nadpisany. Wtedy żaden program go nie przywróci.
 
 **Odzyskane pliki nazywają się `f1234567.jpg`.**
-Te pliki znalazł PhotoRec, który rozpoznaje plik po zawartości, a nie po tablicy plików: ich oryginalna nazwa jest nieznana. Gdy sam plik nic nie mówi o swojej dacie ani tytule, numer zostaje. Posortuj według daty lub rozmiaru i użyj podglądu, aby znaleźć swój.
+Te pliki znalazło pełne skanowanie, które rozpoznaje plik po zawartości, a nie po tablicy plików: ich oryginalna nazwa jest nieznana. Gdy sam plik nic nie mówi o swojej dacie ani tytule, numer zostaje. Posortuj według daty lub rozmiaru i użyj podglądu, aby znaleźć swój.
 
 **Plik jest oznaczony jako Uszkodzony. Czy warto go odzyskać?**
 Często tak. Uszkodzone zdjęcie może pokazać tylko górną połowę, uszkodzony film może grać do uszkodzonego fragmentu. Odzyskaj go i spróbuj: nic to nie kosztuje, a dysk nigdy nie jest zmieniany.
@@ -164,5 +169,5 @@ Czyta dysk sektor po sektorze, poniżej systemu plików, a system operacyjny zas
 **Czy to bezpieczne? Czy wysyła gdzieś moje dane?**
 Open Recovr działa offline. Bez konta, bez telemetrii. Jedyne połączenie to sprawdzanie aktualizacji: przy starcie pyta GitHub o numer najnowszej wersji i nie wysyła nic więcej. Odznacz „Sprawdzaj aktualizacje przy starcie” w Ustawieniach, aby je wyłączyć; menu nadal może sprawdzić na żądanie. Aktualizacja jest instalowana tylko wtedy, gdy jest podpisana kluczem projektu, który nigdy nie trafia na GitHub: fałszywa wersja wrzucona tam przez kogoś innego zostaje odrzucona. Kod jest otwarty: sprawdź sam.
 
-**Linux / macOS: głębokie wyszukiwanie mówi, że PhotoRec jest niedostępny.**
-Zainstaluj go: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) lub `brew install testdisk` (macOS). Open Recovr sam znajdzie wtedy `photorec`. Bez niego prostszy wbudowany silnik szuka najpopularniejszych formatów.
+**Silnika klasycznego nie da się wybrać w Ustawieniach.**
+PhotoRec nie jest zainstalowany. W Windows kliknij **Pobierz PhotoRec** pod wyborem silnika. W Linuksie i macOS zainstaluj go: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) lub `brew install testdisk` (macOS). Open Recovr sam znajdzie wtedy `photorec`. Nowoczesny silnik niczego nie potrzebuje.

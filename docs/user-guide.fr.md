@@ -49,11 +49,16 @@ En recherche approfondie, les disques NTFS (la plupart des disques Windows) prop
 | Analyse | Ce qu'elle lit | Durée | Noms conservés ? |
 |---|---|---|---|
 | **Rapide** | La table des fichiers du disque (MFT) | Quelques minutes | ✅ nom et dossier |
-| **Complète** | La table des fichiers, puis tout le disque avec PhotoRec | De quelques minutes à plus d'une heure | En partie (voir plus bas) |
+| **Complète** | La table des fichiers, puis tout le disque | De quelques minutes à plus d'une heure | En partie (voir plus bas) |
 
 Commencez par **Rapide**. Si votre fichier n'y est pas, cliquez sur **Pas trouvé ? Lancer l'analyse complète**.
 
 Sur les autres systèmes de fichiers (cartes mémoire FAT32 et exFAT, ext4, APFS…), la recherche approfondie passe directement à l'analyse complète.
+
+L'analyse complète a deux moteurs, au choix dans **Paramètres → Moteur de l'analyse complète** :
+
+- **Moderne** (par défaut) : le moteur d'Open Recovr. Il recolle les fichiers fragmentés (JPEG, PNG, GIF, BMP, TIFF, PCX, ZIP et fichiers Office, anciens fichiers Word et Excel) et vérifie chaque fichier qu'il garde.
+- **Classique (PhotoRec)** : lance [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) de Christophe Grenier, qui connaît plusieurs centaines de types de fichiers. PhotoRec n'est pas inclus : sous Windows, **Télécharger PhotoRec** dans les Paramètres le récupère sur cgsecurity.org ; sous Linux et macOS, installez le paquet `testdisk`.
 
 ## 3. La recherche
 
@@ -87,7 +92,7 @@ Chaque fichier trouvé est lu de bout en bout, et la colonne **État** donne le 
 
 Un même fichier est souvent trouvé plusieurs fois (dans la corbeille et sur le disque, par exemple). Les copies sont masquées derrière un lien *doublons masqués · Afficher*.
 
-Les fichiers trouvés par PhotoRec n'ont pas de nom à eux. Open Recovr leur en donne un d'après leur contenu quand il le peut : `photo_2024-07-14_18-22-05.jpg` d'après la date de prise de vue, le titre d'un document Word ou PDF, l'artiste et le titre d'un MP3.
+Les fichiers trouvés par l'analyse complète n'ont pas de nom à eux. Open Recovr leur en donne un d'après leur contenu quand il le peut : `photo_2024-07-14_18-22-05.jpg` d'après la date de prise de vue, le titre d'un document Word ou PDF, l'artiste et le titre d'un MP3.
 
 ## 5. Cocher ce que vous voulez récupérer
 
@@ -127,7 +132,7 @@ Quand une nouvelle version sort, la barre du bas affiche **→ v… : mettre à 
 
 ![Le mode expert avec le journal de la recherche](screenshots/fr-7-expert.png)
 
-Le **Mode expert**, dans le menu en haut à droite, affiche le journal de la recherche sous la liste : le disque et son système de fichiers, chaque étape et les lignes de PhotoRec. **Copier tout** copie le journal, pratique pour signaler un problème. Tirez le bord supérieur du journal pour l'agrandir.
+Le **Mode expert**, dans le menu en haut à droite, affiche le journal de la recherche sous la liste : le disque et son système de fichiers, chaque étape et, avec le moteur classique, les lignes de PhotoRec. **Copier tout** copie le journal, pratique pour signaler un problème. Tirez le bord supérieur du journal pour l'agrandir.
 
 Chaque recherche est aussi écrite dans `journal.txt`, à côté des réglages (`%APPDATA%\Open Recovr` sous Windows). Le lien **Journal**, en bas, l'ouvre.
 
@@ -141,7 +146,7 @@ Dans le menu en haut à droite (☰), **Préparer un rapport…** enregistre un 
 Vérifiez que le bon disque est choisi et que le filtre de type ne le cache pas (*Tout*). Essayez ensuite la recherche approfondie, et sur NTFS l'analyse complète. Si le disque a beaucoup servi depuis l'effacement, le fichier a pu être écrasé. Aucun logiciel ne peut plus le ramener.
 
 **Les fichiers récupérés s'appellent `f1234567.jpg`.**
-Ces fichiers ont été trouvés par PhotoRec, qui reconnaît un fichier à son contenu et non grâce à la table des fichiers : leur nom d'origine est inconnu. Quand le fichier lui-même ne dit rien de sa date ou de son titre, le numéro reste. Triez par date ou par taille, et servez-vous de l'aperçu pour retrouver le vôtre.
+Ces fichiers ont été trouvés par l'analyse complète, qui reconnaît un fichier à son contenu et non grâce à la table des fichiers : leur nom d'origine est inconnu. Quand le fichier lui-même ne dit rien de sa date ou de son titre, le numéro reste. Triez par date ou par taille, et servez-vous de l'aperçu pour retrouver le vôtre.
 
 **Un fichier est marqué Endommagé. Vaut-il la peine de le récupérer ?**
 Souvent, oui. Une photo endommagée peut n'afficher que sa moitié haute, une vidéo endommagée peut se lire jusqu'au passage abîmé. Récupérez-le et essayez : ça ne coûte rien, et le disque n'est jamais modifié.
@@ -161,5 +166,5 @@ Elle lit le disque secteur par secteur, sous le système de fichiers, et le syst
 **Est-ce sûr ? Mes données partent-elles quelque part ?**
 Open Recovr fonctionne hors ligne. Pas de compte, pas de télémétrie. Sa seule connexion est la recherche de mises à jour : au démarrage, il demande à GitHub le numéro de la dernière version, et n'envoie rien d'autre. Décochez « Rechercher les mises à jour au démarrage » dans les Paramètres pour la couper ; le menu peut toujours vérifier à la demande. Une mise à jour n'est installée que si elle est signée avec la clé du projet, qui ne va jamais sur GitHub : une fausse version déposée par quelqu'un d'autre est refusée. Le code est ouvert : vous pouvez vérifier.
 
-**Linux / macOS : la recherche approfondie dit que PhotoRec n'est pas disponible.**
-Installez-le : `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) ou `brew install testdisk` (macOS). Open Recovr trouve alors `photorec` tout seul. Sans lui, un moteur intégré plus simple cherche les formats les plus courants.
+**Le moteur classique ne peut pas être choisi dans les Paramètres.**
+PhotoRec n'est pas installé. Sous Windows, cliquez sur **Télécharger PhotoRec** sous le choix du moteur. Sous Linux et macOS, installez-le : `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) ou `brew install testdisk` (macOS). Open Recovr trouve alors `photorec` tout seul. Le moteur moderne n'a besoin de rien.

@@ -213,8 +213,6 @@ Pas trouvé ? Lancer l'analyse complète
 = Not found? Run the full scan
 Passer en recherche approfondie
 = Switch to deep search
-PhotoRec indisponible : recherche intégrée à la place
-= PhotoRec unavailable: built-in search instead
 PhotoRec n'a pas pu démarrer
 = PhotoRec could not start
 Photos
@@ -415,16 +413,10 @@ Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter l
 = Choose a precise format (JPG, Word…) or a minimum size, to leave out small files of no interest.
 Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
 = Saving here may overwrite other files that could still be recovered. Better choose a USB stick or another drive.
-Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
-= Does the quick scan, then reads the whole drive with PhotoRec: also finds older files, often without their name. May take more than an hour.
-La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
-= The deep search uses PhotoRec 7.2 © Christophe Grenier, distributed under the GNU GPL licence (www.cgsecurity.org). It recognises hundreds of file types.
 Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
 = The log fills up during the search: every step, and in deep search PhotoRec's lines.
 Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
 = Reads the drive's file table: a few minutes, and files keep their name and folder. Finds what was deleted recently, even after emptying the Recycle Bin.
-Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
-= Reads the whole drive with PhotoRec to also find older files.
 Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
 = Reads the whole drive to also find files deleted long ago or after emptying the Recycle Bin. Longer: from a few minutes to over an hour depending on the drive. {} will ask you to allow the application ({}).
 Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
@@ -596,3 +588,36 @@ Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
 = Report saved: {}. Open it to read it before passing it on.
 Reconstitution des fichiers fragmentés…
 = Putting fragmented files back together…
+
+Moteur de l'analyse complète
+= Full scan engine
+Moderne
+= Modern
+Classique (PhotoRec)
+= Classic (PhotoRec)
+PhotoRec, de Christophe Grenier, la référence libre depuis plus de vingt ans : il reconnaît des centaines de types de fichiers, et les lit d'un seul tenant.
+= PhotoRec, by Christophe Grenier, the free reference for over twenty years: it recognises hundreds of file types, and reads each one in a single piece.
+Le moteur d'Open Recovr, écrit de zéro : il vérifie chaque fichier trouvé, et sait recoller les photos, images et documents dont les morceaux sont éparpillés sur le disque.
+= Open Recovr's own engine, written from scratch: it checks every file it finds, and can put back together photos, images and documents whose pieces are scattered across the drive.
+PhotoRec trouvé : {}
+= PhotoRec found: {}
+Téléchargement et vérification de PhotoRec…
+= Downloading and checking PhotoRec…
+PhotoRec n'a pas pu être installé : {}
+= PhotoRec could not be installed: {}
+PhotoRec n'est pas installé. C'est un logiciel distinct, sous licence GNU GPL, que vous pouvez ajouter si vous le souhaitez.
+= PhotoRec is not installed. It is separate software, under the GNU GPL licence, that you can add if you wish.
+Télécharger PhotoRec (cgsecurity.org)
+= Download PhotoRec (cgsecurity.org)
+Récupère l'archive officielle de PhotoRec 7.2 sur www.cgsecurity.org, vérifie chaque fichier puis le range dans votre dossier de données. Rien d'autre n'est envoyé.
+= Fetches the official PhotoRec 7.2 archive from www.cgsecurity.org, checks every file, then puts it in your data folder. Nothing else is sent.
+Installez le paquet « testdisk » de votre système (par exemple sudo apt install testdisk, ou brew install testdisk), puis relancez Open Recovr.
+= Install your system's "testdisk" package (for example sudo apt install testdisk, or brew install testdisk), then restart Open Recovr.
+Le moteur moderne d'Open Recovr est écrit de zéro, sans reprendre le code d'aucun autre logiciel. Un grand merci à Christophe Grenier, l'auteur de PhotoRec et TestDisk (www.cgsecurity.org, licence GNU GPL) : il a posé les bases de la récupération de fichiers libre. Le moteur classique fait appel à PhotoRec, un logiciel distinct installé à part.
+= Open Recovr's modern engine is written from scratch, without reusing code from any other software. Many thanks to Christophe Grenier, the author of PhotoRec and TestDisk (www.cgsecurity.org, GNU GPL licence): he laid the foundations of free file recovery. The classic engine calls PhotoRec, separate software installed on its own.
+Lit tout le disque pour retrouver aussi les fichiers plus anciens.
+= Reads the whole drive to also find older files.
+Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Does the quick scan, then reads the whole drive: also finds older files, often without their name. May take more than an hour.
+Analyse complète : moteur moderne d'Open Recovr
+= Full scan: Open Recovr's modern engine

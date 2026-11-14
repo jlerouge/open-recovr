@@ -214,8 +214,6 @@ Pas trouvé ? Lancer l'analyse complète
 = Niet gevonden? Start de volledige scan
 Passer en recherche approfondie
 = Overschakelen naar diep zoeken
-PhotoRec indisponible : recherche intégrée à la place
-= PhotoRec niet beschikbaar: ingebouwde zoekfunctie in de plaats
 PhotoRec n'a pas pu démarrer
 = PhotoRec kon niet starten
 Photos
@@ -416,16 +414,10 @@ Choisir un format précis (JPG, Word…) ou une taille minimale, pour écarter l
 = Kies een precies formaat (JPG, Word…) of een minimale grootte, om kleine oninteressante bestanden weg te laten.
 Enregistrer ici peut écraser d'autres fichiers encore récupérables. Il vaut mieux choisir une clé USB ou un autre disque.
 = Hier opslaan kan andere bestanden overschrijven die nog te herstellen zijn. Kies liever een usb-stick of een andere schijf.
-Fait l'analyse rapide puis lit tout le disque avec PhotoRec : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
-= Doet de snelle scan en leest daarna de hele schijf met PhotoRec: vindt ook oudere bestanden, vaak zonder hun naam. Kan meer dan een uur duren.
-La recherche approfondie utilise PhotoRec 7.2 © Christophe Grenier, distribué sous licence GNU GPL (www.cgsecurity.org). Il reconnaît des centaines de types de fichiers.
-= Diep zoeken gebruikt PhotoRec 7.2 © Christophe Grenier, verspreid onder de GNU GPL-licentie (www.cgsecurity.org). Het herkent honderden bestandstypen.
 Le journal se remplit pendant la recherche : chaque étape, et en recherche approfondie les lignes de PhotoRec.
 = Het logboek vult zich tijdens het zoeken: elke stap, en bij diep zoeken de regels van PhotoRec.
 Lit la table des fichiers du disque : quelques minutes, et les fichiers gardent leur nom et leur dossier. Retrouve ce qui a été effacé récemment, même après avoir vidé la corbeille.
 = Leest de bestandstabel van de schijf: een paar minuten, en bestanden behouden hun naam en map. Vindt wat onlangs is verwijderd, ook na het legen van de Prullenbak.
-Lit tout le disque avec PhotoRec pour retrouver aussi les fichiers plus anciens.
-= Leest de hele schijf met PhotoRec om ook oudere bestanden te vinden.
 Lit tout le disque pour retrouver aussi les fichiers effacés depuis longtemps ou après avoir vidé la corbeille. Plus long : de quelques minutes à plus d'une heure selon le disque. {} vous demandera d'autoriser l'application ({}).
 = Leest de hele schijf om ook bestanden te vinden die lang geleden of na het legen van de Prullenbak zijn verwijderd. Duurt langer: van een paar minuten tot meer dan een uur, afhankelijk van de schijf. {} vraagt u de toepassing toe te staan ({}).
 Pour l'instant seule la corbeille est fouillée. La recherche approfondie lit tout le disque et retrouve aussi les fichiers effacés depuis longtemps.
@@ -597,3 +589,36 @@ Rapport enregistré : {}. Ouvrez-le pour le relire avant de le transmettre.
 = Rapport opgeslagen: {}. Open het om het na te lezen voordat u het doorgeeft.
 Reconstitution des fichiers fragmentés…
 = Gefragmenteerde bestanden worden samengevoegd…
+
+Moteur de l'analyse complète
+= Engine van de volledige scan
+Moderne
+= Modern
+Classique (PhotoRec)
+= Klassiek (PhotoRec)
+PhotoRec, de Christophe Grenier, la référence libre depuis plus de vingt ans : il reconnaît des centaines de types de fichiers, et les lit d'un seul tenant.
+= PhotoRec, van Christophe Grenier, al meer dan twintig jaar de vrije referentie: het herkent honderden bestandstypen en leest elk bestand in één stuk.
+Le moteur d'Open Recovr, écrit de zéro : il vérifie chaque fichier trouvé, et sait recoller les photos, images et documents dont les morceaux sont éparpillés sur le disque.
+= De eigen engine van Open Recovr, vanaf nul geschreven: hij controleert elk gevonden bestand en kan foto's, afbeeldingen en documenten weer samenvoegen waarvan de stukken over de schijf verspreid liggen.
+PhotoRec trouvé : {}
+= PhotoRec gevonden: {}
+Téléchargement et vérification de PhotoRec…
+= PhotoRec downloaden en controleren…
+PhotoRec n'a pas pu être installé : {}
+= PhotoRec kon niet worden geïnstalleerd: {}
+PhotoRec n'est pas installé. C'est un logiciel distinct, sous licence GNU GPL, que vous pouvez ajouter si vous le souhaitez.
+= PhotoRec is niet geïnstalleerd. Het is aparte software, onder de GNU GPL-licentie, die u kunt toevoegen als u dat wilt.
+Télécharger PhotoRec (cgsecurity.org)
+= PhotoRec downloaden (cgsecurity.org)
+Récupère l'archive officielle de PhotoRec 7.2 sur www.cgsecurity.org, vérifie chaque fichier puis le range dans votre dossier de données. Rien d'autre n'est envoyé.
+= Haalt het officiële archief van PhotoRec 7.2 op van www.cgsecurity.org, controleert elk bestand en zet het in uw gegevensmap. Verder wordt er niets verzonden.
+Installez le paquet « testdisk » de votre système (par exemple sudo apt install testdisk, ou brew install testdisk), puis relancez Open Recovr.
+= Installeer het pakket "testdisk" van uw systeem (bijvoorbeeld sudo apt install testdisk, of brew install testdisk) en start Open Recovr opnieuw.
+Le moteur moderne d'Open Recovr est écrit de zéro, sans reprendre le code d'aucun autre logiciel. Un grand merci à Christophe Grenier, l'auteur de PhotoRec et TestDisk (www.cgsecurity.org, licence GNU GPL) : il a posé les bases de la récupération de fichiers libre. Le moteur classique fait appel à PhotoRec, un logiciel distinct installé à part.
+= De moderne engine van Open Recovr is vanaf nul geschreven, zonder code van andere software over te nemen. Hartelijk dank aan Christophe Grenier, de auteur van PhotoRec en TestDisk (www.cgsecurity.org, GNU GPL-licentie): hij legde de basis voor vrij bestandsherstel. De klassieke engine roept PhotoRec aan, aparte software die los wordt geïnstalleerd.
+Lit tout le disque pour retrouver aussi les fichiers plus anciens.
+= Leest de hele schijf om ook oudere bestanden te vinden.
+Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus anciens, souvent sans leur nom. Peut prendre plus d'une heure.
+= Doet de snelle scan en leest daarna de hele schijf: vindt ook oudere bestanden, vaak zonder hun naam. Kan meer dan een uur duren.
+Analyse complète : moteur moderne d'Open Recovr
+= Volledige scan: moderne engine van Open Recovr

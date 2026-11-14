@@ -39,6 +39,8 @@ Only deleted files count. Each one is scored as follows:
 - **"of int."**: the same recall, but counted only over the files whose extents still hold the original bytes in the image. No engine can bring back a file that has been overwritten.
 - **Junk**: a recovered file that matches no file in the truth, whether live or deleted. Precision is 1 − junk / recovered.
 - **Live files**: finding a live file counts neither as a success nor as junk.
+- **Copies**: when the same content was on the disk several times (a file copied, then deleted, or written again in a later round), it counts once. It is live if one copy is live; otherwise it is intact if one copy is still whole. Without this, one file recovered could count as several, or as an overwritten copy found again. (This rule was added after the first results on the aged images, where it had pushed the recall of intact files above 100 %.)
+- With `SCORE_DETAIL=1`, every deleted file not recovered exactly is listed, and so is every junk file. Each listed file is marked `intact` (still whole on the disk, so recoverable in principle) or `overwritten`, when an image is given.
 
 Each figure is broken down into contiguous and fragmented files, and by extension.
 

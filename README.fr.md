@@ -7,7 +7,7 @@
 **Retrouvez vos fichiers effacés, simplement.**
 
 Un seul écran, pas d'assistant : on choisit le disque, on lance la recherche, on coche ce qu'on veut récupérer.<br>
-Libre et gratuit, propulsé par [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec).
+Libre et gratuit, avec son propre moteur de récupération et [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) en option.
 
 [English](README.md) · **Français** · [Español](README.es.md) · [Deutsch](README.de.md) · [Italiano](README.it.md) · [Português (Brasil)](README.pt.md) · [Nederlands](README.nl.md) · [Polski](README.pl.md) · [Українська](README.uk.md)
 
@@ -27,7 +27,7 @@ Libre et gratuit, propulsé par [PhotoRec](https://www.cgsecurity.org/wiki/Photo
 
 Perdre le dossier des vacances ou un mémoire, c'est déjà assez stressant. Les logiciels de récupération sont souvent chers ou pleins de jargon. Les gratuits comme PhotoRec sont excellents, mais s'utilisent dans un terminal en mode texte.
 
-Open Recovr met une interface simple, en un seul écran, au-dessus de PhotoRec, un moteur libre qui a fait ses preuves. Il y ajoute une analyse rapide qui rend les fichiers **avec leur nom et leur dossier d'origine**.
+Open Recovr réunit tout sur un seul écran simple. Une analyse rapide rend les fichiers **avec leur nom et leur dossier d'origine**. Pour le reste, son propre moteur lit tout le disque et **recolle les photos, archives et documents Office fragmentés**. PhotoRec, le moteur libre qui a fait ses preuves, reste disponible comme moteur classique. La comparaison des deux est mesurée dans les [bancs d'essai](docs/benchmarks.md) (en anglais).
 
 ## Comment ça marche
 
@@ -54,10 +54,10 @@ Supprimer un fichier ne l'efface pas. Le système oublie seulement où il se tro
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/illustrations/deleted-file-fr-dark.svg">
-  <img src="docs/illustrations/deleted-file-fr.svg" alt="Ce que devient un fichier supprimé : 1. Dans la corbeille, retrouvé par la recherche rapide. 2. Corbeille vidée, son nom est encore dans le sommaire du disque, retrouvé par la recherche approfondie. 3. Sommaire réutilisé, les morceaux sont encore sur le disque, retrouvés par la recherche approfondie grâce à PhotoRec. 4. Écrasé par un nouveau fichier, trop tard." width="100%">
+  <img src="docs/illustrations/deleted-file-fr.svg" alt="Ce que devient un fichier supprimé : 1. Dans la corbeille, retrouvé par la recherche rapide. 2. Corbeille vidée, son nom est encore dans le sommaire du disque, retrouvé par la recherche approfondie. 3. Sommaire réutilisé, les morceaux sont encore sur le disque, retrouvés par l'analyse complète. 4. Écrasé par un nouveau fichier, trop tard." width="100%">
 </picture>
 
-À l'étape 3, il ne reste que les octets. Le **file carving** parcourt tout le disque à la recherche des signatures qui marquent le début et la fin de chaque type de fichier, et reconstruit les fichiers à partir d'elles. C'est la partie difficile, et elle est faite par **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**. Tout le mérite en revient à Christophe Grenier, qui l'écrit et le maintient depuis plus de vingt ans. Open Recovr ne le réinvente pas : il y ajoute l'interface, les étapes 1 et 2, et les vérifications, noms et aperçus appliqués à chaque fichier trouvé.
+À l'étape 3, il ne reste que les octets. Le **file carving** parcourt tout le disque à la recherche des signatures qui marquent le début de chaque type de fichier, et détermine où chaque fichier se termine. Quand un fichier était rangé en plusieurs morceaux, le morceau suivant est cherché dans l'espace libre. Le moteur moderne d'Open Recovr le fait lui-même ([comment](docs/carving.md), en anglais). Le moteur classique confie ce travail à **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)**, qui reconnaît bien plus de types de fichiers. PhotoRec a posé des bases solides pour ce genre de logiciel en open source : un grand merci à Christophe Grenier, qui l'écrit et le maintient depuis plus de vingt ans.
 
 Plus vous cherchez tôt, plus il y a à trouver. Sur un SSD, la place libérée est souvent effacée en arrière-plan peu après (TRIM) : les étapes 1 et 2 marchent encore pour les suppressions récentes, mais l'analyse complète risque de trouver peu de chose.
 
@@ -71,7 +71,7 @@ Plus vous cherchez tôt, plus il y a à trouver. Sur un SSD, la place libérée 
 
 - 🗑️ **Recherche rapide** dans la corbeille, en quelques secondes, sans droits particuliers.
 - 🔎 **Analyse rapide (NTFS).** Lit la table des fichiers du disque (MFT). Un fichier effacé y garde son nom tant que la place n'est pas réutilisée. Les fichiers reviennent **avec leur nom et leur dossier**, en quelques minutes, même après avoir vidé la corbeille.
-- 🧲 **Analyse complète.** Tout le disque est lu par PhotoRec, qui reconnaît **des centaines de types de fichiers**, même après un formatage ou sur une carte FAT/exFAT. Sans PhotoRec, un moteur intégré prend le relais pour les formats courants.
+- 🧲 **Analyse complète.** Tout le disque est lu et les fichiers sont reconnus à leur contenu, même après un formatage ou sur une carte FAT/exFAT. Le **moteur moderne**, celui d'Open Recovr, reconnaît une quarantaine de formats (photos, RAW, vidéos, musique, Office, PDF, archives, polices) et **recolle les fichiers fragmentés**. Le **moteur classique**, PhotoRec, reconnaît **des centaines de types de fichiers** ; il se choisit dans les Paramètres.
 - 💿 **Supports abîmés.** Les zones illisibles (CD/DVD rayés, cartes usées) sont sautées au lieu de tout bloquer.
 - 🖼️ **Aperçu avant de récupérer.** Photos, vidéos, sons, PDF, textes et documents Word.
 - 🏷️ **Des noms et des dates qui parlent.** Un fichier qui n'avait qu'un numéro reçoit un nom tiré de son contenu : `photo_2024-07-14_18-22-05.jpg` d'après la date EXIF, le titre d'un document Word ou PDF, l'artiste et le titre d'un MP3.
@@ -81,7 +81,7 @@ Plus vous cherchez tôt, plus il y a à trouver. Sur un SSD, la place libérée 
 - 🗂️ **Tri et filtres** par type (photos, vidéos, musique, documents, archives), format, taille et nom.
 - 💾 **Tous les supports.** Disques durs, SSD SATA et NVMe, cartes SD, microSD et CompactFlash, clés USB, disques externes, CD/DVD.
 - 🕒 **En arrière-plan.** La fenêtre peut se ranger près de l'horloge pendant une longue recherche.
-- 🛠️ **Mode expert.** Le journal complet de la recherche et les lignes de PhotoRec.
+- 🛠️ **Mode expert.** Le journal complet de la recherche (et les lignes de PhotoRec avec le moteur classique).
 - 🎨 **Thèmes de couleurs.** Clair ou sombre en un clic, et aussi Nord, Catppuccin, Tokyo Night, Solarized, Monokai et Gruvbox.
 - 🔄 **Mises à jour sûres.** Quand une nouvelle version sort, un clic la télécharge, vérifie sa signature et l'installe.
 - 🩺 **Rapport d'aide.** *Préparer un rapport…* enregistre un zip (système, disques, journal de la dernière recherche) à envoyer à la personne qui vous aide, avec les noms personnels masqués. Open Recovr ne l'envoie jamais lui-même.
@@ -96,9 +96,9 @@ Prenez la dernière version dans **[Releases](https://github.com/jlerouge/open-r
 
 | Système | Fichier | Comment le lancer |
 |---|---|---|
-| **Windows 10 / 11** (64 bits) | `open-recovr-…-windows-x64-setup.exe` ou `…-windows-x64.zip` | Lancez l'installeur (sans droits d'administrateur), ou décompressez et ouvrez `open-recovr.exe`. PhotoRec est inclus. Les deux se mettent à jour en un clic. |
-| Linux (64 bits) | `open-recovr-…-linux-x64.tar.gz` | Décompressez, puis lancez `./open-recovr`. Pour l'analyse complète : `sudo apt install testdisk`. |
-| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Décompressez, puis clic droit → *Ouvrir* (l'application n'est pas signée). Puis `brew install testdisk`. |
+| **Windows 10 / 11** (64 bits) | `open-recovr-…-windows-x64-setup.exe` ou `…-windows-x64.zip` | Lancez l'installeur (sans droits d'administrateur), ou décompressez et ouvrez `open-recovr.exe`. Les deux se mettent à jour en un clic. PhotoRec est facultatif : les Paramètres peuvent le télécharger pour le moteur classique. |
+| Linux (64 bits) | `open-recovr-…-linux-x64.tar.gz` | Décompressez, puis lancez `./open-recovr`. Pour le moteur classique (facultatif) : `sudo apt install testdisk`. |
+| macOS (Apple Silicon / Intel) | `open-recovr-…-macos-arm64.tar.gz` / `…-macos-x64.tar.gz` | Décompressez, puis clic droit → *Ouvrir* (l'application n'est pas signée). Pour le moteur classique (facultatif) : `brew install testdisk`. |
 
 Lire le disque lui-même (analyse rapide et analyse complète) demande les droits administrateur. Open Recovr ne les demande que si vous passez en recherche approfondie ; la corbeille, elle, se fouille sans.
 
@@ -110,7 +110,8 @@ Lire le disque lui-même (analyse rapide et analyse complète) demande les droit
 | Testé sur une vraie machine | ✅ | ⚠️ pas encore | ⚠️ pas encore |
 | Corbeille | ✅ | ✅ corbeille freedesktop | ✅ `.Trash` |
 | Table des fichiers NTFS (analyse rapide) | ✅ | ✅ volumes NTFS | ✅ volumes NTFS |
-| Analyse complète (PhotoRec) | ✅ inclus | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
+| Analyse complète, moteur moderne | ✅ | ✅ | ✅ |
+| Analyse complète, moteur classique (PhotoRec) | ✅ téléchargé depuis les Paramètres | ✅ `apt install testdisk` | ✅ `brew install testdisk` |
 | Vignettes vidéo / PDF, lecture des sons | ✅ | ❌ | ❌ |
 | Icône près de l'horloge | ✅ | ❌ | ❌ |
 
@@ -126,7 +127,7 @@ cd open-recovr
 cargo build --release
 ```
 
-Le programme se trouve dans `target/release/`. Sous Windows, récupérez PhotoRec une fois pour toutes :
+Le programme se trouve dans `target/release/`. Pour le moteur classique sous Windows, les Paramètres peuvent télécharger PhotoRec ; les développeurs peuvent aussi le récupérer une fois pour toutes :
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\fetch-photorec.ps1
@@ -138,6 +139,8 @@ Les options en ligne de commande (`--lang`, `--theme`, `--disk`, `--image`, `--s
 
 - 📖 [Guide d'utilisation](docs/user-guide.fr.md) : chaque étape, avec conseils et FAQ
 - 🏗️ [Architecture](docs/architecture.md) : organisation du code et fonctionnement de chaque recherche (en anglais)
+- 🔬 [Carving](docs/carving.md) : comment le moteur moderne trouve les fichiers et les recolle (en anglais)
+- 📊 [Bancs d'essai](docs/benchmarks.md) : le moteur moderne et PhotoRec sur les mêmes disques (en anglais)
 - 🤝 [Contribuer](CONTRIBUTING.md) : compiler, tester, traduire. Les contributions assistées par IA sont acceptées.
 - 📝 [Changements](CHANGELOG.md)
 
@@ -145,7 +148,9 @@ Les options en ligne de commande (`--lang`, `--theme`, `--disk`, `--image`, `--s
 
 Open Recovr est un logiciel libre sous [licence MIT](LICENSE).
 
-L'analyse complète est faite par **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, sous licence GNU GPL v2 ou ultérieure. Open Recovr le lance comme un **programme séparé, sans le modifier**. La version Windows inclut PhotoRec 7.2, ses bibliothèques Cygwin et sa licence (`vendor/testdisk-7.2/COPYING.txt`). Le code source de PhotoRec est disponible sur [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download). Merci Christophe pour plus de vingt ans de travail sur TestDisk et PhotoRec.
+Le moteur moderne d'Open Recovr, utilisé par défaut pour l'analyse complète, est écrit de zéro à partir des spécifications des formats de fichiers et ne partage aucun code avec PhotoRec. Ses méthodes sont décrites dans [docs/carving.md](docs/carving.md) (en anglais).
+
+Le moteur classique lance **[PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec)** © Christophe Grenier, sous licence GNU GPL v2 ou ultérieure, comme un **programme séparé, sans le modifier**. PhotoRec n'est pas fourni avec Open Recovr : sous Windows, quand vous le demandez dans les Paramètres, Open Recovr télécharge l'archive officielle de PhotoRec 7.2 depuis [cgsecurity.org](https://www.cgsecurity.org/wiki/TestDisk_Download) et vérifie chaque fichier avec un SHA-256 connu ; sous Linux et macOS, il vient du paquet `testdisk` du système. PhotoRec a posé les bases du file carving en open source, et ce projet lui doit beaucoup. Merci Christophe pour plus de vingt ans de travail sur TestDisk et PhotoRec.
 
 Open Recovr est un projet indépendant, sans lien avec aucun logiciel de récupération commercial.
 

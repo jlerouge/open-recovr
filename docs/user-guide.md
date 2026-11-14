@@ -49,11 +49,16 @@ In deep-search mode, NTFS drives (most Windows disks) offer two kinds of scan:
 | Scan | What it reads | Time | Names kept? |
 |---|---|---|---|
 | **Quick** | The drive's file table (MFT) | A few minutes | ✅ name and folder |
-| **Full** | The file table, then the whole drive with PhotoRec | From minutes to over an hour | Partly (see below) |
+| **Full** | The file table, then the whole drive | From minutes to over an hour | Partly (see below) |
 
 Start with **Quick**. If your file isn't there, click **Not found? Run the full scan**.
 
 On other file systems (FAT32 and exFAT memory cards, ext4, APFS…), the deep search goes straight to the full scan.
+
+The full scan has two engines, chosen in **Settings → Full scan engine**:
+
+- **Modern** (the default): Open Recovr's own engine. It puts fragmented files back together (JPEG, PNG, GIF, BMP, TIFF, PCX, ZIP and Office files, older Word and Excel files) and checks each file it keeps.
+- **Classic (PhotoRec)**: runs [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) by Christophe Grenier, which knows several hundred file types. PhotoRec is not included: on Windows, **Download PhotoRec** in Settings fetches it from cgsecurity.org; on Linux and macOS, install the `testdisk` package.
 
 ## 3. The search
 
@@ -87,7 +92,7 @@ Each file found is read from end to end, and the **Condition** column gives the 
 
 The same file is often found several times (in the bin and on the drive, for example). The copies are hidden behind a *duplicates hidden · Show* link.
 
-Files found by PhotoRec have no name of their own. Open Recovr gives them one from their contents when it can: `photo_2024-07-14_18-22-05.jpg` from the date a photo was taken, the title of a Word or PDF document, the artist and song of an MP3.
+Files found by the full scan have no name of their own. Open Recovr gives them one from their contents when it can: `photo_2024-07-14_18-22-05.jpg` from the date a photo was taken, the title of a Word or PDF document, the artist and song of an MP3.
 
 ## 5. Tick what you want back
 
@@ -127,7 +132,7 @@ When a new version is out, the bottom bar shows **→ v…: update**. One click 
 
 ![Expert mode with the search log](screenshots/en-7-expert.png)
 
-**Expert mode**, in the menu at the top right, shows the search log under the list: the drive and file system, each phase, and PhotoRec's own lines. **Copy all** copies the log, which is useful for a bug report. Drag the top edge of the log to make it taller.
+**Expert mode**, in the menu at the top right, shows the search log under the list: the drive and file system, each phase, and, with the classic engine, PhotoRec's own lines. **Copy all** copies the log, which is useful for a bug report. Drag the top edge of the log to make it taller.
 
 Each search is also written to `journal.txt` next to the settings (`%APPDATA%\Open Recovr` on Windows). The **Log** link at the bottom opens it.
 
@@ -141,7 +146,7 @@ In the menu at the top right (☰), **Prepare a report…** saves a zip you can 
 Make sure the right drive is selected and the type filter isn't hiding it (*All*). Then try the deep search, and on NTFS the full scan. If the drive has been heavily used since the deletion, the file may have been overwritten. No software can bring it back then.
 
 **The recovered files have names like `f1234567.jpg`.**
-Those files were found by PhotoRec, which recognises a file by its content, not by the file table, so their original name is unknown. When the file itself says nothing about its date or title, the number stays. Sort by date or size, and use the preview to find yours.
+Those files were found by the full scan, which recognises a file by its content, not by the file table, so their original name is unknown. When the file itself says nothing about its date or title, the number stays. Sort by date or size, and use the preview to find yours.
 
 **A file is marked Damaged. Is it worth recovering?**
 Often, yes. A damaged photo may show only its top half, a damaged video may play until the damaged part. Recover it and try it: it costs nothing, and the drive is never changed.
@@ -161,5 +166,5 @@ It reads the drive sector by sector, below the file system, and the operating sy
 **Is it safe? Does it send my data anywhere?**
 Open Recovr works offline. It has no account and no telemetry. Its only connection is the update check: at startup it asks GitHub for the number of the latest release, and sends nothing else. Untick "Check for updates at startup" in Settings to turn it off; the menu can still check on request. An update is installed only if it is signed with the project's key, which never goes to GitHub: a fake version put there by someone else is refused. The code is open: see for yourself.
 
-**Linux / macOS: the deep search says PhotoRec isn't available.**
-Install it: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) or `brew install testdisk` (macOS). Open Recovr then finds `photorec` on its own. Without it, a simpler built-in engine searches for the most common formats.
+**The classic engine can't be chosen in Settings.**
+PhotoRec isn't installed. On Windows, click **Download PhotoRec** under the engine choice. On Linux and macOS, install it: `sudo apt install testdisk` (Debian, Ubuntu), `sudo dnf install testdisk` (Fedora) or `brew install testdisk` (macOS). Open Recovr then finds `photorec` on its own. The modern engine needs nothing.
