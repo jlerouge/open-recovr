@@ -4,7 +4,7 @@ All notable changes to Open Recovr are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
-## Unreleased
+## 0.4.0
 
 - **Two engines for the full scan**, chosen in Settings. The **modern** engine, the default, is Open Recovr's own, written from the format specifications. The **classic** engine runs PhotoRec by Christophe Grenier.
 - The modern engine **puts fragmented files back together**: JPEG, PNG, GIF, BMP, TIFF, PCX, ZIP and Office files, older Word and Excel files. Each format's own structure tells where a piece ends, and the next piece is looked for in the free space. It also recognises many more formats: TIFF and camera raw files, HEIC/AVIF, MKV/WebM, MPEG-TS and PS, FLAC, Ogg, MP3/AAC streams, WMV/WMA, FLV, AIFF, CAF, PSD, Office 97–2003 files, PCX, HTML, XML, icons, TrueType/OpenType fonts and gzip. A PDF now runs to its last `%%EOF` (linearized files, incremental updates) instead of stopping at the first. The methods are described in [docs/carving.md](docs/carving.md).
