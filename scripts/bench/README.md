@@ -13,6 +13,7 @@ This benchmark measures recovery engines (the built-in carver, PhotoRec, or any 
 | `collect-commons.ps1` | Gathers a corpus of public-domain and CC0 files from Wikimedia Commons, with a manifest of their sources, for images that can be published (see [docs/dataset.md](../../docs/dataset.md)). |
 | `make-derived.ps1` | Converts corpus files into the formats Commons lacks: video and sound containers (ffmpeg), image formats (ImageMagick), HEIC (the Windows HEIF encoder), archives (Windows tar and makecab) and Office documents (Word, Excel and PowerPoint through COM). |
 | `collect-govdocs.ps1` | Copies the files of extracted govdocs1 threads (real US government documents: Word 97, Excel 97, PowerPoint 97, PostScript...) with a list of their sources. |
+| `make-credits.ps1` | Traces every file on a set of images back to its sources (Commons, govdocs1, or the corpus files a conversion, archive or document was made from) and writes `CREDITS.md` and `credits.tsv`. Fails if a file has no known source. |
 
 ## The truth file
 

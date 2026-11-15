@@ -7,7 +7,8 @@
   The sources are files of the corpus gathered by collect-commons.ps1 (public domain or CC0), so
   what is made from them can be shared the same way. Each output is listed in <Out>\derived.tsv:
     sha256 size format file source tool
-  where source is the SHA-256 of the corpus file it was made from, and tool what wrote it. The
+  where source is the SHA-256 of the corpus file it was made from (several, comma-separated, for
+  an archive or a document holding pictures; - for none), and tool what wrote it. The
   scorer cares only about contents; the list lets results be split between files written by the
   programs that usually write them (Word, Excel, PowerPoint) and files converted by free tools.
 
@@ -61,12 +62,13 @@ function Pick($mimes, $n, $maxMB = 1e9) {
     $all = @(foreach ($m in $mimes) { if ($byMime.ContainsKey($m)) { $byMime[$m] | Where-Object { $_.Size -le $maxMB * 1MB } } })
     @($all | Sort-Object { $rng.Next() } | Select-Object -First $n)
 }
+# $src: the corpus file it was made from, or several (an archive, a document with pictures)
 function Record($path, $format, $src, $tool) {
     if (-not (Test-Path $path) -or (Get-Item $path).Length -lt 1024) {
         Write-Warning "no output: $path"; Remove-Item -ErrorAction SilentlyContinue $path; return
     }
     $h = (Get-FileHash -Algorithm SHA256 $path).Hash.ToLower()
-    $list.Add((@($h, (Get-Item $path).Length, $format, (Split-Path -Leaf $path), $src.Sha, $tool) -join "`t"))
+    $list.Add((@($h, (Get-Item $path).Length, $format, (Split-Path -Leaf $path), ((@($src) | ForEach-Object Sha) -join ','), $tool) -join "`t"))
 }
 function Target($format, $ext, $src) {
     $dir = Join-Path $Out $format
@@ -215,7 +217,7 @@ if ('archive' -in $Only) {
                 } else {
                     $ok = Native $tar (@('-C', $stage, '-cf', $path) + $x[2] + $names)
                 }
-                if ($ok) { Record $path $x[0] $pics[0] "Windows $(if ($x[0] -eq 'cab') { 'makecab' } else { 'tar (libarchive)' })" }
+                if ($ok) { Record $path $x[0] $pics "Windows $(if ($x[0] -eq 'cab') { 'makecab' } else { 'tar (libarchive)' })" }
                 else { Remove-Item -ErrorAction SilentlyContinue $path }
             } finally { Remove-Item -Recurse -Force $stage }
         }
@@ -263,7 +265,7 @@ if ('office' -in $Only) {
                 $files += , @($path, $x[0])
             }
             $doc.Close(0)
-            Saved $files $pics[0] "Microsoft Word $($word.Version)"
+            Saved $files $pics "Microsoft Word $($word.Version)"
         }
     } finally { $word.Quit(); [Runtime.InteropServices.Marshal]::ReleaseComObject($word) | Out-Null }
     Write-Host 'office word'
@@ -319,8 +321,7 @@ if ('office' -in $Only) {
                 $files += , @($path, $x[0])
             }
             $pres.Close()
-            # the pictures it holds, by the first one
-            Saved $files $pics[0] "Microsoft PowerPoint $($ppt.Version)"
+            Saved $files $pics "Microsoft PowerPoint $($ppt.Version)"
         }
     } finally { $ppt.Quit(); [Runtime.InteropServices.Marshal]::ReleaseComObject($ppt) | Out-Null }
     Write-Host 'office powerpoint'

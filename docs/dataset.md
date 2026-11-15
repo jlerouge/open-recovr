@@ -41,6 +41,8 @@ The Office files and the HEIC files are written by the programs that write them 
 
 **govdocs1** ([Digital Corpora](https://digitalcorpora.org/corpora/file-corpora/files/)), collected by `scripts/bench/collect-govdocs.ps1`. These are about a million real files gathered from web servers of the US government: Word 97, Excel 97 and PowerPoint 97 documents, PDF, PostScript, RTF, dBase, as their authors saved them. Works of the US federal government are not protected by copyright in the US, and Digital Corpora distributes the corpus for free reuse. A few files may come from contractors or be quoted from elsewhere: this should be stated with the data set, and a file removed if someone claims it. Files a carver cannot find by a signature (plain text, CSV, logs) are left out.
 
+`scripts/bench/make-credits.ps1` writes the credits of a set of images: the author, licence and Commons page of every work on them, including the sources of each converted file, archive and document, and the govdocs1 files with the citation Digital Corpora asks for. None of these files needs credit, but they are credited all the same, and a file with no known source stops the script.
+
 Still missing: a real Photoshop PSD, a HEIC from a phone, raw camera files (CR2, NEF, ARW, DNG) and RAR archives. Free sources for these are still to be found.
 
 ## The images
