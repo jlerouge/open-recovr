@@ -17,6 +17,9 @@
     deleted      files deleted for good (Shift+Del, or the bin emptied) during the aging
     quickformat  the same, then the whole volume quick-formatted: every file is a deleted one
     camera       FAT32/exFAT card, photos and videos written in sequence, some deleted, then refilled
+    fragmented   like deleted, but the free space is first cut into small holes (filler files of
+                 random bytes, half of them deleted), so that the files written after it are split
+                 the way they are on a full, much-used disk
 
   fsutil only reports where files lie on NTFS (and ReFS). On FAT32 and exFAT the truth has no
   extents: the scorer cannot tell overwritten files apart, and counts them all as recoverable.
@@ -28,13 +31,13 @@
 #>
 #Requires -RunAsAdministrator
 param(
-    # a folder of real files (photos, documents, archives, music, videos...), read only
-    [Parameter(Mandatory)] [string] $Corpus,
+    # folders of real files (photos, documents, archives, music, videos...), read only; lists (.tsv) are skipped
+    [Parameter(Mandatory)] [string[]] $Corpus,
     [Parameter(Mandatory)] [string] $Out,
     [string] $Name = 'bench',
     [int] $SizeMB = 1024,
     [ValidateSet('NTFS', 'exFAT', 'FAT32')] [string] $FileSystem = 'NTFS',
-    [ValidateSet('deleted', 'quickformat', 'camera')] [string] $Scenario = 'deleted',
+    [ValidateSet('deleted', 'quickformat', 'camera', 'fragmented')] [string] $Scenario = 'deleted',
     # allocation unit in bytes, 0 for Windows' default
     [int] $Cluster = 0,
     [int] $Rounds = 12,
@@ -50,7 +53,7 @@ $vhd = Join-Path $Out "$Name.vhd"
 $truthPath = Join-Path $Out "$Name.tsv"
 if (Test-Path $vhd) { throw "$vhd already exists" }
 
-$files = @(Get-ChildItem -Recurse -File $Corpus | Where-Object { $_.Length -ge 2048 })
+$files = @(Get-ChildItem -Recurse -File $Corpus | Where-Object { $_.Length -ge 2048 -and $_.Extension -ne '.tsv' })
 if ($Scenario -eq 'camera') {
     $files = @($files | Where-Object { $_.Extension -match '^\.(jpe?g|png|heic|mp4|mov|avi|cr2|nef|arw|dng)$' })
 }
@@ -106,7 +109,10 @@ try {
 
     $truth = [Collections.Generic.List[string]]::new()
     $capacity = $vol.Size
-    function Used { (Get-Volume -DriveLetter $part.DriveLetter).Size - (Get-Volume -DriveLetter $part.DriveLetter).SizeRemaining }
+    # read from the file system, not Get-Volume: that one asks the storage service, which takes
+    # seconds per call (more when a disk of the machine is failing) and is called for every file
+    $drive = [IO.DriveInfo]::new($root)
+    function Used { $drive.TotalSize - $drive.TotalFreeSpace }
     function Copy-Some($share) {
         $dirs = @('DCIM\100CAMERA', 'Documents', 'Documents\Projets', 'Musique', 'Videos', 'Downloads', 'Archives\2024')
         while ((Used) -lt $capacity * $share) {
@@ -118,8 +124,28 @@ try {
             if (-not (Test-Path $dst)) { Copy-Item $f.FullName $dst }
         }
     }
+    # filler: random bytes, not part of the truth (no carver should return it, and if one does it is junk)
+    $fillerDir = Join-Path $root 'Temp\cache'
+    function Real-Files {
+        Get-ChildItem -Recurse -File $root -ErrorAction SilentlyContinue |
+            Where-Object { $_.FullName -notmatch 'System Volume Information' -and -not $_.FullName.StartsWith($fillerDir) }
+    }
+    function Chop-Free($share) {
+        New-Item -ItemType Directory -Force $fillerDir | Out-Null
+        $buf = [byte[]]::new(64 * $cl)
+        $n = 0
+        while ((Used) -lt $capacity * $share) {
+            $rng.NextBytes($buf)
+            $len = (1 + $rng.Next(64)) * $cl
+            $fs = [IO.File]::Create((Join-Path $fillerDir ('{0:D6}.tmp' -f $n)))
+            $fs.Write($buf, 0, $len); $fs.Close(); $n++
+        }
+        # every other hole freed, at random: the free space is now many small pieces
+        foreach ($f in Get-ChildItem -File $fillerDir) { if ($rng.NextDouble() -lt 0.5) { Remove-Item -Force $f.FullName } }
+        Write-Host ("free space cut by {0} filler files, {1:N0} MB used" -f $n, ((Used) / 1MB))
+    }
     function Delete-Some($share) {
-        $live = @(Get-ChildItem -Recurse -File $root -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notmatch 'System Volume Information' })
+        $live = @(Real-Files)
         foreach ($f in $live) {
             if ($rng.NextDouble() -lt $share) {
                 $truth.Add((Describe $f.FullName 'deleted'))
@@ -129,6 +155,7 @@ try {
     }
 
     # --- the aging ------------------------------------------------------------------------
+    if ($Scenario -eq 'fragmented') { Chop-Free 0.9 }
     for ($r = 1; $r -le $Rounds; $r++) {
         Copy-Some ([math]::Min($Fill, 0.3 + $r * ($Fill - 0.3) / $Rounds))
         Delete-Some 0.25
@@ -137,7 +164,7 @@ try {
     # the last files deleted are the ones a user wants back: nothing has been written since
     Delete-Some 0.15
 
-    $live = @(Get-ChildItem -Recurse -File $root | Where-Object { $_.FullName -notmatch 'System Volume Information' })
+    $live = @(Real-Files)
     if ($Scenario -eq 'quickformat') {
         foreach ($f in $live) { $truth.Add((Describe $f.FullName 'deleted')) }
         Format-Volume -DriveLetter $part.DriveLetter -FileSystem $FileSystem -NewFileSystemLabel 'BENCH' -Confirm:$false -Force | Out-Null

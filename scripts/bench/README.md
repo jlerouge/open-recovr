@@ -10,6 +10,9 @@ This benchmark measures recovery engines (the built-in carver, PhotoRec, or any 
 | `open-recovr --bench-score <truth.tsv> <dir> [image] [label]` | Compares any recovered folder with the truth file. The engine itself is never looked at. |
 | `run.ps1` | Runs each engine, times it, scores it and appends one line per engine to `results.tsv`. |
 | `make-vhd.ps1` | Builds a realistic image as administrator: Windows formats it, fills it from a corpus of real files, ages it and deletes files, and records the truth before each deletion. |
+| `collect-commons.ps1` | Gathers a corpus of public-domain and CC0 files from Wikimedia Commons, with a manifest of their sources, for images that can be published (see [docs/dataset.md](../../docs/dataset.md)). |
+| `make-derived.ps1` | Converts corpus files into the formats Commons lacks: video and sound containers (ffmpeg), image formats (ImageMagick), HEIC (the Windows HEIF encoder), archives (Windows tar and makecab) and Office documents (Word, Excel and PowerPoint through COM). |
+| `collect-govdocs.ps1` | Copies the files of extracted govdocs1 threads (real US government documents: Word 97, Excel 97, PowerPoint 97, PostScript...) with a list of their sources. |
 
 ## The truth file
 
@@ -46,7 +49,7 @@ Each figure is broken down into contiguous and fragmented files, and by extensio
 
 ## Data
 
-- Images made by `make-vhd.ps1` from a corpus of real files.
+- Images made by `make-vhd.ps1` from a corpus of real files. Its `fragmented` scenario cuts the free space into small holes first, so that many files end up in pieces.
 - NIST CFReDS "File Carving" images (L0 to L5: contiguous, fragmented, out of order, missing pieces, nested, braided) and the DFRWS 2006 challenge. Their layout documents are converted into truth files.
 
 The metrics are fixed before any result is looked at, and they are not changed to suit an engine.
