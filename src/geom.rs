@@ -57,12 +57,13 @@ impl Grid {
     }
 
     /// Keeps the volumes where most of the files found whole start on the grid: at least 16 of
-    /// them, 9 in 10 on it.
+    /// them, half of them on it. By chance one in eight would be (clusters of 4 KiB) or fewer;
+    /// the rest are files held in others (a cover in a song) and headers that only look right.
     pub fn confirm(&mut self, starts: &[u64]) {
         self.0.retain(|a| {
             let inside: Vec<u64> = starts.iter().copied().filter(|&s| s >= a.start && s < a.end).collect();
             let on = inside.iter().filter(|&&s| (s - a.start) % a.unit == 0).count();
-            inside.len() >= 16 && on * 10 >= inside.len() * 9
+            inside.len() >= 16 && on * 2 >= inside.len()
         });
     }
 

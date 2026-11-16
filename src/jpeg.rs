@@ -772,7 +772,7 @@ fn edges(blk: &[f32; 64]) -> [f32; 16] {
 
 /// Whether a sector could be part of the coded data: a 0xFF byte there is only ever followed
 /// by a zero, a restart marker or the end marker, and coded data is far from uniform.
-fn looks_coded(s: &[u8]) -> bool {
+pub fn looks_coded(s: &[u8]) -> bool {
     let mut seen = [false; 256];
     let mut distinct = 0;
     for i in 0..s.len() {
@@ -815,6 +815,7 @@ pub fn rebuild(
     claims: &Claims,
     free: &dyn Fn(u64) -> bool,
     max_pieces: usize,
+    coded: Option<&[u64]>,
 ) -> Option<Vec<(u64, u64)>> {
     let max = crate::carve::Kind::Jpeg.max_size();
     let first = frag::open_run(at, size, claims, max);
@@ -853,7 +854,10 @@ pub fn rebuild(
             cuts.push(Cut { cut, point, kept, at });
         }
         let low = cuts.last()?;
-        let mut cands = Candidates::new(low.at, size);
+        let mut cands = match coded {
+            Some(list) => Candidates::among(low.at, list),
+            None => Candidates::new(low.at, size),
+        };
         // (score, cut, sector)
         let mut best: Option<(f64, usize, u64)> = None;
         let (mut done, mut smooth) = (None, None);
@@ -990,7 +994,7 @@ mod tests {
         let size = disk.len() as u64;
         let mut m = Mem(disk);
         assert!(matches!(measure(&mut m, 0, 1 << 30), Outcome::Broken(_)));
-        let runs = rebuild(&mut m, size, 0, &Claims::default(), &|_| true, 8).expect("rebuilt");
+        let runs = rebuild(&mut m, size, 0, &Claims::default(), &|_| true, 8, None).expect("rebuilt");
         assert_eq!(runs, vec![(0, cut as u64), (second, (pic.len() - cut) as u64)]);
     }
 
@@ -1014,12 +1018,12 @@ mod tests {
         let mut m = Mem(disk);
         let mut claims = Claims::default();
         claims.add(b_at, b_at + SECTOR);
-        let ra = rebuild(&mut m, size, 0, &claims, &|_| true, 8).expect("a rebuilt");
+        let ra = rebuild(&mut m, size, 0, &claims, &|_| true, 8, None).expect("a rebuilt");
         assert_eq!(ra, vec![(0, ca as u64), (a2, (a.len() - ca) as u64)]);
         for &(x, l) in &ra {
             claims.add(x, x + l);
         }
-        let rb = rebuild(&mut m, size, b_at, &claims, &|_| true, 8).expect("b rebuilt");
+        let rb = rebuild(&mut m, size, b_at, &claims, &|_| true, 8, None).expect("b rebuilt");
         assert_eq!(rb, vec![(b_at, cb as u64), (b2, (b.len() - cb) as u64)]);
     }
 
@@ -1042,7 +1046,7 @@ mod tests {
         disk.extend_from_slice(&pic[c1..c2]);
         disk.extend(noise(4 * SECTOR as usize, &mut s));
         let size = disk.len() as u64;
-        let runs = rebuild(&mut Mem(disk), size, first, &Claims::default(), &|_| true, 8).expect("rebuilt");
+        let runs = rebuild(&mut Mem(disk), size, first, &Claims::default(), &|_| true, 8, None).expect("rebuilt");
         assert_eq!(runs, vec![(first, c1 as u64), (second, (c2 - c1) as u64), (third, (pic.len() - c2) as u64)]);
     }
 
@@ -1052,6 +1056,6 @@ mod tests {
         let mut disk = pic[..10 * SECTOR as usize].to_vec();
         disk.extend(noise(64 * SECTOR as usize, &mut 3));
         let size = disk.len() as u64;
-        assert!(rebuild(&mut Mem(disk), size, 0, &Claims::default(), &|_| true, 8).is_none());
+        assert!(rebuild(&mut Mem(disk), size, 0, &Claims::default(), &|_| true, 8, None).is_none());
     }
 }

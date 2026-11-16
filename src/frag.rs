@@ -167,6 +167,36 @@ impl<'a> Feed<'a> {
     }
 }
 
+/// The sectors that read like the coded data of a JPEG and that no file found whole holds,
+/// gathered as the disk is read through. Given up past a bound, to keep memory small on a large
+/// disk full of photos: the search near each cut is then used.
+#[derive(Default)]
+pub struct Coded {
+    list: Vec<u64>,
+    full: bool,
+}
+
+impl Coded {
+    const MAX: usize = 4 << 20;
+
+    /// Looks at the sector at `at` (its first bytes in `b`), unless a file found holds it.
+    pub fn see(&mut self, at: u64, b: &[u8], claims: &Claims) {
+        if self.full || b.len() < SECTOR as usize || claims.covering(at).is_some() || !crate::jpeg::looks_coded(&b[..SECTOR as usize]) {
+            return;
+        }
+        if self.list.len() == Self::MAX {
+            self.full = true;
+            self.list = Vec::new();
+        } else {
+            self.list.push(at);
+        }
+    }
+
+    pub fn list(&self) -> Option<&[u64]> {
+        (!self.full).then_some(&self.list[..])
+    }
+}
+
 /// Byte ranges of the disk that belong to files already found, sorted and disjoint.
 #[derive(Default)]
 pub struct Claims(Vec<(u64, u64)>);
@@ -221,16 +251,19 @@ pub enum Rebuilt {
 }
 
 /// The sectors where a next piece may start, nearest the cut first, on either side of it.
-pub struct Candidates {
+pub struct Candidates<'a> {
     ahead: u64,
     behind: u64,
     lo: u64,
     hi: u64,
     forward: bool,
     origin: u64,
+    /// when the sectors worth trying are known in advance (sorted): only those, over the whole
+    /// disk, by index on each side of the cut
+    among: Option<(&'a [u64], usize, usize)>,
 }
 
-impl Candidates {
+impl<'a> Candidates<'a> {
     pub fn new(cut_at: u64, size: u64) -> Self {
         Self {
             ahead: cut_at + SECTOR,
@@ -239,12 +272,44 @@ impl Candidates {
             hi: (cut_at + AHEAD).min(size),
             forward: true,
             origin: cut_at,
+            among: None,
         }
+    }
+
+    /// Only the sectors of `list` (sorted), however far from the cut.
+    pub fn among(cut_at: u64, list: &'a [u64]) -> Self {
+        let i = list.partition_point(|&s| s <= cut_at);
+        Self { among: Some((list, i, i)), ..Self::new(cut_at, 0) }
     }
 
     /// The next free sector, not in `own`, not claimed by another file.
     pub fn next(&mut self, claims: &Claims, own: &[(u64, u64)], free: &dyn Fn(u64) -> bool) -> Option<u64> {
         let mine = |s: u64| own.iter().any(|&(a, l)| s >= a && s < a + l);
+        if let Some((list, ahead, behind)) = &mut self.among {
+            loop {
+                // as below: behind weighed double
+                let a = list.get(*ahead).copied();
+                let b = behind.checked_sub(1).map(|i| list[i]);
+                let s = match (a, b) {
+                    (None, None) => return None,
+                    (Some(a), Some(b)) if a - self.origin > 2 * (self.origin - b) => {
+                        *behind -= 1;
+                        b
+                    }
+                    (Some(a), _) => {
+                        *ahead += 1;
+                        a
+                    }
+                    (None, Some(b)) => {
+                        *behind -= 1;
+                        b
+                    }
+                };
+                if claims.covering(s).is_none() && !mine(s) && free(s) {
+                    return Some(s);
+                }
+            }
+        }
         loop {
             // whichever side is nearer the cut, behind weighed double: file systems mostly
             // write on forward
@@ -307,7 +372,19 @@ pub fn open_run(at: u64, size: u64, claims: &Claims, max: u64) -> (u64, u64) {
 
 /// Puts a file that did not read straight through back together, if its format allows it.
 /// The pieces found are claimed, so no other file takes them.
-pub fn rebuild(src: &mut dyn Source, size: u64, at: u64, kind: Kind, claims: &mut Claims, free: &dyn Fn(u64) -> bool) -> Option<Rebuilt> {
+///
+/// `coded` lists, when known, every sector of the disk that no file found whole holds and that
+/// reads like the coded data of a JPEG: the next piece of a photo is looked for among them,
+/// across the whole disk, in place of the sectors near the cut.
+pub fn rebuild(
+    src: &mut dyn Source,
+    size: u64,
+    at: u64,
+    kind: Kind,
+    claims: &mut Claims,
+    free: &dyn Fn(u64) -> bool,
+    coded: Option<&[u64]>,
+) -> Option<Rebuilt> {
     if kind == Kind::Ole {
         let (runs, ext) = crate::ole::rebuild(src, size, at, claims, free)?;
         for &(a, l) in &runs {
@@ -316,7 +393,7 @@ pub fn rebuild(src: &mut dyn Source, size: u64, at: u64, kind: Kind, claims: &mu
         return Some(Rebuilt::Pieces(runs, ext));
     }
     let runs = match kind {
-        Kind::Jpeg => crate::jpeg::rebuild(src, size, at, claims, free, MAX_PIECES)?,
+        Kind::Jpeg => crate::jpeg::rebuild(src, size, at, claims, free, MAX_PIECES, coded)?,
         Kind::Png => crate::png::rebuild(src, size, at, claims, free, MAX_PIECES)?,
         Kind::Bmp => crate::bmp::rebuild(src, size, at, claims, free, MAX_PIECES)?,
         Kind::Pcx => crate::pcx::rebuild(src, size, at, claims, free, MAX_PIECES)?,

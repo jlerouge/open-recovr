@@ -49,6 +49,7 @@ pub fn carve_image(image: &Path, out: &Path) {
     let mut broken = Vec::new();
     // where the files found whole start, to check the cluster grid of the disk against
     let mut starts = Vec::new();
+    let mut coded = frag::Coded::default();
     while pos < size {
         let span = CHUNK.min((size - pos) as usize);
         let got = vol.read_at(pos, &mut buf[..span]);
@@ -80,6 +81,7 @@ pub fn carve_image(image: &Path, out: &Path) {
                     Measure::None => {}
                 }
             }
+            coded.see(abs, &buf[off..got.min(off + 512)], &claims);
             off += STEP;
         }
         pos += got as u64;
@@ -90,7 +92,7 @@ pub fn carve_image(image: &Path, out: &Path) {
     let mut grid = crate::geom::Grid::read(&mut vol, size);
     grid.confirm(&starts);
     for (abs, kind) in broken {
-        let (runs, ext) = match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|s| grid.allows(s)) {
+        let (runs, ext) = match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|s| grid.allows(s), coded.list()) {
             Some(Rebuilt::Pieces(runs, ext)) => {
                 rebuilt += 1;
                 (runs, ext)

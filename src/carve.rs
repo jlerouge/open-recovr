@@ -81,7 +81,8 @@ impl Kind {
             Wav | Aiff | Caf => matches!(inner, Mp3 | Aac),
             Mp3 | Aac => matches!(inner, Mp3 | Aac | Jpeg | Png),
             Flac => matches!(inner, Flac | Jpeg | Png),
-            Ogg => matches!(inner, Ogg | Jpeg | Png),
+            // cover art in an Ogg is written in base64, never as a bare JPEG or PNG
+            Ogg => inner == Ogg,
             Tiff | Raf | Crw | Psd => matches!(inner, Tiff | Jpeg),
             Ole => inner == Ole,
             _ => false,

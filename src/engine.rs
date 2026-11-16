@@ -502,6 +502,8 @@ pub(crate) fn deep_scan(
     let mut claims = Claims::default();
     let mut broken = Vec::new();
     let mut starts = Vec::new();
+    // the free sectors that read like the coded data of a photo, where its next piece may be
+    let mut coded = frag::Coded::default();
     let mut add =|abs: u64, ext: &'static str, len: u64, origin: Origin| {
         let cat = Category::from_ext(ext);
         if !wanted.accepts(ext, cat, len, false) {
@@ -583,6 +585,9 @@ pub(crate) fn deep_scan(
                     Measure::None => {}
                 }
             }
+            if !in_use(abs) {
+                coded.see(abs, &buf[off..got.min(off + 512)], &claims);
+            }
             off += step;
         }
         pos += got as u64;
@@ -599,7 +604,7 @@ pub(crate) fn deep_scan(
         if cancel.load(Ordering::Relaxed) {
             break;
         }
-        match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|off| !in_use(off) && grid.allows(off)) {
+        match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|off| !in_use(off) && grid.allows(off), coded.list()) {
             Some(Rebuilt::Pieces(runs, ext)) => {
                 let len = runs.iter().map(|r| r.1).sum();
                 let runs = runs.into_iter().map(|(a, l)| (Some(a), l)).collect();
