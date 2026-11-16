@@ -65,28 +65,28 @@ The scorer and the metrics are those of [carving.md, section 6](carving.md#6-how
 
 ## First results
 
-These are Open Recovr 0.4.0 and PhotoRec 7.2 on the five images. Each image is 2 GB and was built by `make-vhd.ps1` with seeds 11 to 15, in the order of the table above. Both engines ran once, on the same PC, with the images on a SATA SSD. The engine was not changed after these runs.
+These are Open Recovr 0.4.0 and PhotoRec 7.2 on the five images. Each image is 2 GB and was built by `make-vhd.ps1` with seeds 11 to 15, in the order of the table above. Both engines ran once, on the same PC, with the images on a SATA SSD. The engine was not changed after these runs. The images were built a second time before publication, once the Office documents on them were found to carry the name of the account that saved them (`make-derived.ps1` now removes it); these are the results on the published images.
 
 | Image | Deleted | Still intact | Recovered whole (Open Recovr / PhotoRec) | Recall of intact | Junk files | Seconds |
 |---|---|---|---|---|---|---|
-| ntfs-deleted | 752 | 216 | 183 / 190 | 84.7 % / 88.0 % | 89 / 464 | 92 / 100 |
-| ntfs-fragmented | 373 | 127 | 66 / 67 | 52.0 % / 52.8 % | 407 / 1,367 | 93 / 31 |
-| ntfs-quickformat | 1,187 | 709 | 561 / 601 | 79.1 % / 84.8 % | 45 / 212 | 81 / 55 |
-| exfat-camera | 11 | 11 | 9 / 9 | 81.8 % / 81.8 % | 11 / 275 | 151 / 373 |
-| fat32-fragmented | 428 | 428 | 113 / 122 | 26.4 % / 28.5 % | 286 / 470 | 187 / 23 |
+| ntfs-deleted | 771 | 270 | 219 / 236 | 81.1 % / 87.4 % | 52 / 326 | 73 / 55 |
+| ntfs-fragmented | 376 | 117 | 67 / 70 | 57.3 % / 59.8 % | 499 / 1,609 | 81 / 29 |
+| ntfs-quickformat | 1,252 | 760 | 587 / 615 | 77.2 % / 80.9 % | 21 / 332 | 125 / 83 |
+| exfat-camera | 12 | 12 | 11 / 10 | 91.7 % / 83.3 % | 14 / 292 | 121 / 232 |
+| fat32-fragmented | 415 | 415 | 84 / 90 | 20.2 % / 21.7 % | 99 / 232 | 137 / 21 |
 
 "Recovered whole" counts the exact files plus the trimmable ones, which are whole but followed by extra bytes. What these runs show:
 
-- **Recall** is close. PhotoRec is ahead by 0 to 6 points, almost entirely through trimmable files: it stops a file late where Open Recovr drops the file or cuts it exactly. Counting exact files only, Open Recovr is ahead on three images, level on exfat-camera and behind by two files on fat32-fragmented.
-- **Precision** is where the engines differ most. On every image PhotoRec returns 1.6 to 25 times as many junk files: 1,367 against 407 on ntfs-fragmented, 275 against 11 on exfat-camera.
-- **Fragmented files** are still lost by both. On ntfs-fragmented, 44 deleted files were split and still intact: Open Recovr gives back one, PhotoRec none.
-- **Speed** goes to PhotoRec on the fragmented images, up to eight times faster on FAT32. Open Recovr is faster on exfat-camera and slightly faster on ntfs-deleted.
-- **Few deleted files survive** the aging: rounds of writes overwrite most of them, which is what happens on a disk in use. exfat-camera keeps only 11, too few to tell the engines apart.
+- **Recall** is close. PhotoRec is ahead by 1.5 to 6 points on four images, almost entirely through trimmable files: it stops a file late where Open Recovr drops the file or cuts it exactly. Open Recovr is ahead by one file on exfat-camera. Counting exact files only, Open Recovr is ahead on three images and behind by two or three files on ntfs-deleted and ntfs-fragmented.
+- **Precision** is where the engines differ most. On every image PhotoRec returns 2.3 to 21 times as many junk files: 1,609 against 499 on ntfs-fragmented, 292 against 14 on exfat-camera.
+- **Fragmented files** are still lost by both. On ntfs-fragmented, 36 deleted files were split and still intact, and neither engine gives one back; over the three NTFS images, Open Recovr recovers 2 of these 98 files and PhotoRec 3.
+- **Speed** goes to PhotoRec on four images, over six times faster on FAT32. Open Recovr is faster on exfat-camera only.
+- **Few deleted files survive** the aging: rounds of writes overwrite most of them, which is what happens on a disk in use. exfat-camera keeps only 12, too few to tell the engines apart.
 - **FAT32 and exFAT images** have no extents in their truth. A file there counts as fragmented only when the scorer knows it, so their "still intact" column holds every deleted file and their recall is underestimated.
 
 ## Still open
 
-- Where to publish: a GitHub release asset is limited to 2 GB per file, while Zenodo gives a DOI and takes up to 50 GB.
+- Where to publish: compressed with zstd, each image fits under the 2 GB limit of a GitHub release asset; Zenodo would add a DOI.
 - The truth of FAT32 and exFAT images has no extents, since Windows does not report them on these file systems. They could be read from the FAT before each deletion.
 - A short write-up of the method and the results, if the data set proves useful.
 - Larger images, or more of them per scenario: on a 2 GB disk few deleted files survive the aging, so one image says little about a single format.
