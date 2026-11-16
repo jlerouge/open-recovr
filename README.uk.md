@@ -1,8 +1,6 @@
 <div align="center">
 
-<img src="assets/icon.svg" alt="" width="96" height="96">
-
-# Open Recovr
+<img src="assets/banner.png" alt="Open Recovr" width="100%">
 
 **Поверніть видалені файли, просто.**
 

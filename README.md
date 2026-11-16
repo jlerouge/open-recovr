@@ -1,10 +1,6 @@
 <div align="center">
 
-<img src="assets/icon.svg" alt="" width="96" height="96">
-
-# Open Recovr
-
-**Get your deleted files back, simply.**
+<img src="assets/banner.png" alt="Open Recovr" width="100%">
 
 One screen, no wizard: pick the drive, search, tick what you want back.<br>
 Free and open source, with its own recovery engine and [PhotoRec](https://www.cgsecurity.org/wiki/PhotoRec) as an option.
