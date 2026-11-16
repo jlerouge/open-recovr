@@ -620,6 +620,13 @@ pub struct App {
     /// a few times a second, as during a search it changes all the time.
     view_stale: bool,
     view_built: Option<std::time::Instant>,
+    /// The name and place of each file in lower case, made once for the search box and the sort
+    /// by name rather than at each key pressed. Follows `files`.
+    lower: Vec<(String, String)>,
+    /// How many files are ticked and their size, kept as boxes are ticked rather than counted at
+    /// each frame; and how many of those listed are, counted again when the list or a box changes.
+    ticked: (usize, u64),
+    view_ticked: Option<usize>,
     /// Counted with the list: the files shown in each category (duplicates hidden or not), and
     /// the most common extensions under the category chosen.
     cat_counts: [usize; 6],
@@ -677,6 +684,9 @@ pub struct App {
     sent: usize,
     index_of: HashMap<usize, usize>,
     checks: HashMap<usize, Check>,
+    /// Whether each file is a copy of one found before, as `checks` says: looked at for every
+    /// file each time the list is made.
+    copies: Vec<bool>,
     digests: HashMap<u64, usize>,
     dupes: usize,
     show_dupes: bool,
@@ -715,6 +725,9 @@ impl App {
             view_key: None,
             view_stale: false,
             view_built: None,
+            lower: Vec::new(),
+            ticked: (0, 0),
+            view_ticked: None,
             cat_counts: [0; 6],
             shown_total: 0,
             ext_counts: Vec::new(),
@@ -760,6 +773,7 @@ impl App {
             sent: 0,
             index_of: HashMap::new(),
             checks: HashMap::new(),
+            copies: Vec::new(),
             digests: HashMap::new(),
             dupes: 0,
             show_dupes: false,
@@ -825,9 +839,11 @@ impl App {
 
     fn apply_scene(&mut self) {
         let Some(scene) = self.scene.take() else { return };
-        let photos = |files: &mut Vec<Found>| {
-            for f in files.iter_mut().filter(|f| f.category == Category::Photos) {
-                f.checked = true;
+        let photos = |app: &mut Self| {
+            for i in 0..app.files.len() {
+                if app.files[i].category == Category::Photos {
+                    app.tick(i, true);
+                }
             }
         };
         match scene.as_str() {
@@ -857,12 +873,12 @@ impl App {
             }
             "update" => *self.update.lock().unwrap() = update::State::Available("0.3.0".into()),
             "selected" => {
-                photos(&mut self.files);
+                photos(self);
                 self.filter = Some(Category::Photos);
                 self.focus = self.files.iter().position(|f| f.category == Category::Photos);
             }
             "recovered" => {
-                photos(&mut self.files);
+                photos(self);
                 let n = self.files.iter().filter(|f| f.checked).count();
                 let name = t!("Fichiers récupérés {}", "2026-11-08");
                 let folder = PathBuf::from(if cfg!(windows) { r"E:\" } else { "/media/usb" }).join(name);
@@ -970,6 +986,9 @@ impl App {
             clear_stage(&old);
         }
         self.files.clear();
+        self.lower.clear();
+        self.ticked = (0, 0);
+        self.view_ticked = None;
         self.focus = None;
         self.preview = None;
         self.filter = None;
@@ -987,6 +1006,7 @@ impl App {
         self.sent = 0;
         self.index_of.clear();
         self.checks.clear();
+        self.copies.clear();
         self.digests.clear();
         self.dupes = 0;
         self.show_dupes = false;
@@ -1085,6 +1105,9 @@ impl App {
             let Some(&i) = self.index_of.get(&s.id) else { continue };
             let f = &mut self.files[i];
             if let Some(n) = s.name {
+                if let Some(l) = self.lower.get_mut(i) {
+                    l.0 = n.to_lowercase();
+                }
                 f.name = n;
             }
             if s.stamp > 0 && f.stamp == 0 {
@@ -1101,13 +1124,38 @@ impl App {
             if copy_of.is_some() {
                 self.dupes += 1;
             }
+            if self.copies.len() <= i {
+                self.copies.resize(i + 1, false);
+            }
+            self.copies[i] = copy_of.is_some();
             self.checks.insert(i, Check { verdict: s.verdict, detail: s.detail, copy_of });
         }
         self.view_stale = true;
     }
 
+    fn tick(&mut self, i: usize, on: bool) {
+        let f = &mut self.files[i];
+        if f.checked != on {
+            f.checked = on;
+            if on {
+                self.ticked.0 += 1;
+                self.ticked.1 += f.size;
+            } else {
+                self.ticked.0 -= 1;
+                self.ticked.1 -= f.size;
+            }
+            self.view_ticked = None;
+        }
+    }
+
+    /// How many of the files listed are ticked.
+    fn view_ticked(&mut self) -> usize {
+        let (files, view) = (&self.files, &self.view);
+        *self.view_ticked.get_or_insert_with(|| view.iter().filter(|&&i| files[i].checked).count())
+    }
+
     fn hidden_dupe(&self, i: usize) -> bool {
-        !self.show_dupes && self.checks.get(&i).is_some_and(|c| c.copy_of.is_some())
+        !self.show_dupes && self.copies.get(i).copied().unwrap_or(false)
     }
 
     /// Rebuilds the visible list when the results, the filters or the sort order changed.
@@ -1143,18 +1191,34 @@ impl App {
         }
         self.view_stale = false;
         self.view_built = Some(std::time::Instant::now());
+        if self.lower.len() > self.files.len() {
+            self.lower.clear();
+        }
+        for f in &self.files[self.lower.len()..] {
+            self.lower.push((f.name.to_lowercase(), f.place.to_lowercase()));
+        }
+        let lower = &self.lower;
         let files = &self.files;
-        // the chips' counts, in the same walk
+        // the list and the chips' counts, in one walk
         let mut cats = [0usize; 6];
         let mut shown = 0usize;
         let mut exts: HashMap<&str, usize> = HashMap::new();
+        let mut v: Vec<usize> = Vec::new();
         for (i, f) in files.iter().enumerate() {
-            if !self.hidden_dupe(i) {
+            let hidden = self.hidden_dupe(i);
+            if !hidden {
                 shown += 1;
                 cats[f.category as usize] += 1;
             }
             if self.filter.is_none_or(|c| f.category == c) {
                 *exts.entry(f.ext.as_str()).or_default() += 1;
+                if !hidden
+                    && self.ext_filter.as_ref().is_none_or(|e| &f.ext == e)
+                    && f.size >= self.show_min
+                    && (key.query.is_empty() || lower[i].0.contains(&key.query) || lower[i].1.contains(&key.query))
+                {
+                    v.push(i);
+                }
             }
         }
         let mut counts: Vec<(String, usize)> = exts.into_iter().map(|(e, n)| (e.to_string(), n)).collect();
@@ -1163,29 +1227,11 @@ impl App {
         self.cat_counts = cats;
         self.shown_total = shown;
         self.ext_counts = counts;
-        let mut v: Vec<usize> = (0..files.len())
-            .filter(|&i| {
-                let f = &files[i];
-                !self.hidden_dupe(i)
-                    && self.filter.is_none_or(|c| f.category == c)
-                    && self.ext_filter.as_ref().is_none_or(|e| &f.ext == e)
-                    && f.size >= self.show_min
-                    && (key.query.is_empty() || f.name.to_lowercase().contains(&key.query) || f.place.to_lowercase().contains(&key.query))
-            })
-            .collect();
-        if let Some((SortKey::Name, asc)) = self.sort {
-            // each name made lower case once, not at every comparison
-            let mut keyed: Vec<(String, usize)> = v.iter().map(|&i| (files[i].name.to_lowercase(), i)).collect();
-            keyed.sort_by(|a, b| {
-                let o = if asc { a.0.cmp(&b.0) } else { b.0.cmp(&a.0) };
-                o.then(files[a.1].id.cmp(&files[b.1].id))
-            });
-            v = keyed.into_iter().map(|(_, i)| i).collect();
-        } else if let Some((k, asc)) = self.sort {
+        if let Some((k, asc)) = self.sort {
             v.sort_by(|&a, &b| {
                 let (fa, fb) = (&files[a], &files[b]);
                 let o = match k {
-                    SortKey::Name => std::cmp::Ordering::Equal,
+                    SortKey::Name => lower[a].0.cmp(&lower[b].0),
                     SortKey::Type => (fa.category, &fa.ext).cmp(&(fb.category, &fb.ext)),
                     SortKey::Size => fa.size.cmp(&fb.size),
                     // unknown dates stay at the bottom either way
@@ -1203,6 +1249,7 @@ impl App {
         }
         self.view = v;
         self.view_key = Some(key);
+        self.view_ticked = None;
     }
 
     fn set_sort(&mut self, k: SortKey) {
@@ -2341,9 +2388,10 @@ impl App {
     }
 
     fn file_list(&mut self, ui: &mut egui::Ui) {
+        let on = self.view_ticked();
         let visible = std::mem::take(&mut self.view);
-        let all_on = !visible.is_empty() && visible.iter().all(|&i| self.files[i].checked);
-        let some_on = visible.iter().any(|&i| self.files[i].checked);
+        let all_on = !visible.is_empty() && on == visible.len();
+        let some_on = on > 0;
         // header: the box ticks everything shown, the titles sort the list
         let w = ui.available_width();
         let (hr, _) = ui.allocate_exact_size(vec2(w, 30.0), Sense::hover());
@@ -2355,7 +2403,7 @@ impl App {
         });
         if box_resp.clicked() {
             for &i in &visible {
-                self.files[i].checked = !all_on;
+                self.tick(i, !all_on);
             }
         }
         let p = ui.painter().clone();
@@ -2457,7 +2505,7 @@ impl App {
             }
         });
         if let Some(idx) = toggled {
-            self.files[idx].checked = !self.files[idx].checked;
+            self.tick(idx, !self.files[idx].checked);
         }
         if let Some(idx) = clicked
             && self.focus != Some(idx)
@@ -2684,7 +2732,7 @@ impl App {
             ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
         }
         if cresp.clicked() {
-            self.files[idx].checked = !f.checked;
+            self.tick(idx, !f.checked);
         }
         ui.add_space(4.0);
         let busy = self.copying();
@@ -2694,9 +2742,8 @@ impl App {
     }
 
     fn bottom_bar(&mut self, ui: &mut egui::Ui) {
-        let checked: Vec<&Found> = self.files.iter().filter(|f| f.checked).collect();
-        let n = checked.len();
-        let bytes: u64 = checked.iter().map(|f| f.size).sum();
+        let (n, bytes) = self.ticked;
+        let can_all = self.view_ticked() < self.view.len();
         ui.horizontal(|ui| {
             // what the three buttons on the right leave: the words wrap in it instead of being cut
             let left_w = (ui.available_width() - 28.0 - 4.0 - 3.0 * ui.spacing().item_spacing.x - 600.0).max(200.0);
@@ -2760,17 +2807,17 @@ impl App {
                     .on_hover_text(t!("Décoche tous les fichiers, même ceux masqués par les filtres."))
                     .clicked()
                 {
-                    for f in &mut self.files {
-                        f.checked = false;
+                    for i in 0..self.files.len() {
+                        self.tick(i, false);
                     }
                 }
-                let can_all = self.view.iter().any(|&i| !self.files[i].checked);
                 if pill_button(ui, vec2(150.0, 52.0), t!("Tout cocher"), false, can_all && !busy)
                     .on_hover_text(t!("Coche tous les fichiers affichés dans la liste."))
                     .clicked()
                 {
-                    for &i in &self.view {
-                        self.files[i].checked = true;
+                    for k in 0..self.view.len() {
+                        let i = self.view[k];
+                        self.tick(i, true);
                     }
                 }
             });
