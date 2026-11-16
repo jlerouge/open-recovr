@@ -4,6 +4,12 @@ All notable changes to Open Recovr are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## 0.4.1
+
+- **Faster full scan**, 20 to 50% on the test images. A fragmented file's next piece is looked for only where the volume's clusters start (read from the partition table and boot sectors). A PDF now stops at the next file instead of taking in the files after it.
+- **More fragmented JPEG photos put back together**: the free sectors that look like JPEG data are noted during the scan, and the next piece is looked for among them, however far it lies.
+- **A smoother list with very many files**: with 260,000 files found, the slowest frames drop from about 80 ms to about 20, and the count of ticked files no longer slows the window.
+
 ## 0.4.0
 
 - **Two engines for the full scan**, chosen in Settings. The **modern** engine, the default, is Open Recovr's own, written from the format specifications. The **classic** engine runs PhotoRec by Christophe Grenier.
