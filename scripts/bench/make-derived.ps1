@@ -247,6 +247,7 @@ if ('office' -in $Only) {
             $pics = Pick @('image/jpeg', 'image/png') (1 + $rng.Next(3)) 4
             if ($done["$name.docx"] -or -not $pics.Count) { continue }
             $doc = $word.Documents.Add()
+            $doc.RemovePersonalInformation = $true   # no author or last-saved-by from the Office account
             $sel = $word.Selection
             foreach ($p in $pics) {
                 $sel.Style = $doc.Styles.Item(-2); $sel.TypeText((Words 4)); $sel.TypeParagraph()
@@ -281,6 +282,7 @@ if ('office' -in $Only) {
             $rows = 50 + $rng.Next(2000)
             if ($done["$($src.Name).xlsx"]) { continue }
             $book = $excel.Workbooks.Add()
+            $book.RemovePersonalInformation = $true
             $sheet = $book.Worksheets.Item(1)
             $data = New-Object 'object[,]' $rows, 6
             for ($r = 0; $r -lt $rows; $r++) {
@@ -310,6 +312,7 @@ if ('office' -in $Only) {
             $pics = Pick @('image/jpeg', 'image/png') (2 + $rng.Next(4)) 4
             if ($done["$name.pptx"] -or -not $pics.Count) { continue }
             $pres = $ppt.Presentations.Add(0)
+            $pres.RemovePersonalInformation = -1
             foreach ($p in $pics) {
                 $slide = $pres.Slides.Add($pres.Slides.Count + 1, 12)
                 $slide.Shapes.AddPicture($p.Path, 0, -1, 40, 40, 640, 400) | Out-Null
