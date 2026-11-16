@@ -501,7 +501,8 @@ pub(crate) fn deep_scan(
     // what the files found cover, and the files that went wrong before their end
     let mut claims = Claims::default();
     let mut broken = Vec::new();
-    let mut add = |abs: u64, ext: &'static str, len: u64, origin: Origin| {
+    let mut starts = Vec::new();
+    let mut add =|abs: u64, ext: &'static str, len: u64, origin: Origin| {
         let cat = Category::from_ext(ext);
         if !wanted.accepts(ext, cat, len, false) {
             return;
@@ -571,6 +572,7 @@ pub(crate) fn deep_scan(
                     Measure::Whole(len, ext, sure) => {
                         open.push(kind, abs + len);
                         claims.add(abs, if sure { abs + len } else { abs + 512 });
+                        starts.push(abs);
                         add(abs, ext, len, Origin::Raw { device: disk.device.clone(), offset: abs });
                     }
                     // most likely cut in pieces: put back together once everything else is known
@@ -590,11 +592,14 @@ pub(crate) fn deep_scan(
         set_phase(s, t!("Reconstitution des fichiers fragmentés…"), 1.0);
         ctx.request_repaint();
     }
+    // the pieces of a file start on a cluster of the volume, kept if the files found whole agree
+    let mut grid = crate::geom::Grid::read(&mut vol, size);
+    grid.confirm(&starts);
     for (abs, kind) in broken {
         if cancel.load(Ordering::Relaxed) {
             break;
         }
-        match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|off| !in_use(off)) {
+        match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|off| !in_use(off) && grid.allows(off)) {
             Some(Rebuilt::Pieces(runs, ext)) => {
                 let len = runs.iter().map(|r| r.1).sum();
                 let runs = runs.into_iter().map(|(a, l)| (Some(a), l)).collect();

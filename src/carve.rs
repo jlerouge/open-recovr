@@ -345,9 +345,19 @@ impl<'a> Cursor<'a> {
 
     /// Position just after the first `pat` found from `pos`, if within `max`.
     fn find(&mut self, mut pos: u64, pat: &[u8], max: u64) -> Option<u64> {
+        // searched in the cached block itself, as `get_window` does but without copying it
+        let finder = memchr::memmem::Finder::new(pat);
         while pos < max {
-            let c = self.get_window(pos, pat.len())?;
-            if let Some(i) = c.windows(pat.len()).position(|w| w == pat) {
+            let enough = pos >= self.cache_at && pos + (pat.len() + 64) as u64 <= self.cache_at + self.cache.len() as u64;
+            if !enough {
+                // near the end of the cached block: reload from `pos` so the pattern can't be split
+                self.cache.clear();
+            }
+            let c = self.chunk(pos)?;
+            if c.len() < pat.len() {
+                return None;
+            }
+            if let Some(i) = finder.find(c) {
                 return Some(pos + i as u64 + pat.len() as u64);
             }
             pos += (c.len() - pat.len() + 1) as u64;
@@ -608,18 +618,56 @@ fn pdf(c: &mut Cursor, max: u64) -> Option<u64> {
             return Some(l);
         }
     }
-    let mut end = c.find(8, b"%%EOF", max)?;
-    end += eol(c, end);
+    let mut end = match pdf_eof(c, 8, max)? {
+        Ok(e) => e + eol(c, e),
+        // cut in pieces: what comes before the next file is all that is surely its own
+        Err(next) => return Some(next),
+    };
     loop {
         let Some(next) = c.get(end, 32).map(|t| t.to_vec()) else { break };
         let s = next.iter().position(|x| !x.is_ascii_whitespace()).unwrap_or(next.len());
         if !pdf_goes_on(&next[s..]) {
             break;
         }
-        let Some(e) = c.find(end + s as u64, b"%%EOF", max) else { break };
-        end = e + eol(c, e);
+        match pdf_eof(c, end + s as u64, max) {
+            Some(Ok(e)) => end = e + eol(c, e),
+            // it goes on but is cut in pieces (a linearized PDF past its first page, say): all
+            // up to the next file is its own
+            Some(Err(next)) => return Some(next),
+            None => break,
+        }
     }
     Some(end)
+}
+
+/// The position after the next `%%EOF` from `from`, or, as an error, where another PDF starts on
+/// a sector boundary before it. A PDF is not stored that way inside another one: the file was
+/// cut in pieces, and reading on to a later `%%EOF` would take in other files whole, again and
+/// again for each piece of a PDF found before them.
+fn pdf_eof(c: &mut Cursor, from: u64, max: u64) -> Option<Result<u64, u64>> {
+    const SEG: u64 = 4 << 20;
+    let mut pos = from;
+    while pos < max {
+        let seg = (pos + SEG).min(max);
+        let eof = c.find(pos, b"%%EOF", seg);
+        let upto = eof.unwrap_or(seg).min(max);
+        let mut s = pos.max(1).next_multiple_of(512);
+        while s + 5 <= upto {
+            if c.get(s, 5)? == b"%PDF-" {
+                return Some(Err(s));
+            }
+            s += 512;
+        }
+        if let Some(e) = eof {
+            return Some(Ok(e));
+        }
+        if seg >= max {
+            break;
+        }
+        // a few bytes again, for a `%%EOF` across the two
+        pos = seg - 4;
+    }
+    None
 }
 
 /// The `/L` length of a linearization dictionary at the start of a PDF.
@@ -1812,6 +1860,30 @@ mod tests {
         let mut m = Mem(disk);
         assert_eq!(measure(&mut m, upd_at as u64, Kind::Pdf).unwrap().0, upd.len() as u64);
         assert_eq!(measure(&mut m, lin_at as u64, Kind::Pdf).unwrap().0, lin.len() as u64);
+    }
+
+    #[test]
+    fn pdf_cut_short_stops_at_the_next_pdf() {
+        // a PDF whose end is elsewhere, then another one on a sector boundary, whole
+        let mut disk = vec![0u8; 512];
+        disk.extend_from_slice(b"%PDF-1.4\n1 0 obj<<>>stream\n");
+        disk.resize(512 + 6 * 1024 * 1024, b'q');
+        let second = disk.len() as u64;
+        disk.extend_from_slice(b"%PDF-1.4\n1 0 obj<<>>endobj\n");
+        disk.extend(std::iter::repeat_n(b'z', 400));
+        disk.extend_from_slice(b"\nxref\ntrailer<<>>\n%%EOF\n");
+        let second_len = disk.len() as u64 - second;
+        disk.resize(disk.len() + 4096, 0);
+        let mut m = Mem(disk);
+        assert_eq!(measure(&mut m, 512, Kind::Pdf).unwrap().0, second - 512);
+        assert_eq!(measure(&mut m, second, Kind::Pdf).unwrap().0, second_len);
+        // the same with an early `%%EOF`, as after the first page of a linearized PDF: the
+        // objects after it still belong to the file, up to the next one
+        let mut d = m.0;
+        let early = b"%PDF-1.4\n1 0 obj<<>>endobj\nxref\ntrailer<<>>\n%%EOF\n2 0 obj<<>>stream\n";
+        d[512..512 + early.len()].copy_from_slice(early);
+        let mut m = Mem(d);
+        assert_eq!(measure(&mut m, 512, Kind::Pdf).unwrap().0, second - 512);
     }
 
     #[test]

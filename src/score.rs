@@ -47,6 +47,8 @@ pub fn carve_image(image: &Path, out: &Path) {
     // what the files found cover, and the files that went wrong before their end
     let mut claims = Claims::default();
     let mut broken = Vec::new();
+    // where the files found whole start, to check the cluster grid of the disk against
+    let mut starts = Vec::new();
     while pos < size {
         let span = CHUNK.min((size - pos) as usize);
         let got = vol.read_at(pos, &mut buf[..span]);
@@ -64,6 +66,7 @@ pub fn carve_image(image: &Path, out: &Path) {
                     Measure::Whole(len, ext, sure) => {
                         open.push(kind, abs + len);
                         claims.add(abs, if sure { abs + len } else { abs + 512 });
+                        starts.push(abs);
                         let path = out.join(format!("f{abs:012}.{ext}"));
                         if copy_range(&mut vol, abs, len, &path) {
                             found += 1;
@@ -83,8 +86,11 @@ pub fn carve_image(image: &Path, out: &Path) {
     }
     // second pass: the files cut in pieces, put back together from what no other file holds
     let mut rebuilt = 0usize;
+    // the pieces of a file start on a cluster
+    let mut grid = crate::geom::Grid::read(&mut vol, size);
+    grid.confirm(&starts);
     for (abs, kind) in broken {
-        let (runs, ext) = match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|_| true) {
+        let (runs, ext) = match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|s| grid.allows(s)) {
             Some(Rebuilt::Pieces(runs, ext)) => {
                 rebuilt += 1;
                 (runs, ext)

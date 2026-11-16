@@ -10,6 +10,7 @@ mod bmp;
 mod carve;
 mod engine;
 mod frag;
+mod geom;
 mod gif;
 mod icons;
 mod inspect;

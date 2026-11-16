@@ -616,6 +616,15 @@ pub struct App {
     /// Indexes into `files` as listed, rebuilt when `view_key` changes.
     view: Vec<usize>,
     view_key: Option<ViewKey>,
+    /// The inspector changed what is known of the files: the list is rebuilt, but not more than
+    /// a few times a second, as during a search it changes all the time.
+    view_stale: bool,
+    view_built: Option<std::time::Instant>,
+    /// Counted with the list: the files shown in each category (duplicates hidden or not), and
+    /// the most common extensions under the category chosen.
+    cat_counts: [usize; 6],
+    shown_total: usize,
+    ext_counts: Vec<(String, usize)>,
     /// What the person is looking for, set before the search.
     wanted: Wanted,
     /// Read the whole drive after the quick look at the file table.
@@ -704,6 +713,11 @@ impl App {
             sort: None,
             view: Vec::new(),
             view_key: None,
+            view_stale: false,
+            view_built: None,
+            cat_counts: [0; 6],
+            shown_total: 0,
+            ext_counts: Vec::new(),
             wanted: Wanted::default(),
             full: false,
             refine_open: false,
@@ -1049,7 +1063,7 @@ impl App {
             }
         }
         self.inspect_new(ctx);
-        self.refresh_view();
+        self.refresh_view(ctx);
     }
 
     /// Hands the newly found files to the inspector and applies what it learned.
@@ -1089,7 +1103,7 @@ impl App {
             }
             self.checks.insert(i, Check { verdict: s.verdict, detail: s.detail, copy_of });
         }
-        self.view_key = None;
+        self.view_stale = true;
     }
 
     fn hidden_dupe(&self, i: usize) -> bool {
@@ -1097,7 +1111,10 @@ impl App {
     }
 
     /// Rebuilds the visible list when the results, the filters or the sort order changed.
-    fn refresh_view(&mut self) {
+    /// What the person changes (filters, sort, search) shows at once; files found or learned
+    /// about while a search runs are taken in at most every `SETTLE`.
+    fn refresh_view(&mut self, ctx: &egui::Context) {
+        const SETTLE: std::time::Duration = std::time::Duration::from_millis(300);
         let key = ViewKey {
             files: self.files.len(),
             filter: self.filter,
@@ -1107,10 +1124,45 @@ impl App {
             query: self.query.trim().to_lowercase(),
             dupes: self.show_dupes,
         };
-        if self.view_key.as_ref() == Some(&key) {
-            return;
+        let only_data = match &self.view_key {
+            Some(old) if *old == key => {
+                if !self.view_stale {
+                    return;
+                }
+                true
+            }
+            Some(old) => ViewKey { files: key.files, ..old.clone() } == key,
+            None => false,
+        };
+        if only_data && let Some(t) = self.view_built {
+            let age = t.elapsed();
+            if age < SETTLE {
+                ctx.request_repaint_after(SETTLE - age);
+                return;
+            }
         }
+        self.view_stale = false;
+        self.view_built = Some(std::time::Instant::now());
         let files = &self.files;
+        // the chips' counts, in the same walk
+        let mut cats = [0usize; 6];
+        let mut shown = 0usize;
+        let mut exts: HashMap<&str, usize> = HashMap::new();
+        for (i, f) in files.iter().enumerate() {
+            if !self.hidden_dupe(i) {
+                shown += 1;
+                cats[f.category as usize] += 1;
+            }
+            if self.filter.is_none_or(|c| f.category == c) {
+                *exts.entry(f.ext.as_str()).or_default() += 1;
+            }
+        }
+        let mut counts: Vec<(String, usize)> = exts.into_iter().map(|(e, n)| (e.to_string(), n)).collect();
+        counts.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
+        counts.truncate(7);
+        self.cat_counts = cats;
+        self.shown_total = shown;
+        self.ext_counts = counts;
         let mut v: Vec<usize> = (0..files.len())
             .filter(|&i| {
                 let f = &files[i];
@@ -1121,11 +1173,19 @@ impl App {
                     && (key.query.is_empty() || f.name.to_lowercase().contains(&key.query) || f.place.to_lowercase().contains(&key.query))
             })
             .collect();
-        if let Some((k, asc)) = self.sort {
+        if let Some((SortKey::Name, asc)) = self.sort {
+            // each name made lower case once, not at every comparison
+            let mut keyed: Vec<(String, usize)> = v.iter().map(|&i| (files[i].name.to_lowercase(), i)).collect();
+            keyed.sort_by(|a, b| {
+                let o = if asc { a.0.cmp(&b.0) } else { b.0.cmp(&a.0) };
+                o.then(files[a.1].id.cmp(&files[b.1].id))
+            });
+            v = keyed.into_iter().map(|(_, i)| i).collect();
+        } else if let Some((k, asc)) = self.sort {
             v.sort_by(|&a, &b| {
                 let (fa, fb) = (&files[a], &files[b]);
                 let o = match k {
-                    SortKey::Name => fa.name.to_lowercase().cmp(&fb.name.to_lowercase()),
+                    SortKey::Name => std::cmp::Ordering::Equal,
                     SortKey::Type => (fa.category, &fa.ext).cmp(&(fb.category, &fb.ext)),
                     SortKey::Size => fa.size.cmp(&fb.size),
                     // unknown dates stay at the bottom either way
@@ -2202,12 +2262,11 @@ impl App {
     fn chips(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 8.0;
-            let shown: Vec<&Found> = (0..self.files.len()).filter(|&i| !self.hidden_dupe(i)).map(|i| &self.files[i]).collect();
-            if chip(ui, None, format!("{}  {}", t!("Tout"), shown.len()), self.filter.is_none(), pal().text, true).clicked() {
+            if chip(ui, None, format!("{}  {}", t!("Tout"), self.shown_total), self.filter.is_none(), pal().text, true).clicked() {
                 self.filter = None;
             }
             for c in Category::ALL {
-                let n = shown.iter().filter(|f| f.category == c).count();
+                let n = self.cat_counts[c as usize];
                 if n == 0 {
                     continue;
                 }
@@ -2247,15 +2306,7 @@ impl App {
         });
         ui.add_space(8.0);
         // second row: the most common extensions of what is shown, and a minimum size
-        let mut counts: Vec<(String, usize)> = Vec::new();
-        for f in self.files.iter().filter(|f| self.filter.is_none_or(|c| f.category == c)) {
-            match counts.iter_mut().find(|(e, _)| *e == f.ext) {
-                Some((_, n)) => *n += 1,
-                None => counts.push((f.ext.clone(), 1)),
-            }
-        }
-        counts.sort_by(|a, b| b.1.cmp(&a.1).then(a.0.cmp(&b.0)));
-        counts.truncate(7);
+        let counts = self.ext_counts.clone();
         ui.horizontal(|ui| {
             ui.spacing_mut().item_spacing.x = 6.0;
             if counts.len() > 1 || self.ext_filter.is_some() {
