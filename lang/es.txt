@@ -621,3 +621,8 @@ Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus
 = Hace el análisis rápido y luego lee todo el disco: encuentra también archivos más antiguos, a menudo sin su nombre. Puede tardar más de una hora.
 Analyse complète : moteur moderne d'Open Recovr
 = Análisis completo: motor moderno de Open Recovr
+
+ce n'est pas un disque FAT ou exFAT
+= no es una unidad FAT ni exFAT
+Analyse rapide : table {} de {} blocs de {} o
+= Análisis rápido: tabla {} de {} clústeres de {} B

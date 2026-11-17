@@ -8,7 +8,8 @@
      as is), puts one partition on it and formats it with Windows' own format;
   2. ages it: rounds of copies from a corpus of real files into nested folders, deletions and
      overwrites, so that files end up fragmented the way a used disk fragments them;
-  3. before each deletion, records where the file lay (fsutil file queryextents) with its hashes;
+  3. before each deletion, records where the file lay (asked from the file system, on NTFS, FAT32
+     and exFAT alike) with its hashes;
   4. applies the scenario, then lists the files still alive and detaches the disk.
 
   Writes <Out>\<Name>.vhd and <Out>\<Name>.tsv, the truth file read by `open-recovr --bench-score`.
@@ -21,8 +22,8 @@
                  random bytes, half of them deleted), so that the files written after it are split
                  the way they are on a full, much-used disk
 
-  fsutil only reports where files lie on NTFS (and ReFS). On FAT32 and exFAT the truth has no
-  extents: the scorer cannot tell overwritten files apart, and counts them all as recoverable.
+  The first file described is read back from the raw volume to check its extents: the script
+  stops if they do not match the disk.
 
 .EXAMPLE
   .\scripts\bench\make-vhd.ps1 -Corpus D:\corpus -Out D:\bench -Name ntfs-aged -SizeMB 2048
@@ -60,6 +61,85 @@ if ($Scenario -eq 'camera') {
 if ($files.Count -lt 10) { throw "not enough files in $Corpus" }
 Write-Host "$($files.Count) files in the corpus"
 
+# Where a file lies, asked from the file system itself (FSCTL_GET_RETRIEVAL_POINTERS, which
+# fsutil file queryextents also uses, but on NTFS only): NTFS, FAT32 and exFAT all answer it.
+Add-Type @"
+using System; using System.Collections.Generic; using System.ComponentModel; using System.Runtime.InteropServices;
+using Microsoft.Win32.SafeHandles;
+public static class Extents {
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    static extern SafeFileHandle CreateFile(string name, uint access, uint share, IntPtr sa, uint disposition, uint flags, IntPtr template);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool DeviceIoControl(SafeFileHandle h, uint code, ref long inBuf, int inSize, byte[] outBuf, int outSize, out int got, IntPtr ov);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool ReadFile(SafeFileHandle h, byte[] buf, int len, out int got, IntPtr ov);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool SetFilePointerEx(SafeFileHandle h, long to, out long at, int how);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool FlushFileBuffers(SafeFileHandle h);
+
+    static SafeFileHandle Open(string name, uint access) {
+        var h = CreateFile(name, access, 7, IntPtr.Zero, 3, 0, IntPtr.Zero);
+        if (h.IsInvalid) throw new Win32Exception(Marshal.GetLastWin32Error(), name);
+        return h;
+    }
+
+    // the runs of a file in file order: { lcn, clusters }, lcn -1 for a hole
+    public static List<long[]> Of(string path) {
+        var runs = new List<long[]>();
+        using (var h = Open(path, 0x80)) {
+            long vcn = 0;
+            var buf = new byte[64 * 1024];
+            while (true) {
+                int got;
+                bool ok = DeviceIoControl(h, 0x90073, ref vcn, 8, buf, buf.Length, out got, IntPtr.Zero);
+                int err = ok ? 0 : Marshal.GetLastWin32Error();
+                if (err == 38) break; // nothing on disk: empty, or inside its MFT record
+                if (!ok && err != 234) throw new Win32Exception(err, path);
+                int count = BitConverter.ToInt32(buf, 0);
+                long start = BitConverter.ToInt64(buf, 8);
+                for (int i = 0; i < count; i++) {
+                    long next = BitConverter.ToInt64(buf, 16 + 16 * i), lcn = BitConverter.ToInt64(buf, 24 + 16 * i);
+                    runs.Add(new long[] { lcn, next - start });
+                    start = next;
+                }
+                if (ok || count == 0) break;
+                vcn = start;
+            }
+        }
+        return runs;
+    }
+
+    static byte[] Sector(SafeFileHandle h, long at) {
+        var b = new byte[512];
+        long pos; int got;
+        if (!SetFilePointerEx(h, at, out pos, 0) || !ReadFile(h, b, 512, out got, IntPtr.Zero) || got != 512)
+            throw new Win32Exception(Marshal.GetLastWin32Error());
+        return b;
+    }
+
+    // the byte of the volume where cluster (LCN) 0 starts
+    public static long DataStart(char letter, string fs) {
+        if (fs == "NTFS") return 0;
+        using (var h = Open(@"\\.\" + letter + ":", 0x80000000)) {
+            var b = Sector(h, 0);
+            long bps = BitConverter.ToUInt16(b, 11);
+            if (fs == "exFAT") return (long)BitConverter.ToUInt32(b, 88) << b[108];
+            long fat = BitConverter.ToUInt16(b, 22);
+            if (fat == 0) fat = BitConverter.ToUInt32(b, 36);
+            long root = (BitConverter.ToUInt16(b, 17) * 32 + bps - 1) / bps;
+            return (BitConverter.ToUInt16(b, 14) + b[16] * fat + root) * bps;
+        }
+    }
+
+    // a sector of the volume, once the file's data is written out
+    public static byte[] Read(char letter, string path, long at) {
+        using (var f = Open(path, 0x40000000)) { FlushFileBuffers(f); }
+        using (var h = Open(@"\\.\" + letter + ":", 0x80000000)) { return Sector(h, at); }
+    }
+}
+"@
+
 # --- the disk -----------------------------------------------------------------------------
 $dp = [IO.Path]::GetTempFileName()
 "create vdisk file=`"$vhd`" maximum=$SizeMB type=fixed" | Out-File -Encoding ascii $dp
@@ -80,30 +160,34 @@ try {
     $base = $part.Offset
     Write-Host "$FileSystem on $root, cluster $cl, partition at byte $base"
 
+    # Where the clusters of the volume start: cluster numbers (LCN) count from the start of the
+    # volume on NTFS, from the start of the data area on FAT32 and exFAT (its first cluster, number 2)
+    $data = [Extents]::DataStart($part.DriveLetter, $FileSystem)
+    $checked = $false
+
     $sha = [Security.Cryptography.SHA256]::Create()
     function Hex($b) { -join ($b | ForEach-Object { $_.ToString('x2') }) }
     function Describe($path, $state) {
         $bytes = [IO.File]::ReadAllBytes($path)
         $head = if ($bytes.Length -gt 4096) { $sha.ComputeHash($bytes, 0, 4096) } else { $sha.ComputeHash($bytes) }
         $ext = '-'; $pieces = 1
-        if ($FileSystem -eq 'NTFS') {
-            # "VCN: 0x0  Clusters: 0x10  LCN: 0x2a4f" (the labels are translated, the numbers are not)
-            $runs = @()
-            foreach ($l in (fsutil file queryextents $path)) {
-                $n = [regex]::Matches($l, '0x([0-9a-fA-F]+)')
-                if ($n.Count -eq 3) {
-                    $runs += , @([Convert]::ToInt64($n[2].Groups[1].Value, 16), [Convert]::ToInt64($n[1].Groups[1].Value, 16))
-                }
+        # the runs of the file as the file system lists them (lcn, clusters), holes left out
+        $runs = [Collections.Generic.List[object]]::new()
+        foreach ($r in [Extents]::Of($path)) { if ($r[0] -ge 0) { $runs.Add($r) } }
+        if ($runs.Count -gt 0) {
+            # once, the first cluster read back from the volume itself must be the file's
+            if (-not $script:checked -and $bytes.Length -ge 512) {
+                $raw = [Extents]::Read($part.DriveLetter, $path, $data + $runs[0][0] * $cl)
+                for ($i = 0; $i -lt 512; $i++) { if ($raw[$i] -ne $bytes[$i]) { throw "the extents of $path do not match the disk" } }
+                $script:checked = $true
             }
-            if ($runs.Count -gt 0) {
-                # runs that follow each other on disk are one piece
-                $merged = @(); foreach ($r in $runs) {
-                    if ($merged.Count -and $merged[-1][0] + $merged[-1][1] -eq $r[0]) { $merged[-1][1] += $r[1] } else { $merged += , @($r[0], $r[1]) }
-                }
-                $pieces = $merged.Count
-                $ext = ($merged | ForEach-Object { "$($base + $_[0] * $cl)+$($_[1] * $cl)" }) -join ','
-            } else { $pieces = 0 } # small enough to live inside its MFT record
-        }
+            # runs that follow each other on disk are one piece
+            $merged = @(); foreach ($r in $runs) {
+                if ($merged.Count -and $merged[-1][0] + $merged[-1][1] -eq $r[0]) { $merged[-1][1] += $r[1] } else { $merged += , @($r[0], $r[1]) }
+            }
+            $pieces = $merged.Count
+            $ext = ($merged | ForEach-Object { "$($base + $data + $_[0] * $cl)+$($_[1] * $cl)" }) -join ','
+        } elseif ($FileSystem -eq 'NTFS') { $pieces = 0 } # small enough to live inside its MFT record
         @((Hex $sha.ComputeHash($bytes)), (Hex $head), $bytes.Length, $state, $pieces, $ext, $path.Substring(3)) -join "`t"
     }
 

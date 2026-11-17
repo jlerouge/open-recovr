@@ -622,3 +622,8 @@ Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus
 = Doet de snelle scan en leest daarna de hele schijf: vindt ook oudere bestanden, vaak zonder hun naam. Kan meer dan een uur duren.
 Analyse complète : moteur moderne d'Open Recovr
 = Volledige scan: moderne engine van Open Recovr
+
+ce n'est pas un disque FAT ou exFAT
+= het is geen FAT- of exFAT-schijf
+Analyse rapide : table {} de {} blocs de {} o
+= Snelle scan: {}-tabel van {} clusters van {} B

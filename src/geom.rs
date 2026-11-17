@@ -23,37 +23,7 @@ pub struct Grid(Vec<Area>);
 impl Grid {
     /// The volumes on a disk image, behind its partition table if it has one.
     pub fn read(src: &mut dyn Source, size: u64) -> Grid {
-        let mut areas = Vec::new();
-        let mut s0 = [0u8; 512];
-        if src.read_at(0, &mut s0) < 512 {
-            return Grid(areas);
-        }
-        if let Some(a) = volume(src, 0, size) {
-            areas.push(a);
-            return Grid(areas);
-        }
-        if s0[510..512] != [0x55, 0xAA] {
-            return Grid(areas);
-        }
-        let mut starts = Vec::new();
-        for e in 0..4 {
-            let p = &s0[446 + 16 * e..462 + 16 * e];
-            let kind = p[4];
-            let lba = u32::from_le_bytes(p[8..12].try_into().unwrap()) as u64;
-            if kind == 0xEE {
-                starts.extend(gpt(src));
-            } else if kind != 0 && lba > 0 {
-                starts.push(lba * 512);
-            }
-        }
-        for at in starts {
-            if at < size
-                && let Some(a) = volume(src, at, size)
-            {
-                areas.push(a);
-            }
-        }
-        Grid(areas)
+        Grid(volumes(src, size).into_iter().map(|v| v.1).collect())
     }
 
     /// Keeps the volumes where most of the files found whole start on the grid: at least 16 of
@@ -77,6 +47,33 @@ impl Grid {
     pub fn areas(&self) -> &[Area] {
         &self.0
     }
+}
+
+/// The volumes on a disk image, behind its partition table if it has one: where each starts
+/// (its boot sector) and its data area.
+pub fn volumes(src: &mut dyn Source, size: u64) -> Vec<(u64, Area)> {
+    let mut s0 = [0u8; 512];
+    if src.read_at(0, &mut s0) < 512 {
+        return Vec::new();
+    }
+    if let Some(a) = volume(src, 0, size) {
+        return vec![(0, a)];
+    }
+    if s0[510..512] != [0x55, 0xAA] {
+        return Vec::new();
+    }
+    let mut starts = Vec::new();
+    for e in 0..4 {
+        let p = &s0[446 + 16 * e..462 + 16 * e];
+        let kind = p[4];
+        let lba = u32::from_le_bytes(p[8..12].try_into().unwrap()) as u64;
+        if kind == 0xEE {
+            starts.extend(gpt(src));
+        } else if kind != 0 && lba > 0 {
+            starts.push(lba * 512);
+        }
+    }
+    starts.into_iter().filter(|&at| at < size).filter_map(|at| volume(src, at, size).map(|a| (at, a))).collect()
 }
 
 fn le16(b: &[u8], at: usize) -> u64 {

@@ -23,7 +23,7 @@
 use crate::carve::{self, Measure, Source, Volume};
 use crate::frag::{self, Claims, Rebuilt};
 use sha2::{Digest, Sha256};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -39,6 +39,74 @@ pub fn carve_image(image: &Path, out: &Path) {
     std::fs::create_dir_all(out).ok();
     let mut vol = Volume { inner: file, size };
     let t = Instant::now();
+    let (found, rebuilt, bytes) = carve_into(&mut vol, size, out, &HashSet::new());
+    println!("carved {found} files ({rebuilt} put back together), {bytes} bytes, in {:.2} s", t.elapsed().as_secs_f64());
+}
+
+/// What the search of the window does on a disk image: the file table of each volume first
+/// (NTFS), then the carver over the whole image, skipping the files the table already gave.
+pub fn recover_image(image: &Path, out: &Path) {
+    use crate::engine::{Origin, ScanShared, Wanted};
+    use std::sync::{Mutex, atomic::AtomicBool};
+    let Ok(file) = std::fs::File::open(image) else {
+        eprintln!("cannot open {}", image.display());
+        std::process::exit(2);
+    };
+    let size = file.metadata().map(|m| m.len()).unwrap_or(0);
+    std::fs::create_dir_all(out).ok();
+    let mut vol = Volume { inner: file, size };
+    let t = Instant::now();
+    let (shared, cancel, ctx) = (Mutex::new(ScanShared::default()), AtomicBool::new(false), eframe::egui::Context::default());
+    let mut next_id = 0usize;
+    let mut known = HashSet::new();
+    let (mut listed, mut listed_bytes) = (0usize, 0u64);
+    for (base, _) in crate::geom::volumes(&mut vol, size) {
+        let mut boot = [0u8; 512];
+        vol.read_at(base, &mut boot);
+        let mut sub = carve::Shifted { inner: &mut vol, base };
+        let res = if &boot[3..11] == b"NTFS    " {
+            crate::ntfs::scan_volume(&mut sub, "", "", None, &Wanted::default(), &shared, &cancel, &mut next_id, &ctx)
+        } else if crate::fat::is_fat_boot(&boot) {
+            crate::fat::scan_volume(&mut sub, "", "", &Wanted::default(), &shared, &cancel, &mut next_id, &ctx)
+        } else {
+            continue;
+        };
+        if let Err(e) = res {
+            eprintln!("volume at {base}: {e}");
+        }
+        let files = std::mem::take(&mut shared.lock().unwrap().new_files);
+        for f in files {
+            let path = out.join(format!("q{:06}_{}", f.id, f.name.replace(['\\', '/', ':'], "_")));
+            let ok = match &f.origin {
+                Origin::Runs { runs, guess, .. } => {
+                    let runs: Vec<(Option<u64>, u64)> = runs.iter().map(|&(a, l)| (a.map(|a| a + base), l)).collect();
+                    if let Some(&(Some(at), _)) = runs.first()
+                        && !guess
+                        && f.chance != crate::engine::Chance::Low
+                    {
+                        known.insert(at);
+                    }
+                    copy_holes(&mut vol, &runs, f.size, &path)
+                }
+                Origin::Bytes(b) => std::fs::write(&path, b).is_ok(),
+                _ => false,
+            };
+            if ok {
+                listed += 1;
+                listed_bytes += f.size;
+            }
+        }
+    }
+    let (found, rebuilt, bytes) = carve_into(&mut vol, size, out, &known);
+    println!(
+        "listed {listed} files ({listed_bytes} bytes), carved {found} more ({rebuilt} put back together, {bytes} bytes), in {:.2} s",
+        t.elapsed().as_secs_f64()
+    );
+}
+
+/// The carver over the whole image, files written to `out`; nothing is written for a file
+/// starting where one in `known` does. How many files, how many of them put back together, bytes.
+fn carve_into(vol: &mut dyn Source, size: u64, out: &Path, known: &HashSet<u64>) -> (usize, usize, u64) {
     const CHUNK: usize = 8 << 20;
     const STEP: usize = 512;
     let mut buf = vec![0u8; CHUNK];
@@ -63,13 +131,17 @@ pub fn carve_image(image: &Path, out: &Path) {
             if let Some(kind) = carve::detect(&buf[off..got.min(off + 512)])
                 && open.allows(abs, kind)
             {
-                match carve::assess(&mut vol, abs, kind) {
+                match carve::assess(vol, abs, kind) {
                     Measure::Whole(len, ext, sure) => {
                         open.push(kind, abs + len);
                         claims.add(abs, if sure { abs + len } else { abs + 512 });
                         starts.push(abs);
+                        if known.contains(&abs) {
+                            off += STEP;
+                            continue;
+                        }
                         let path = out.join(format!("f{abs:012}.{ext}"));
-                        if copy_range(&mut vol, abs, len, &path) {
+                        if copy_range(vol, abs, len, &path) {
                             found += 1;
                             bytes += len;
                         }
@@ -89,27 +161,59 @@ pub fn carve_image(image: &Path, out: &Path) {
     // second pass: the files cut in pieces, put back together from what no other file holds
     let mut rebuilt = 0usize;
     // the pieces of a file start on a cluster
-    let mut grid = crate::geom::Grid::read(&mut vol, size);
+    let mut grid = crate::geom::Grid::read(vol, size);
     grid.confirm(&starts);
     for (abs, kind) in broken {
-        let (runs, ext) = match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|s| grid.allows(s), coded.list()) {
+        if known.contains(&abs) {
+            continue;
+        }
+        let (runs, ext) = match frag::rebuild(vol, size, abs, kind, &mut claims, &|s| grid.allows(s), coded.list()) {
             Some(Rebuilt::Pieces(runs, ext)) => {
                 rebuilt += 1;
                 (runs, ext)
             }
             // what reads of it straight through, as before
-            None => match carve::measure(&mut vol, abs, kind) {
+            None => match carve::measure(vol, abs, kind) {
                 Some((len, ext)) => (vec![(abs, len)], ext),
                 None => continue,
             },
         };
         let path = out.join(format!("f{abs:012}.{ext}"));
-        if copy_runs(&mut vol, &runs, &path) {
+        if copy_runs(vol, &runs, &path) {
             found += 1;
             bytes += runs.iter().map(|r| r.1).sum::<u64>();
         }
     }
-    println!("carved {found} files ({rebuilt} put back together), {bytes} bytes, in {:.2} s", t.elapsed().as_secs_f64());
+    (found, rebuilt, bytes)
+}
+
+/// Writes the pieces of a file listed by a file table, holes as zeros, cut at its size.
+fn copy_holes(src: &mut dyn Source, runs: &[(Option<u64>, u64)], size: u64, path: &Path) -> bool {
+    use std::io::Write;
+    let Ok(f) = std::fs::File::create(path) else { return false };
+    let mut w = std::io::BufWriter::new(f);
+    let mut buf = vec![0u8; 1 << 20];
+    let mut left = size;
+    for &(at, len) in runs {
+        let len = len.min(left);
+        let mut done = 0u64;
+        while done < len {
+            let n = ((len - done) as usize).min(buf.len());
+            let got = match at {
+                Some(a) => src.read_at(a + done, &mut buf[..n]),
+                None => {
+                    buf[..n].fill(0);
+                    n
+                }
+            };
+            if got == 0 || w.write_all(&buf[..got]).is_err() {
+                return false;
+            }
+            done += got as u64;
+        }
+        left -= len;
+    }
+    w.flush().is_ok()
 }
 
 /// Writes the pieces of a file, one after the other.

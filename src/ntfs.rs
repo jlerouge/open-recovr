@@ -14,7 +14,7 @@ pub fn is_ntfs(disk: &Disk) -> bool {
 }
 
 /// Folders that only hold the system's own leftovers: nobody looks for those.
-const NOISE: &[&str] = &[
+pub const NOISE: &[&str] = &[
     "\\windows\\",
     "\\windows.old\\",
     "\\programdata\\",
@@ -425,7 +425,7 @@ pub fn scan_volume(
                     got > 0 && head[..got].iter().all(|&x| x == 0)
                 });
                 let chance = if reused || blank { Chance::Low } else { Chance::Good };
-                (Origin::Runs { device: device.to_string(), runs: pieces }, chance)
+                (Origin::Runs { device: device.to_string(), runs: pieces, guess: false }, chance)
             }
         };
         let secs = filetime_secs(l.modified);

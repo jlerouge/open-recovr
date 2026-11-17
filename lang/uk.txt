@@ -623,3 +623,8 @@ Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus
 = Виконує швидке сканування, потім читає весь диск: знаходить також старіші файли, часто без назви. Може тривати понад годину.
 Analyse complète : moteur moderne d'Open Recovr
 = Повне сканування: сучасний рушій Open Recovr
+
+ce n'est pas un disque FAT ou exFAT
+= це не диск FAT або exFAT
+Analyse rapide : table {} de {} blocs de {} o
+= Швидкий аналіз: таблиця {} з {} кластерів по {} Б

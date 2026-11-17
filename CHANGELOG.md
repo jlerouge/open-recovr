@@ -4,6 +4,10 @@ All notable changes to Open Recovr are listed here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project uses
 [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+- **Quick scan for FAT12, FAT16, FAT32 and exFAT drives** (USB sticks, memory cards), as for NTFS: deleted files come back with their name, folder and date, deleted folders included. FAT32 forgets the high half of a deleted file's first cluster; it is worked out from the file's own header and length. A file whose pieces can only be guessed is still left to the full scan, which rebuilds it from its content. A deleted file whose place was written over by another one since (a header of another kind, or two deleted files at one place) is shown with a low chance, and the full scan brings back what lies there now.
+
 ## 0.4.1
 
 - **Faster full scan**, 20 to 50% on the test images. A fragmented file's next piece is looked for only where the volume's clusters start (read from the partition table and boot sectors). A PDF now stops at the next file instead of taking in the files after it.

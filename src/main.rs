@@ -9,6 +9,7 @@ mod bench;
 mod bmp;
 mod carve;
 mod engine;
+mod fat;
 mod frag;
 mod geom;
 mod gif;
@@ -114,6 +115,12 @@ fn main() -> eframe::Result {
             "--carve" => {
                 let (image, out) = (args.next().unwrap_or_default(), args.next().unwrap_or_default());
                 score::carve_image(std::path::Path::new(&image), std::path::Path::new(&out));
+                return Ok(());
+            }
+            // the file table of each volume, then the carver, as the search of the window does
+            "--recover" => {
+                let (image, out) = (args.next().unwrap_or_default(), args.next().unwrap_or_default());
+                score::recover_image(std::path::Path::new(&image), std::path::Path::new(&out));
                 return Ok(());
             }
             // scores what any engine recovered against the files really on the disk

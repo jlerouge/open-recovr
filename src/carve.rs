@@ -263,6 +263,18 @@ pub trait Source {
     fn read_at(&mut self, offset: u64, buf: &mut [u8]) -> usize;
 }
 
+/// A volume inside a disk: offsets counted from its first byte, at `base` on the disk.
+pub struct Shifted<'a, S: Source + ?Sized> {
+    pub inner: &'a mut S,
+    pub base: u64,
+}
+
+impl<S: Source + ?Sized> Source for Shifted<'_, S> {
+    fn read_at(&mut self, offset: u64, buf: &mut [u8]) -> usize {
+        self.inner.read_at(self.base + offset, buf)
+    }
+}
+
 /// A raw volume: reads must start and end on whole sectors (512 bytes on disks and cards,
 /// 2048 on CDs and DVDs), so they are aligned on 4096, which suits both.
 pub struct Volume<R: Read + Seek> {

@@ -216,7 +216,13 @@ pub enum Origin {
     /// Rebuilt from the raw bytes of the drive.
     Raw { device: String, offset: u64 },
     /// Where the file table says its pieces lie: (byte offset, or a hole, ; length).
-    Runs { device: String, runs: Vec<(Option<u64>, u64)> },
+    Runs {
+        device: String,
+        runs: Vec<(Option<u64>, u64)>,
+        /// The pieces are guessed (FAT keeps no trace of where a deleted file went past its
+        /// first cluster), so the deep search may still rebuild the file from its content.
+        guess: bool,
+    },
     /// Small files kept inside the file table itself.
     Bytes(Arc<[u8]>),
     /// Rebuilt by PhotoRec into the scratch folder.
@@ -264,8 +270,10 @@ impl ScanShared {
     pub fn add(&mut self, f: Found) {
         self.found += 1;
         self.found_bytes += f.size;
-        if let Origin::Runs { runs, .. } = &f.origin
+        if let Origin::Runs { runs, guess: false, .. } = &f.origin
             && let Some(&(Some(at), _)) = runs.first()
+            // what lies there now is another file, which the deep search may bring back
+            && f.chance != Chance::Low
         {
             self.known_starts.insert(at);
         }
@@ -342,8 +350,14 @@ impl ScanJob {
             s.lock().unwrap().note(t!("Corbeille : {} élément(s) retenu(s)", in_bin));
             ctx.request_repaint();
             // The quick search reads the file table: names and folders come back, in minutes.
-            let quick = deep && crate::ntfs::is_ntfs(&disk) && !c.load(Ordering::Relaxed);
-            if quick && let Err(msg) = crate::ntfs::scan(&disk, &wanted, &s, &c, &mut next_id, &ctx) {
+            let quick = deep && (crate::ntfs::is_ntfs(&disk) || crate::fat::is_fat(&disk)) && !c.load(Ordering::Relaxed);
+            if quick
+                && let Err(msg) = if crate::ntfs::is_ntfs(&disk) {
+                    crate::ntfs::scan(&disk, &wanted, &s, &c, &mut next_id, &ctx)
+                } else {
+                    crate::fat::scan(&disk, &wanted, &s, &c, &mut next_id, &ctx)
+                }
+            {
                 s.lock().unwrap().note(t!("Analyse rapide impossible : {}", msg));
             }
             if deep && (full || !quick) && !c.load(Ordering::Relaxed) {
@@ -504,7 +518,11 @@ pub(crate) fn deep_scan(
     let mut starts = Vec::new();
     // the free sectors that read like the coded data of a photo, where its next piece may be
     let mut coded = frag::Coded::default();
-    let mut add =|abs: u64, ext: &'static str, len: u64, origin: Origin| {
+    let mut add = |abs: u64, ext: &'static str, len: u64, origin: Origin| {
+        // already listed by the quick scan, by name
+        if s.lock().unwrap().known_starts.contains(&abs) {
+            return;
+        }
         let cat = Category::from_ext(ext);
         if !wanted.accepts(ext, cat, len, false) {
             return;
@@ -608,7 +626,7 @@ pub(crate) fn deep_scan(
             Some(Rebuilt::Pieces(runs, ext)) => {
                 let len = runs.iter().map(|r| r.1).sum();
                 let runs = runs.into_iter().map(|(a, l)| (Some(a), l)).collect();
-                add(abs, ext, len, Origin::Runs { device: disk.device.clone(), runs });
+                add(abs, ext, len, Origin::Runs { device: disk.device.clone(), runs, guess: false });
             }
             // what reads of it straight through, as before
             None => {
@@ -686,7 +704,7 @@ pub fn read_found(f: &Found, max: u64, mut sink: impl FnMut(&[u8]) -> bool) -> s
             sink(&b[..(len as usize).min(b.len())]);
             Ok(())
         }
-        Origin::Runs { device, runs } => {
+        Origin::Runs { device, runs, .. } => {
             let mut left = len;
             let zeros = vec![0u8; 1 << 20];
             let mut go_on = true;

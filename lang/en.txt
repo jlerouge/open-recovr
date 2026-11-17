@@ -621,3 +621,8 @@ Fait l'analyse rapide puis lit tout le disque : retrouve aussi les fichiers plus
 = Does the quick scan, then reads the whole drive: also finds older files, often without their name. May take more than an hour.
 Analyse complète : moteur moderne d'Open Recovr
 = Full scan: Open Recovr's modern engine
+
+ce n'est pas un disque FAT ou exFAT
+= it is not a FAT or exFAT drive
+Analyse rapide : table {} de {} blocs de {} o
+= Quick scan: {} table of {} clusters of {} B
