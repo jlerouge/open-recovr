@@ -400,6 +400,7 @@ pub fn rebuild(
         Kind::Gif => crate::gif::rebuild(src, size, at, claims, free, MAX_PIECES)?,
         Kind::Tiff => crate::tif::rebuild(src, size, at, claims, free, MAX_PIECES)?,
         Kind::Zip => crate::pkzip::rebuild(src, size, at, claims)?,
+        Kind::Pdf => crate::pdf::rebuild(src, size, at, claims, free, MAX_PIECES)?,
         _ => return None,
     };
     for &(a, l) in &runs {
@@ -412,6 +413,7 @@ pub fn rebuild(
         Kind::Pcx => "pcx",
         Kind::Gif => "gif",
         Kind::Tiff => "tif",
+        Kind::Pdf => "pdf",
         Kind::Zip => crate::carve::measure(src, at, kind).map_or("zip", |m| m.1),
         _ => "",
     };

@@ -30,7 +30,7 @@ A file whose format offers nothing to check is kept as the first pass read it, a
 
 ## 2. Detection (first pass)
 
-`carve::detect` looks at the first bytes of a sector and names the kind of file that starts there: JPEG, PNG, GIF, BMP, WebP, PDF, ZIP and the formats built on it, MP4/MOV/M4A/HEIF/CR3, AVI, WAV, MP3, TIFF and the raw formats built on it, OLE compound files, PCX, HTML/XML, Matroska/WebM, MPEG-TS, MPEG-PS, FLAC, Ogg, AAC, ASF, FLV, AIFF, CAF, RAF, CRW and PSD.
+`carve::detect` looks at the first bytes of a sector and names the kind of file that starts there: JPEG, PNG, GIF, BMP, WebP, PDF, ZIP and the formats built on it, MP4/MOV/M4A/HEIF/CR3, AVI, WAV, MP3, TIFF and the raw formats built on it, OLE compound files, PCX, HTML/XML, Matroska/WebM, MPEG-TS, MPEG-PS, FLAC, Ogg, AAC, ASF, FLV, AIFF, CAF, RAF, CRW, PSD, MIDI, PostScript and DjVu.
 
 Files are written from the start of a cluster, so headers are only looked for on sector boundaries. A magic number alone is never enough. Each detector also checks the fields that follow (a valid version, sizes within range, a known chunk type), so a few random bytes rarely pass.
 
@@ -43,7 +43,7 @@ A header found inside a file that was already found is not ignored. A file writt
 `carve::measure` works out each file's length from its structure, never by guessing a size:
 
 - **Chained formats** (PNG, MP4, RIFF, FLV, CAF, Matroska): a chain of chunks or boxes, each one with its size, walked to the end.
-- **Formats with an end marker** (JPEG, GIF, PDF, MPEG-PS): read up to that marker. JPEG is decoded as far as needed (see section 4.1), so a 0xFFD9 found inside a thumbnail does not end the main picture. A PDF ends at its last `%%EOF`, not its first: a linearized PDF states its own length in its first object (used when a `%%EOF` really ends there), and an incremental update is followed past each `%%EOF` as long as an object or a cross-reference table comes next.
+- **Formats with an end marker** (JPEG, GIF, PDF, MPEG-PS): read up to that marker. JPEG is decoded as far as needed (see section 4.1), so a 0xFFD9 found inside a thumbnail does not end the main picture. A PDF ends at its last `%%EOF`, not its first: a linearized PDF states its own length in its first object (used when a `%%EOF` really ends there; an incremental update written after it is still followed), and an incremental update is followed past each `%%EOF` as long as an object or a cross-reference table comes next.
 - **Formats with a directory** (ZIP, OLE, TIFF, RAF, CRW, ICO, TrueType and OpenType fonts): the directory says where the parts are and how far the file goes.
 - **gzip**: the deflate stream carries no length, so it is inflated to its end, and the CRC and size in the trailer must match what came out.
 - **Frame streams** (MP3, AAC, MPEG-TS, Ogg, FLAC): consecutive frames as long as they keep the same format. FLAC frames carry no length, so each one ends where its checksum matches.
@@ -163,9 +163,17 @@ Each entry carries the CRC-32 of its content. Inflating an entry tells whether i
 
 The end-of-central-directory record says where the central directory starts in the file. Found on the disk, it places the last piece exactly. What is left is the cut between the first piece and the last, searched from the top down: each failure pulls the bound down to where the data first went wrong.
 
-### 4.9 Other formats
+### 4.9 PDF
 
-MP4, MOV, Matroska, AVI, WAV, MP3, FLAC, Ogg, PDF and the others are found and measured by the first pass. A fragmented file of these kinds is not rebuilt yet. It is listed as the first pass read it, and its preview and integrity check show whether it plays or opens.
+A PDF ends with `startxref`, the place of its cross-reference table, and `%%EOF`. The table gives the offset of every object in the file. A whole PDF is checked against it: each object listed must start where the table says (a sample of at most 4096 are read). A PDF whose objects are not where its table says is broken, even if its end was found.
+
+To rebuild one, the `startxref … %%EOF` lines near the first piece are searched for on the disk. Each gives a table, which places the last piece: the table's own offset in the file and its place on the disk must agree, sector for sector. A linearized file's last `startxref` points to the small table near its start, whose `/Prev` leads to the main one. Every object the tables list is then put in a piece: under the shift of the piece before it, under the last piece's shift, or, when neither fits, under a new shift found by searching for `n g obj` on the disk. The cuts between pieces are searched from the top down. A piece is accepted when its objects read on to `endobj`, a stream is as long as its `/Length` says, and a compressed stream inflates with a good checksum.
+
+PDFs whose table is itself a compressed stream (about 3% of them) are measured but not rebuilt.
+
+### 4.10 Other formats
+
+MP4, MOV, Matroska, AVI, WAV, MP3, FLAC, Ogg, MIDI, PostScript, DjVu and the others are found and measured by the first pass. A fragmented file of these kinds is not rebuilt yet. It is listed as the first pass read it, and its preview and integrity check show whether it plays or opens.
 
 ## 5. After recovery
 

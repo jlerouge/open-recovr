@@ -715,6 +715,15 @@ pub fn scan_volume(
         let overwritten = fit == -1
             || (fit == 0 && ALWAYS_HEADED.contains(&norm_ext(&ext).as_str()))
             || last.get(&e.start).is_some_and(|&len| len != e.size);
+        // a PDF read as one run whose own table puts its objects elsewhere was cut in pieces:
+        // the deep search may rebuild it
+        let cut = !guess
+            && !overwritten
+            && fit >= 2
+            && runs.len() == 1
+            && norm_ext(&ext) == "pdf"
+            && matches!(crate::pdf::check(vol as &mut dyn Source, fs.at(e.start)), crate::pdf::Check::Bad);
+        let (guess, overwritten) = (guess || cut, overwritten || cut);
         let runs = runs.into_iter().map(|(c, k)| (Some(fs.at(c)), k * fs.cluster)).collect();
         batch.push(Found {
             id: *next_id,

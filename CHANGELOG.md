@@ -7,6 +7,9 @@ All notable changes to Open Recovr are listed here. The format follows
 ## Unreleased
 
 - **Quick scan for FAT12, FAT16, FAT32 and exFAT drives** (USB sticks, memory cards), as for NTFS: deleted files come back with their name, folder and date, deleted folders included. FAT32 forgets the high half of a deleted file's first cluster; it is worked out from the file's own header and length. A file whose pieces can only be guessed is still left to the full scan, which rebuilds it from its content. A deleted file whose place was written over by another one since (a header of another kind, or two deleted files at one place) is shown with a low chance, and the full scan brings back what lies there now.
+- **A reformatted NTFS drive gives back more files with their names.** A quick format writes a new, small file table over the start of the old one; the old entries left after it are now read too, with their folders.
+- **Fragmented PDFs are put back together** by the modern engine, from their cross-reference table, which says where each object lies in the file. A whole PDF is also checked against its table, so one with missing pieces is no longer kept as if it were whole. A linearized PDF updated afterwards is no longer cut at the length it had before the update.
+- The modern engine now also finds **MIDI, PostScript and DjVu** files.
 
 ## 0.4.1
 

@@ -19,6 +19,7 @@ mod jpeg;
 mod ntfs;
 mod ole;
 mod pcx;
+mod pdf;
 mod photorec;
 mod pkzip;
 mod png;

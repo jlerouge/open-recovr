@@ -489,6 +489,13 @@ pub fn assess(src: &mut dyn Source, offset: u64, kind: Kind) -> Measure {
             crate::bmp::Check::Unsupported => {}
         }
     }
+    if kind == Kind::Pdf {
+        match crate::pdf::check(src, offset) {
+            crate::pdf::Check::Good(len) => return Measure::Whole(len, "pdf", true),
+            crate::pdf::Check::Bad => return Measure::Broken,
+            crate::pdf::Check::Unsupported => {}
+        }
+    }
     match measure(src, offset, kind) {
         Some((len, ext)) => Measure::Whole(len, ext, false),
         None => Measure::None,
@@ -645,6 +652,7 @@ fn pdf(c: &mut Cursor, max: u64) -> Option<u64> {
         Some(h) => h.to_vec(),
         None => c.get(0, 64)?.to_vec(),
     };
+    let mut lin = None;
     if let Some(l) = linearized_len(&head)
         && l > 64
         && l <= max
@@ -653,13 +661,17 @@ fn pdf(c: &mut Cursor, max: u64) -> Option<u64> {
         let t = t.to_vec();
         let body = t.iter().rposition(|&x| x != b'\r' && x != b'\n' && x != b' ');
         if body.is_some_and(|i| i >= 4 && &t[i - 4..=i] == b"%%EOF") {
-            return Some(l);
+            lin = Some(l);
         }
     }
-    let mut end = match pdf_eof(c, 8, max)? {
-        Ok(e) => e + eol(c, e),
-        // cut in pieces: what comes before the next file is all that is surely its own
-        Err(next) => return Some(next),
+    // an incremental update may follow the length the file had when it was linearized
+    let mut end = match lin {
+        Some(l) => l,
+        None => match pdf_eof(c, 8, max)? {
+            Ok(e) => e + eol(c, e),
+            // cut in pieces: what comes before the next file is all that is surely its own
+            Err(next) => return Some(next),
+        },
     };
     loop {
         let Some(next) = c.get(end, 32).map(|t| t.to_vec()) else { break };
@@ -720,7 +732,7 @@ fn linearized_len(head: &[u8]) -> Option<u64> {
 }
 
 /// Whether bytes after a `%%EOF` carry on the same PDF: an object ("12 0 obj") or a table.
-fn pdf_goes_on(b: &[u8]) -> bool {
+pub(crate) fn pdf_goes_on(b: &[u8]) -> bool {
     if b.starts_with(b"xref") {
         return true;
     }
@@ -1954,10 +1966,17 @@ mod tests {
         disk.extend_from_slice(&lin);
         disk.extend_from_slice(b"junk 1 0 obj %%EOF\n");
         disk.resize(disk.len() + 4096, 0);
+        // linearized, then updated: the update follows the length `/L` gives
+        let mut both = lin.clone();
+        both.extend_from_slice(b"2 0 obj<<>>endobj\nxref\ntrailer<<>>\nstartxref\n9\n%%EOF\n");
+        let both_at = disk.len();
+        disk.extend_from_slice(&both);
+        disk.resize(disk.len() + 4096, 0);
 
         let mut m = Mem(disk);
         assert_eq!(measure(&mut m, upd_at as u64, Kind::Pdf).unwrap().0, upd.len() as u64);
         assert_eq!(measure(&mut m, lin_at as u64, Kind::Pdf).unwrap().0, lin.len() as u64);
+        assert_eq!(measure(&mut m, both_at as u64, Kind::Pdf).unwrap().0, both.len() as u64);
     }
 
     #[test]
