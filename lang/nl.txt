@@ -394,6 +394,8 @@ zone illisible à l'octet {} ({}) : ignorée
 = {0}-{1}-{2}
 {} dossiers, {} fichiers effacés dans la table
 = {} mappen, {} verwijderde bestanden in de tabel
+{} entrées d'une ancienne table après celle-ci (disque reformaté) : {} dossiers, {} fichiers
+= {} items van een oudere tabel na deze (schijf opnieuw geformatteerd): {} mappen, {} bestanden
 {} libres
 = {} vrij
 {} libres sur {}

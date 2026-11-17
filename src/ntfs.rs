@@ -153,6 +153,61 @@ struct Lost {
     modified: u64,
     size: u64,
     data: Data,
+    /// Found after the table, left from an older one: its folders are the older table's.
+    orphan: bool,
+}
+
+/// What a record of the table brings: a folder (to rebuild paths) or a deleted file.
+/// `orphan`: a record left from an older table, whose files are all lost whatever its flags say.
+fn take(rec: &[u8], n: u64, cluster: u64, orphan: bool, dirs: &mut HashMap<u64, (String, u64)>, lost: &mut Vec<Lost>, bin_names: &mut HashMap<String, String>) {
+    let flags = u16le(rec, 0x16);
+    let (in_use, is_dir) = (flags & 1 != 0 && !orphan, flags & 2 != 0);
+    if u64le(rec, 0x20) != 0 {
+        return; // an extension of another record
+    }
+    let Some((name, parent, modified)) = file_name(rec) else { return };
+    if is_dir {
+        dirs.insert(n, (name, parent));
+    } else if !in_use && let Some((size, data)) = unnamed_data(rec, cluster) {
+        if let Data::Inside(bytes) = &data
+            && let Some(rest) = name.strip_prefix("$I")
+            && let Some(orig) = bin_info(bytes)
+        {
+            bin_names.insert(rest.to_lowercase(), orig);
+        }
+        if size > 0 {
+            lost.push(Lost { name, parent, modified, size, data, orphan });
+        }
+    }
+}
+
+/// Records left from an older table after the end of a piece of this one: a quick format writes a
+/// small new table where the old one started, and the old records past it stay as they were until
+/// files are written there. They are read on as long as more of them turn up. Each one carries its
+/// own number, which its files' parent references point to.
+fn orphans(vol: &mut impl Source, from: u64, record: usize, cancel: &AtomicBool, mut each: impl FnMut(&mut [u8], u64)) {
+    const STEP: u64 = 1 << 20;
+    const GAP: u64 = 16 << 20;
+    let mut pos = from;
+    // the first megabyte has to hold one, then up to 16 MB may pass between them
+    let mut limit = from + STEP;
+    let mut buf = vec![0u8; STEP as usize];
+    while pos < limit && !cancel.load(Ordering::Relaxed) {
+        let got = vol.read_at(pos, &mut buf);
+        if got < record {
+            break;
+        }
+        for (i, rec) in buf[..got / record * record].chunks_exact_mut(record).enumerate() {
+            // the record's own number, at 0x2C since NTFS 3.1
+            if &rec[0..4] != b"FILE" || u16le(rec, 4) < 0x30 || !fixup(rec) {
+                continue;
+            }
+            let n = u32le(rec, 0x2C) as u64;
+            each(rec, n);
+            limit = limit.max(pos + (i * record) as u64 + GAP);
+        }
+        pos += got as u64;
+    }
 }
 
 /// What one record says: the best of its names, its parent folder and its date.
@@ -311,27 +366,8 @@ pub fn scan_volume(
             for rec in carry[..whole].chunks_exact_mut(b.record) {
                 let n = recno;
                 recno += 1;
-                if !fixup(rec) {
-                    continue;
-                }
-                let flags = u16le(rec, 0x16);
-                let (in_use, is_dir) = (flags & 1 != 0, flags & 2 != 0);
-                if u64le(rec, 0x20) != 0 {
-                    continue; // an extension of another record
-                }
-                let Some((name, parent, modified)) = file_name(rec) else { continue };
-                if is_dir {
-                    dirs.insert(n, (name, parent));
-                } else if !in_use && let Some((size, data)) = unnamed_data(rec, b.cluster) {
-                    if let Data::Inside(bytes) = &data
-                        && let Some(rest) = name.strip_prefix("$I")
-                        && let Some(orig) = bin_info(bytes)
-                    {
-                        bin_names.insert(rest.to_lowercase(), orig);
-                    }
-                    if size > 0 {
-                        lost.push(Lost { name, parent, modified, size, data });
-                    }
+                if fixup(rec) {
+                    take(rec, n, b.cluster, false, &mut dirs, &mut lost, &mut bin_names);
                 }
             }
             carry.drain(..whole);
@@ -348,7 +384,28 @@ pub fn scan_volume(
     }
     s.lock().unwrap().note(t!("{} dossiers, {} fichiers effacés dans la table", dirs.len(), lost.len()));
 
-    let path_of = |mut p: u64| -> String {
+    let mut old_dirs: HashMap<u64, (String, u64)> = HashMap::new();
+    let mut seen = std::collections::HashSet::new();
+    let before = lost.len();
+    for &(at, len) in &mft_runs {
+        let Some(at) = at else { continue };
+        orphans(vol, at + len, b.record, cancel, |rec, n| {
+            if seen.insert(n) {
+                take(rec, n, b.cluster, true, &mut old_dirs, &mut lost, &mut bin_names);
+            }
+        });
+    }
+    if !seen.is_empty() {
+        s.lock().unwrap().note(t!(
+            "{} entrées d'une ancienne table après celle-ci (disque reformaté) : {} dossiers, {} fichiers",
+            seen.len(),
+            old_dirs.len(),
+            lost.len() - before
+        ));
+    }
+
+    let path_of = |mut p: u64, orphan: bool| -> String {
+        let dirs = if orphan { &old_dirs } else { &dirs };
         let mut parts = Vec::new();
         for _ in 0..64 {
             if p == 5 {
@@ -383,7 +440,7 @@ pub fn scan_volume(
         if cancel.load(Ordering::Relaxed) {
             break;
         }
-        let folder = path_of(l.parent);
+        let folder = path_of(l.parent, l.orphan);
         // a file emptied from the Recycle Bin: "$R…" holds the data, "$I…" its real name
         let (name, place) = match l.name.strip_prefix("$R").and_then(|r| bin_names.get(&r.to_lowercase())) {
             Some(orig) => {
@@ -594,6 +651,16 @@ mod tests {
         put(&mut img, 13, record(1, &[name(5, "vivant.txt"), resident(0x80, b"encore la")]));
         img[20 * CL..21 * CL].fill(0xAA);
         img[30 * CL..31 * CL].fill(0xBB);
+        // left from an older table, past the end of this one (cluster 12): a folder and a file
+        // still flagged in use there, which each record's own number ties together
+        let old = |n: u32, mut r: Vec<u8>| {
+            r[0x2C..0x30].copy_from_slice(&n.to_le_bytes());
+            r
+        };
+        let r = old(40, record(3, &[name(5, "Ancien")]));
+        img[12 * CL..12 * CL + REC].copy_from_slice(&r);
+        let r = old(41, record(1, &[name(40, "vieux.png"), outside(5000, &[0x11, 2, 50])]));
+        img[12 * CL + 3 * REC..12 * CL + 4 * REC].copy_from_slice(&r);
         img
     }
 
@@ -625,7 +692,8 @@ mod tests {
             vec![
                 ("chat.jpg", "Corbeille vidée · C:\\Users\\Mme\\Images", 100),
                 ("note.txt", "C:", 7),
-                ("vacances.jpg", &*format!("C:{sep}Photos"), 6000)
+                ("vacances.jpg", &*format!("C:{sep}Photos"), 6000),
+                ("vieux.png", &*format!("C:{sep}Ancien"), 5000)
             ]
         );
         let photo = g.new_files.iter().find(|f| f.name == "vacances.jpg").unwrap();

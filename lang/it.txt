@@ -394,6 +394,8 @@ zone illisible à l'octet {} ({}) : ignorée
 = {0}/{1}/{2}
 {} dossiers, {} fichiers effacés dans la table
 = {} cartelle, {} file eliminati nella tabella
+{} entrées d'une ancienne table après celle-ci (disque reformaté) : {} dossiers, {} fichiers
+= {} voci di una tabella precedente dopo questa (unità riformattata): {} cartelle, {} file
 {} libres
 = {} liberi
 {} libres sur {}

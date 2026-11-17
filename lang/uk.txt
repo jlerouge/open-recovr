@@ -395,6 +395,8 @@ zone illisible à l'octet {} ({}) : ignorée
 = {0}.{1}.{2}
 {} dossiers, {} fichiers effacés dans la table
 = папок: {}, видалених файлів у таблиці: {}
+{} entrées d'une ancienne table après celle-ci (disque reformaté) : {} dossiers, {} fichiers
+= {} записів старішої таблиці після цієї (диск переформатовано): {} папок, {} файлів
 {} libres
 = вільно: {}
 {} libres sur {}

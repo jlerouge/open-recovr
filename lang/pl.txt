@@ -395,6 +395,8 @@ zone illisible à l'octet {} ({}) : ignorée
 = {0}.{1}.{2}
 {} dossiers, {} fichiers effacés dans la table
 = foldery: {}, usunięte pliki w tablicy: {}
+{} entrées d'une ancienne table après celle-ci (disque reformaté) : {} dossiers, {} fichiers
+= {} wpisów starszej tabeli za tą (dysk sformatowany ponownie): {} folderów, {} plików
 {} libres
 = wolne: {}
 {} libres sur {}
