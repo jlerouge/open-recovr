@@ -37,6 +37,9 @@ pub enum Kind {
     Ico,
     Font,
     Gzip,
+    Midi,
+    Ps,
+    Djvu,
 }
 
 impl Kind {
@@ -63,6 +66,8 @@ impl Kind {
             Kind::Ico => 16 * MB,
             Kind::Font => 64 * MB,
             Kind::Gzip => 2048 * MB,
+            Kind::Midi => 16 * MB,
+            Kind::Ps | Kind::Djvu => 512 * MB,
         }
     }
 
@@ -85,6 +90,7 @@ impl Kind {
             Ogg => inner == Ogg,
             Tiff | Raf | Crw | Psd => matches!(inner, Tiff | Jpeg),
             Ole => inner == Ole,
+            Ps => inner == Ps,
             _ => false,
         }
     }
@@ -216,6 +222,15 @@ pub fn detect(b: &[u8]) -> Option<Kind> {
     }
     if b.starts_with(&[0x1F, 0x8B, 8]) && b[3] & 0xE0 == 0 && matches!(b[8], 0 | 2 | 4) && (b[9] <= 13 || b[9] == 255) {
         return Some(Kind::Gzip);
+    }
+    if b.starts_with(b"MThd\0\0\0\x06") && b[8] == 0 && b[9] <= 2 && (b[10], b[11]) != (0, 0) {
+        return Some(Kind::Midi);
+    }
+    if b.starts_with(b"AT&TFORM") && matches!(&b[12..16], b"DJVU" | b"DJVM" | b"DJVI") {
+        return Some(Kind::Djvu);
+    }
+    if b.starts_with(b"%!PS-Adobe-") || b.starts_with(b"%!\n%%") || b.starts_with(b"%!\r\n%%") {
+        return Some(Kind::Ps);
     }
     if b.starts_with(&[0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]) {
         return Some(Kind::Ole);
@@ -507,6 +522,9 @@ pub fn measure(src: &mut dyn Source, offset: u64, kind: Kind) -> Option<(u64, &'
         Kind::Psd => "psd",
         Kind::Ico => "ico",
         Kind::Gzip => "gz",
+        Kind::Midi => "mid",
+        Kind::Ps => "ps",
+        Kind::Djvu => "djvu",
         // worked out from the file itself
         Kind::Zip | Kind::Tiff | Kind::Ole | Kind::Markup | Kind::Font => "",
         Kind::Mp4 | Kind::Mov | Kind::M4a | Kind::Mkv | Kind::Ts | Kind::Ogg | Kind::Asf => "",
@@ -547,6 +565,13 @@ pub fn measure(src: &mut dyn Source, offset: u64, kind: Kind) -> Option<(u64, &'
             return font(&mut c, max).filter(|&len| len >= 256).map(|len| (len, if otf { "otf" } else { "ttf" }));
         }
         Kind::Gzip => gzip(&mut c, max),
+        Kind::Midi => midi(&mut c, max),
+        Kind::Ps => postscript(&mut c, max),
+        Kind::Djvu => {
+            // the FORM chunk's length, after "AT&T" and its own header
+            let size = be32(&c.get(0, 16)?[8..]) + 12;
+            (size > 64 && size <= max).then_some(size)
+        }
         Kind::Zip => return zip(&mut c, max),
         Kind::Tiff => return tiff(&mut c, max),
         Kind::Ole => return ole(&mut c, max),
@@ -1758,6 +1783,66 @@ fn pcx(c: &mut Cursor, max: u64) -> Option<u64> {
     Some(pos)
 }
 
+/// A MIDI file: its header chunk gives the number of tracks, and each track is a chunk with its
+/// length. Chunks of other types may come between them and are skipped.
+fn midi(c: &mut Cursor, max: u64) -> Option<u64> {
+    let h = c.get(0, 14)?;
+    let tracks = u16::from_be_bytes([h[10], h[11]]);
+    let mut pos = 14u64;
+    let mut seen = 0;
+    while seen < tracks {
+        let h = c.get(pos, 8)?;
+        if !h[..4].iter().all(|x| x.is_ascii_alphanumeric()) {
+            return None;
+        }
+        seen += u16::from(&h[..4] == b"MTrk");
+        pos += 8 + be32(&h[4..]);
+        if pos > max {
+            return None;
+        }
+    }
+    Some(pos)
+}
+
+/// PostScript: text up to its last `%%EOF` (pictures embedded in it have their own). The text
+/// stops at a sector where another file starts, at a zero byte, or at a sector that is not text:
+/// a few binary bytes are allowed, as some files carry them in a picture's data.
+fn postscript(c: &mut Cursor, max: u64) -> Option<u64> {
+    let odd = |b: u8| (b < 0x20 && !matches!(b, b'\t' | b'\n' | b'\r' | 0x0C | 0x04)) || b == 0x7F;
+    let mut pos = 0u64;
+    let mut end = None;
+    // the end of the previous sector and this one, for a `%%EOF` across the two
+    let mut tail: Vec<u8> = Vec::new();
+    while pos < max {
+        let sec = match c.get(pos, 512) {
+            Some(s) => s.to_vec(),
+            None => c.chunk(pos).map(|s| s.to_vec()).unwrap_or_default(),
+        };
+        if sec.is_empty() || (pos > 0 && detect(&sec).is_some()) {
+            break;
+        }
+        let cut = if sec.iter().filter(|&&b| odd(b)).count() > 16 {
+            sec.iter().position(|&b| odd(b)).unwrap_or(0)
+        } else {
+            sec.iter().position(|&b| b == 0).unwrap_or(sec.len())
+        };
+        tail.drain(..tail.len().saturating_sub(4));
+        let base = pos - tail.len() as u64;
+        tail.extend_from_slice(&sec[..cut]);
+        if let Some(i) = memchr::memmem::rfind(&tail, b"%%EOF") {
+            end = Some(base + i as u64 + 5);
+        }
+        if cut < sec.len() {
+            break;
+        }
+        pos += sec.len() as u64;
+    }
+    let end = end?;
+    // with its line break and the end-of-job mark some printers' files carry
+    let t = c.get(end, 3).map(|t| t.to_vec()).unwrap_or_default();
+    Some(end + t.iter().take_while(|&&x| matches!(x, b'\r' | b'\n' | 0x04)).count() as u64)
+}
+
 /// HTML, XHTML, SVG and other XML: text up to the end tag of the root element. The text stops at
 /// the first byte no text file holds, or at a sector where another file starts.
 fn markup(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
@@ -2302,6 +2387,39 @@ mod tests {
         }
         orf.resize(464, 0x66);
         assert_eq!(carve_one(&orf, 0x11), Some((Kind::Tiff, 464, "orf")));
+    }
+
+    #[test]
+    fn midi_djvu_and_postscript() {
+        // two tracks, with a chunk of another type between them
+        let mut mid = b"MThd\0\0\0\x06\0\x01\0\x02\x01\xE0".to_vec();
+        for (id, len) in [(b"MTrk", 300u32), (b"XFIH", 20), (b"MTrk", 40)] {
+            mid.extend_from_slice(id);
+            mid.extend_from_slice(&len.to_be_bytes());
+            mid.extend(std::iter::repeat_n(0x90, len as usize));
+        }
+        assert_eq!(carve_one(&mid, 0x55), Some((Kind::Midi, mid.len() as u64, "mid")));
+
+        // a one-page DjVu of odd length, followed by other data
+        let mut djvu = b"AT&TFORM".to_vec();
+        djvu.extend_from_slice(&401u32.to_be_bytes());
+        djvu.extend_from_slice(b"DJVUINFO");
+        djvu.extend(std::iter::repeat_n(7, 393));
+        assert_eq!(carve_one(&djvu, 0x55), Some((Kind::Djvu, djvu.len() as u64, "djvu")));
+
+        // PostScript holding an EPS picture with its own `%%EOF`, then old text and zeros
+        let mut ps = b"%!PS-Adobe-3.0\n%%Pages: 1\n".to_vec();
+        ps.extend(b"0 0 moveto (hello) show\n".repeat(30));
+        ps.extend_from_slice(b"%%BeginDocument: a.eps\n%!PS-Adobe-3.0 EPSF-3.0\nshowpage\n%%EOF\n%%EndDocument\n");
+        ps.extend(b"1 1 lineto stroke\n".repeat(40));
+        ps.extend_from_slice(b"showpage\n%%Trailer\n%%EOF\r\n\x04");
+        let mut disk = ps.clone();
+        disk.extend_from_slice(b"old text after it\n%%EOF but not at a line start");
+        assert_eq!(carve_one(&ps, 0), Some((Kind::Ps, ps.len() as u64, "ps")));
+        // with old text after it, the last `%%EOF` wins: no way to tell it apart
+        assert_eq!(carve_one(&disk, 0).map(|(k, _, e)| (k, e)), Some((Kind::Ps, "ps")));
+        // without any `%%EOF`, nothing
+        assert_eq!(carve_one(b"%!PS-Adobe-3.0\nshowpage\n".repeat(20).as_slice(), 0), None);
     }
 
     #[test]
