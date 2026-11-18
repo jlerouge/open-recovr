@@ -171,9 +171,17 @@ To rebuild one, the `startxref … %%EOF` lines near the first piece are searche
 
 PDFs whose table is itself a compressed stream (about 3% of them) are measured but not rebuilt.
 
-### 4.10 Other formats
+### 4.10 MP3
 
-MP4, MOV, Matroska, AVI, WAV, MP3, FLAC, Ogg, MIDI, PostScript, DjVu and the others are found and measured by the first pass. A fragmented file of these kinds is not rebuilt yet. It is listed as the first pass read it, and its preview and integrity check show whether it plays or opens.
+Each MPEG audio frame starts with a header that gives its length. After the header comes the side information: `main_data_begin`, how many bytes of this frame's audio lie back in the frames before it (the bit reservoir), and the length in bits of each granule's data. From these, each frame tells how many bytes of the reservoir it leaves to the next one, and the next frame's `main_data_begin` must say the same. Most encoders keep this chain exact, frame after frame. A frame of another song lands on a matching value only about once in 400 times, and only the frames at a join can show a wrong join: the other song's own frames agree with each other.
+
+A Xing or Info frame at the start of a song gives the length of its audio. A song whose frames stop before that length is broken. Without that frame, a song that has an ID3 tag and whose frames stop on something that is neither silence nor a tag is broken too. After the frames may come an APEv2 tag and the 128-byte ID3v1 one.
+
+To rebuild a song, the free sectors whose first bytes start a run of frames are noted during the scan. Each cut on a sector bound in the last frames read is tried against them. The frame across the cut must lead to a header of the same format at the right place in the candidate sector, and the reservoir chain must hold over the frames on both sides of the join and on for 8 frames more, or to the end of the song. The song is followed this way through up to 32 pieces, to the length its Info frame gives, or to a tag or to silence.
+
+### 4.11 Other formats
+
+MP4, MOV, Matroska, AVI, WAV, FLAC, Ogg, MIDI, PostScript, DjVu and the others are found and measured by the first pass. A fragmented file of these kinds is not rebuilt yet. It is listed as the first pass read it, and its preview and integrity check show whether it plays or opens.
 
 ## 5. After recovery
 

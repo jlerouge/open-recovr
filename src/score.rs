@@ -118,6 +118,7 @@ fn carve_into(vol: &mut dyn Source, size: u64, out: &Path, known: &HashSet<u64>)
     // where the files found whole start, to check the cluster grid of the disk against
     let mut starts = Vec::new();
     let mut coded = frag::Coded::default();
+    let mut frames = crate::mp3::Frames::default();
     while pos < size {
         let span = CHUNK.min((size - pos) as usize);
         let got = vol.read_at(pos, &mut buf[..span]);
@@ -154,6 +155,7 @@ fn carve_into(vol: &mut dyn Source, size: u64, out: &Path, known: &HashSet<u64>)
                 }
             }
             coded.see(abs, &buf[off..got.min(off + 512)], &claims);
+            frames.see(abs, &buf[off..got.min(off + 4096)], &claims);
             off += STEP;
         }
         pos += got as u64;
@@ -167,7 +169,7 @@ fn carve_into(vol: &mut dyn Source, size: u64, out: &Path, known: &HashSet<u64>)
         if known.contains(&abs) {
             continue;
         }
-        let (runs, ext) = match frag::rebuild(vol, size, abs, kind, &mut claims, &|s| grid.allows(s), coded.list()) {
+        let (runs, ext) = match frag::rebuild(vol, size, abs, kind, &mut claims, &|s| grid.allows(s), coded.list(), frames.list()) {
             Some(Rebuilt::Pieces(runs, ext)) => {
                 rebuilt += 1;
                 (runs, ext)

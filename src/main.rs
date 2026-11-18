@@ -16,6 +16,7 @@ mod gif;
 mod icons;
 mod inspect;
 mod jpeg;
+mod mp3;
 mod ntfs;
 mod ole;
 mod pcx;

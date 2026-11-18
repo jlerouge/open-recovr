@@ -259,7 +259,7 @@ pub fn detect(b: &[u8]) -> Option<Kind> {
     // MP3 without a tag, AAC in ADTS frames: just frames, one after the other. The frame after the
     // first must be valid too when it starts within the sector.
     // (`keep`: the bits of the third byte that stay the same from frame to frame)
-    for (kind, frame, keep) in [(Kind::Mp3, mp3_frame as fn(&[u8]) -> Option<u64>, 0x0C), (Kind::Aac, adts_frame, 0xFC)] {
+    for (kind, frame, keep) in [(Kind::Mp3, crate::mp3::frame_len as fn(&[u8]) -> Option<u64>, 0x0C), (Kind::Aac, adts_frame, 0xFC)] {
         if let Some(len) = frame(b) {
             let next = len as usize;
             let same = |n: &[u8]| frame(n).is_some() && n[1] == b[1] && n[2] & keep == b[2] & keep;
@@ -487,6 +487,13 @@ pub fn assess(src: &mut dyn Source, offset: u64, kind: Kind) -> Measure {
             crate::bmp::Check::Good(len) => return Measure::Whole(len, "bmp", true),
             crate::bmp::Check::Bad => return Measure::Broken,
             crate::bmp::Check::Unsupported => {}
+        }
+    }
+    if kind == Kind::Mp3 {
+        match crate::mp3::check(src, offset) {
+            crate::mp3::Check::Good(len) => return Measure::Whole(len, "mp3", true),
+            crate::mp3::Check::Bad => return Measure::Broken,
+            crate::mp3::Check::Unsupported => {}
         }
     }
     if kind == Kind::Pdf {
@@ -912,30 +919,6 @@ fn mp4(c: &mut Cursor, max: u64) -> Option<(u64, &'static str)> {
     (moov && mdat || photo && meta).then_some((pos, ext))
 }
 
-/// The length of the MPEG audio layer III frame whose header starts `f`, if it is one.
-fn mp3_frame(f: &[u8]) -> Option<u64> {
-    const BR1: [u64; 15] = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320];
-    const BR2: [u64; 15] = [0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160];
-    if f.len() < 4 || f[0] != 0xFF || f[1] & 0xE0 != 0xE0 {
-        return None;
-    }
-    let version = (f[1] >> 3) & 3; // 3 = MPEG1, 2 = MPEG2, 0 = MPEG2.5
-    let layer = (f[1] >> 1) & 3; // 1 = layer III
-    let bri = (f[2] >> 4) as usize;
-    let sri = ((f[2] >> 2) & 3) as usize;
-    if version == 1 || layer != 1 || bri == 0 || bri == 15 || sri == 3 || f[3] & 3 == 2 {
-        return None;
-    }
-    let pad = ((f[2] >> 1) & 1) as u64;
-    let base = [44100u64, 48000, 32000][sri];
-    let (sr, br, k) = match version {
-        3 => (base, BR1[bri], 144),
-        2 => (base / 2, BR2[bri], 72),
-        _ => (base / 4, BR2[bri], 72),
-    };
-    Some(k * br * 1000 / sr + pad)
-}
-
 /// The length of the AAC frame in ADTS form (ISO/IEC 13818-7) whose header starts `h`, if it is one.
 fn adts_frame(h: &[u8]) -> Option<u64> {
     if h.len() < 7 || h[0] != 0xFF || h[1] & 0xF6 != 0xF0 || (h[2] >> 2) & 15 > 12 {
@@ -975,7 +958,15 @@ fn mp3(c: &mut Cursor, max: u64) -> Option<u64> {
         // without a tag, only the frames say it is a song
         (0, 32)
     };
-    let (mut pos, n) = frames(c, start, max, mp3_frame, 0x0C)?;
+    let (mut pos, n) = frames(c, start, max, crate::mp3::frame_len, 0x0C)?;
+    if let Some(t) = c.get(pos, 32)
+        && t.starts_with(b"APETAGEX")
+    {
+        let (size, flags) = (le32(&t[12..]), le32(&t[20..]));
+        if size <= 16 << 20 {
+            pos += if flags & (1 << 29) != 0 { 32 + size } else { 32 };
+        }
+    }
     if c.get(pos, 3).is_some_and(|t| t == b"TAG") {
         pos += 128;
     }

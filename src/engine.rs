@@ -518,6 +518,8 @@ pub(crate) fn deep_scan(
     let mut starts = Vec::new();
     // the free sectors that read like the coded data of a photo, where its next piece may be
     let mut coded = frag::Coded::default();
+    // and those where the frames of a song start
+    let mut frames = crate::mp3::Frames::default();
     let mut add = |abs: u64, ext: &'static str, len: u64, origin: Origin| {
         // already listed by the quick scan, by name
         if s.lock().unwrap().known_starts.contains(&abs) {
@@ -605,6 +607,7 @@ pub(crate) fn deep_scan(
             }
             if !in_use(abs) {
                 coded.see(abs, &buf[off..got.min(off + 512)], &claims);
+                frames.see(abs, &buf[off..got.min(off + 4096)], &claims);
             }
             off += step;
         }
@@ -622,7 +625,7 @@ pub(crate) fn deep_scan(
         if cancel.load(Ordering::Relaxed) {
             break;
         }
-        match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|off| !in_use(off) && grid.allows(off), coded.list()) {
+        match frag::rebuild(&mut vol, size, abs, kind, &mut claims, &|off| !in_use(off) && grid.allows(off), coded.list(), frames.list()) {
             Some(Rebuilt::Pieces(runs, ext)) => {
                 let len = runs.iter().map(|r| r.1).sum();
                 let runs = runs.into_iter().map(|(a, l)| (Some(a), l)).collect();

@@ -375,7 +375,9 @@ pub fn open_run(at: u64, size: u64, claims: &Claims, max: u64) -> (u64, u64) {
 ///
 /// `coded` lists, when known, every sector of the disk that no file found whole holds and that
 /// reads like the coded data of a JPEG: the next piece of a photo is looked for among them,
-/// across the whole disk, in place of the sectors near the cut.
+/// across the whole disk, in place of the sectors near the cut. `frames` lists in the same way
+/// the free sectors where the frames of an MP3 start.
+#[allow(clippy::too_many_arguments)]
 pub fn rebuild(
     src: &mut dyn Source,
     size: u64,
@@ -384,6 +386,7 @@ pub fn rebuild(
     claims: &mut Claims,
     free: &dyn Fn(u64) -> bool,
     coded: Option<&[u64]>,
+    frames: Option<&[u64]>,
 ) -> Option<Rebuilt> {
     if kind == Kind::Ole {
         let (runs, ext) = crate::ole::rebuild(src, size, at, claims, free)?;
@@ -401,6 +404,8 @@ pub fn rebuild(
         Kind::Tiff => crate::tif::rebuild(src, size, at, claims, free, MAX_PIECES)?,
         Kind::Zip => crate::pkzip::rebuild(src, size, at, claims)?,
         Kind::Pdf => crate::pdf::rebuild(src, size, at, claims, free, MAX_PIECES)?,
+        // its frames tell a join well enough to follow a song through many pieces
+        Kind::Mp3 => crate::mp3::rebuild(src, size, at, claims, free, 4 * MAX_PIECES, frames)?,
         _ => return None,
     };
     for &(a, l) in &runs {
@@ -414,6 +419,7 @@ pub fn rebuild(
         Kind::Gif => "gif",
         Kind::Tiff => "tif",
         Kind::Pdf => "pdf",
+        Kind::Mp3 => "mp3",
         Kind::Zip => crate::carve::measure(src, at, kind).map_or("zip", |m| m.1),
         _ => "",
     };
