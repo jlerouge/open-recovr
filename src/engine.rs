@@ -51,13 +51,12 @@ impl Category {
             | "nef" | "dng" | "arw" | "orf" | "raf" | "rw2" | "x3f" | "mrw" | "pef" | "psd" | "pcx" | "svg" | "ico" => Category::Photos,
             "mp4" | "mov" | "avi" | "mkv" | "wmv" | "asf" | "3gp" | "m4v" | "mts" | "m2ts" | "webm" | "mpg" | "mpeg" | "flv" | "wtv"
             | "ogv" | "3g2" | "m2t" | "vob" => Category::Videos,
-            "mp3" | "wav" | "m4a" | "flac" | "ogg" | "opus" | "wma" | "aac" | "aif" | "aiff" | "mid" | "midi" | "au" | "ape" | "caf" | "m4b" => {
-                Category::Music
-            }
+            "mp3" | "wav" | "m4a" | "flac" | "ogg" | "opus" | "wma" | "aac" | "aif" | "aiff" | "mid" | "midi" | "au" | "ape" | "caf"
+            | "m4b" => Category::Music,
             "pdf" | "doc" | "docx" | "xls" | "xlsx" | "ppt" | "pptx" | "odt" | "ods" | "odp" | "odg" | "txt" | "rtf" | "csv" | "md"
-            | "epub" | "one" | "wpd" | "ps" | "djvu" | "pub" | "msg" | "eml" | "vsd" | "xml" | "html" | "htm" | "json" | "yaml" | "yml" | "ini"
-            | "tex" | "c" | "h" | "cpp" | "hpp" | "cc" | "cs" | "java" | "kt" | "py" | "js" | "ts" | "rs" | "go" | "php" | "rb" | "pl"
-            | "sh" | "ps1" | "bat" | "sql" | "css" | "swift" | "lua" => Category::Documents,
+            | "epub" | "one" | "wpd" | "ps" | "djvu" | "pub" | "msg" | "eml" | "vsd" | "xml" | "html" | "htm" | "json" | "yaml" | "yml"
+            | "ini" | "tex" | "c" | "h" | "cpp" | "hpp" | "cc" | "cs" | "java" | "kt" | "py" | "js" | "ts" | "rs" | "go" | "php" | "rb"
+            | "pl" | "sh" | "ps1" | "bat" | "sql" | "css" | "swift" | "lua" => Category::Documents,
             "zip" | "rar" | "7z" | "tar" | "gz" | "bz2" | "xz" | "cab" => Category::Archives,
             _ => Category::Other,
         }

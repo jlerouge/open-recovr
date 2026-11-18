@@ -159,7 +159,15 @@ struct Lost {
 
 /// What a record of the table brings: a folder (to rebuild paths) or a deleted file.
 /// `orphan`: a record left from an older table, whose files are all lost whatever its flags say.
-fn take(rec: &[u8], n: u64, cluster: u64, orphan: bool, dirs: &mut HashMap<u64, (String, u64)>, lost: &mut Vec<Lost>, bin_names: &mut HashMap<String, String>) {
+fn take(
+    rec: &[u8],
+    n: u64,
+    cluster: u64,
+    orphan: bool,
+    dirs: &mut HashMap<u64, (String, u64)>,
+    lost: &mut Vec<Lost>,
+    bin_names: &mut HashMap<String, String>,
+) {
     let flags = u16le(rec, 0x16);
     let (in_use, is_dir) = (flags & 1 != 0 && !orphan, flags & 2 != 0);
     if u64le(rec, 0x20) != 0 {

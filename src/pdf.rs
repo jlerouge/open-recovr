@@ -454,16 +454,7 @@ fn place(
 /// A next piece that starts with the first of `rest`: found on the disk near `near`, its
 /// position agreeing with the offset the table gives, the items after it agreeing too.
 #[allow(clippy::too_many_arguments)]
-fn middle(
-    f: &mut Feed,
-    size: u64,
-    rest: &[Item],
-    near: u64,
-    dz: u64,
-    at: u64,
-    claims: &Claims,
-    pieces: &[(u64, usize)],
-) -> Option<u64> {
+fn middle(f: &mut Feed, size: u64, rest: &[Item], near: u64, dz: u64, at: u64, claims: &Claims, pieces: &[(u64, usize)]) -> Option<u64> {
     let it = rest[0];
     let What::Obj(n, g) = it.what else { return None };
     let pat = format!("{n} {g} obj");
